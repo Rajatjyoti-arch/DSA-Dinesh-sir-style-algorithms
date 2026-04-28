@@ -1,0 +1,36 @@
+================================================================================
+                   INSERTION IN A GRAPH
+================================================================================
+
+--------------------------------------------------------------------------------
+1. INSERTING A NEW VERTEX
+--------------------------------------------------------------------------------
+
+ALGORITHM: INSNODE (NODE, NEXT, ADJ, START, AVAILN, N)
+[This algorithm inserts a new vertex N into the graph]
+
+1. If AVAILN = NULL, then:
+      Write: OVERFLOW & Exit
+2. Set NEW := AVAILN, AVAILN := NEXT[AVAILN]
+3. Set NODE[NEW] := N, ADJ[NEW] := NULL
+4. Set NEXT[NEW] := START, START := NEW
+5. Exit
+
+
+--------------------------------------------------------------------------------
+2. INSERTING A NEW EDGE
+--------------------------------------------------------------------------------
+
+ALGORITHM: INSEDGE (NODE, NEXT, ADJ, START, DEST, LINK, AVAILE, NODEA, NODEB)
+[This algorithm inserts a new edge (NODEA, NODEB) into the graph]
+
+1. Call FIND (NODE, NEXT, START, NODEA, LOC1)
+2. Call FIND (NODE, NEXT, START, NODEB, LOC2)
+3. If LOC1 = NULL or LOC2 = NULL, then:
+      Write: "One or both vertices not present in graph" & Exit
+4. If AVAILE = NULL, then:
+      Write: OVERFLOW & Exit
+5. Set NEW := AVAILE, AVAILE := LINK[AVAILE]
+6. Set DEST[NEW] := LOC2
+7. Set LINK[NEW] := ADJ[LOC1], ADJ[LOC1] := NEW
+8. Exit

@@ -1,0 +1,44 @@
+================================================================================
+                   DELETING FROM A GRAPH
+================================================================================
+
+ALGORITHM: DELNODE (NODE, NEXT, ADJ, START, AVAILN, AVAILE, DEST, LINK, N)
+[This algorithm deletes a vertex N and all its associated edges from the graph]
+
+For a given vertex N:
+
+1. Find the location LOC of the vertex in G.
+   Call FIND (NODE, NEXT, START, N, LOC)
+   If LOC = NULL, then:
+      Write: "Vertex not found" & Exit
+
+2. Delete all edges ending at N.
+   [Traverse each vertex's adjacency list and remove any edge
+   whose DEST points to LOC]
+   Set PTR := START
+   Repeat while PTR ≠ NULL:
+      Remove all edges from ADJ[PTR] where DEST = LOC
+      [Return deleted edge nodes to AVAILE]
+      Set PTR := NEXT[PTR]
+
+3. Delete all edges beginning at N.
+   [Traverse the adjacency list of LOC and return all edge
+   nodes to AVAILE]
+   Set PTR := ADJ[LOC]
+   Repeat while PTR ≠ NULL:
+      Set TEMP := PTR, PTR := LINK[PTR]
+      Set LINK[TEMP] := AVAILE, AVAILE := TEMP
+   Set ADJ[LOC] := NULL
+
+4. Delete vertex N from the graph.
+   [Remove LOC from the NODE list and return it to AVAILN]
+   If LOC = START, then:
+      Set START := NEXT[START]
+   Else:
+      Set SAVE := START
+      Repeat while NEXT[SAVE] ≠ LOC:
+         Set SAVE := NEXT[SAVE]
+      Set NEXT[SAVE] := NEXT[LOC]
+   Set NEXT[LOC] := AVAILN, AVAILN := LOC
+
+5. Exit

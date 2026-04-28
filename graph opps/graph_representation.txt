@@ -1,0 +1,28 @@
+================================================================================
+              GRAPH - LINKED LIST REPRESENTATION
+================================================================================
+
+NODE   - contains the value of the node
+NEXT   - pointer to the next node in the list NODE
+ADJ    - pointer to the first element in the adjacency list of the node in the EDGE list
+DEST   - points to the location in the list NODE of the destination node of the edge
+LINK   - links together the edges with the same initial node.
+START  - points to first node in the NODE list
+AVAILN - points to first available location in the NODE list
+AVAILE - points to first available location in the EDGE list
+
+
+Two lists are maintained:
+
+1. NODE LIST:
+   Each node in the NODE list contains three fields:
+   [NODE | NEXT | ADJ]
+   - NODE  : Data value of the vertex
+   - NEXT  : Pointer to the next vertex in the NODE list
+   - ADJ   : Pointer to the first edge in the EDGE list (adjacency list)
+
+2. EDGE LIST:
+   Each node in the EDGE list contains two fields:
+   [DEST | LINK]
+   - DEST  : Points to the destination vertex in the NODE list
+   - LINK  : Points to the next edge with the same initial vertex

@@ -1,0 +1,37 @@
+================================================================================
+                   SEARCHING IN A GRAPH
+================================================================================
+
+--------------------------------------------------------------------------------
+1. FINDING LOCATION OF A VERTEX
+--------------------------------------------------------------------------------
+
+ALGORITHM: FIND (NODE, NEXT, START, ITEM, LOC)
+[This algorithm finds the location LOC of a vertex ITEM in the graph]
+
+1. Set PTR := START
+2. Repeat while PTR ≠ NULL:
+      If NODE[PTR] = ITEM, then:
+         Set LOC := PTR & Return
+      Set PTR := NEXT[PTR]
+3. [Search unsuccessful]
+   Set LOC := NULL
+4. Return
+
+
+--------------------------------------------------------------------------------
+2. FINDING LOCATION OF AN EDGE
+--------------------------------------------------------------------------------
+
+ALGORITHM: FINDEDGE (NODE, NEXT, ADJ[LOC1], LOC2, LOC)
+[This algorithm finds the location LOC of the edge (LOC1, LOC2) in the graph.
+ADJ[LOC1] points to the first edge in the adjacency list of vertex LOC1]
+
+1. Set PTR := ADJ[LOC1]
+2. Repeat while PTR ≠ NULL:
+      If DEST[PTR] = LOC2, then:
+         Set LOC := PTR & Return
+      Set PTR := LINK[PTR]
+3. [Edge not found]
+   Set LOC := NULL
+4. Return

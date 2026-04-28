@@ -1,0 +1,68 @@
+================================================================================
+                   GRAPH TRAVERSAL ALGORITHMS
+================================================================================
+
+--------------------------------------------------------------------------------
+1. BREADTH FIRST SEARCH (BFS)
+--------------------------------------------------------------------------------
+
+ALGORITHM: BFS (NODE, NEXT, ADJ, DEST, LINK, START, V)
+[This algorithm performs Breadth First Search on a graph starting
+from vertex V. It uses a QUEUE and a STATUS array.
+STATUS = 1 (Ready), STATUS = 2 (Waiting/In Queue), STATUS = 3 (Processed)]
+
+1. Initialize all vertices to STATUS = 1 (Ready state)
+
+2. Set STATUS[V] := 2 [Put V in waiting state]
+   Insert V into QUEUE
+
+3. Repeat Steps 4 & 5 while QUEUE is not empty:
+
+4. Remove the FRONT vertex W from the QUEUE
+   Process W (i.e., Write: W)
+   Set STATUS[W] := 3 [Mark W as processed]
+
+5. Examine each neighbour U of W:
+   (a) If STATUS[U] = 1, then:
+       Set STATUS[U] := 2
+       Insert U into QUEUE
+   (b) If STATUS[U] = 2 or STATUS[U] = 3, then:
+       [Already waiting or processed, do nothing]
+
+6. Exit
+
+[Note: BFS visits all vertices level by level, i.e., it visits
+all vertices at distance 1 from V, then distance 2, and so on]
+
+
+--------------------------------------------------------------------------------
+2. DEPTH FIRST SEARCH (DFS)
+--------------------------------------------------------------------------------
+
+ALGORITHM: DFS (NODE, NEXT, ADJ, DEST, LINK, START, V)
+[This algorithm performs Depth First Search on a graph starting
+from vertex V. It uses a STACK and a STATUS array.
+STATUS = 1 (Ready), STATUS = 2 (Waiting/In Stack), STATUS = 3 (Processed)]
+
+1. Initialize all vertices to STATUS = 1 (Ready state)
+
+2. Set STATUS[V] := 2 [Put V in waiting state]
+   Push V onto STACK
+
+3. Repeat Steps 4 & 5 while STACK is not empty:
+
+4. Pop the TOP vertex W from the STACK
+   Process W (i.e., Write: W)
+   Set STATUS[W] := 3 [Mark W as processed]
+
+5. Examine each neighbour U of W:
+   (a) If STATUS[U] = 1, then:
+       Set STATUS[U] := 2
+       Push U onto STACK
+   (b) If STATUS[U] = 2 or STATUS[U] = 3, then:
+       [Already waiting or processed, do nothing]
+
+6. Exit
+
+[Note: DFS goes as deep as possible along each branch before
+backtracking. It uses a STACK instead of a QUEUE]
