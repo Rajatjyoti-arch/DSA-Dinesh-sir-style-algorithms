@@ -1,0 +1,11 @@
+ALGORITHM: PUSH_ARRAY (STACK, TOP, MAXS, ITEM)
+[This algorithm pushes an 'ITEM' onto the top of a stack 'STACK' implemented
+using a linear array of maximum size 'MAXS'. 'TOP' points to the top element]
+
+Step 1 : If TOP = MAXS, then: Write: OVERFLOW & Exit
+
+Step 2 : Set TOP := TOP + 1
+
+Step 3 : STACK[TOP] := ITEM
+
+Step 4 : Exit

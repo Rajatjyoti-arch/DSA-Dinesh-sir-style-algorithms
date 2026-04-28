@@ -1,0 +1,15 @@
+ALGORITHM: POP_LL (INFO, LINK, TOP, AVAIL, ITEM)
+[This algorithm pops the top element from a stack implemented using a linked list.
+'TOP' points to the top node. The deleted element is stored in 'ITEM']
+
+Step 1 : If TOP = NULL, then: Write: UNDERFLOW & Exit
+
+Step 2 : Set ITEM := INFO[TOP]
+
+Step 3 : Set TEMP := TOP
+         Set TOP := LINK[TOP]
+
+Step 4 : Set LINK[TEMP] := AVAIL
+         Set AVAIL := TEMP
+
+Step 5 : Exit

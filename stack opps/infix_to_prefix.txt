@@ -1,0 +1,39 @@
+ALGORITHM: INFIX_TO_PREFIX (STACK, TOP, X)
+[This algorithm converts an infix expression 'X' to its equivalent prefix
+expression using a stack 'STACK'. 'TOP' points to the top of the stack]
+
+Step 1 : Reverse the infix expression X
+         [Note: While reversing, change '(' to ')' and ')' to '(']
+
+Step 2 : Apply the INFIX_TO_POST algorithm on the reversed expression
+         to obtain a postfix expression
+
+Step 3 : Reverse the postfix expression obtained in Step 2
+
+Step 4 : The result is the PREFIX expression
+
+Step 5 : Exit
+
+
+DETAILED PROCEDURE:
+
+1. Reverse the infix expression X
+   [Replace '(' with ')' and ')' with '(' while reversing]
+2. Push '(' onto STACK and add ')' to end of reversed X
+3. Scan reversed X from left to right and Repeat Steps 4 to 7
+   for each element until the STACK is empty:
+4. If an operand is encountered, add it to the output
+5. If a left parenthesis '(' is encountered,
+   push it onto STACK
+6. If an operator ⊕ is encountered, then:
+   (a) Repeatedly POP from STACK and add to output
+       each operator which has HIGHER precedence than ⊕
+       [Note: For prefix, same precedence is NOT popped,
+       unlike postfix]
+   (b) Push ⊕ onto STACK
+7. If a right parenthesis ')' is encountered, then:
+   (a) Repeatedly POP from STACK and add to output
+       each operator until a left parenthesis '(' is encountered
+   (b) Remove the left parenthesis '(' from STACK
+8. Reverse the output obtained to get the PREFIX expression
+9. Exit

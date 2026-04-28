@@ -1,0 +1,18 @@
+ALGORITHM: PUSH_LL (INFO, LINK, TOP, AVAIL, ITEM)
+[This algorithm pushes an 'ITEM' onto a stack implemented using a linked list.
+'TOP' points to the top node. 'AVAIL' is the list of free nodes]
+
+Step 1 : If AVAIL = NULL, then: Write: OVERFLOW & Exit
+
+Step 2 : Set NEWN := AVAIL & AVAIL := LINK[AVAIL]
+
+Step 3 : Set INFO[NEWN] := ITEM
+
+Step 4 : If TOP = NULL, then:
+             LINK[NEWN] = NULL
+             TOP := NEWN
+         Else:
+             LINK[NEWN] := TOP
+             TOP := NEWN
+
+Step 5 : Exit

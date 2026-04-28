@@ -1,0 +1,39 @@
+ALGORITHM: QUICKSORT (A, N)
+[This algorithm sorts a linear array 'A' with 'N' elements using Quick Sort.
+It uses a stack to store sub-array boundaries]
+
+1. Set TOP := NULL
+2. If N > 1, then:
+   (i) Set TOP := TOP + 1, LOWER[1] := 1, UPPER[1] := N
+3. Repeat while TOP ≠ NULL:
+   (i)   Set BEG := LOWER[TOP], END := UPPER[TOP]
+   (ii)  Set TOP := TOP – 1
+   (iii) Call QUICK(A, N, BEG, END, LOC)
+   (iv)  If BEG < LOC – 1, then:
+         (a) Set TOP := TOP + 1, LOWER[TOP] := BEG, UPPER[TOP] := LOC - 1
+   (v)   If LOC + 1 < END, then:
+         (a) Set TOP := TOP + 1, LOWER[TOP] := LOC + 1, UPPER[TOP] := END
+4. Exit
+
+
+ALGORITHM: QUICK (A, N, BEG, END, LOC)
+[This sub-algorithm partitions the array 'A' and finds the location 'LOC'
+of the pivot element]
+
+1. Set LEFT := BEG, RIGHT := END and LOC := BEG
+
+2. (a) Repeat while A[LOC] ≤ A[RIGHT] and LOC ≠ RIGHT
+       Set RIGHT := RIGHT – 1
+   (b) If LOC = RIGHT, Then: Return
+   (c) If A[LOC] > A[RIGHT], then:
+       (i)   Set TEMP := A[LOC], A[LOC] := A[RIGHT], A[RIGHT] := TEMP
+       (ii)  Set LOC := RIGHT
+       (iii) Go to Step 3
+
+3. (a) Repeat while A[LEFT] ≤ A[LOC] and LEFT ≠ LOC
+       Set LEFT := LEFT + 1
+   (b) If LOC = LEFT, Then: Return
+   (c) If A[LEFT] > A[LOC], then:
+       (i)   Set TEMP := A[LOC], A[LOC] := A[LEFT], A[LEFT] := TEMP
+       (ii)  Set LOC := LEFT
+       (iii) Go to Step 2

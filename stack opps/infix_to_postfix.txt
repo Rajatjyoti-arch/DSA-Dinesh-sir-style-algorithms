@@ -1,0 +1,28 @@
+ALGORITHM: INFIX_TO_POST (STACK, TOP, X)
+[This algorithm converts an infix expression 'X' to its equivalent postfix
+expression using a stack 'STACK'. 'TOP' points to the top of the stack]
+
+Step 1 : Push '(' onto STACK and add ')' to end of X
+
+Step 2 : Scan X from left to right and Repeat Steps 3 to 6
+         for each element of X until the STACK is empty:
+
+Step 3 : If an operand is encountered, add it to the output (POSTFIX)
+
+Step 4 : If a left parenthesis '(' is encountered,
+         push it onto STACK
+
+Step 5 : If an operator ⊕ is encountered, then:
+         (a) Repeatedly POP from STACK and add to POSTFIX
+             each operator which has the same or higher
+             precedence than ⊕
+         (b) Push ⊕ onto STACK
+
+Step 6 : If a right parenthesis ')' is encountered, then:
+         (a) Repeatedly POP from STACK and add to POSTFIX
+             each operator until a left parenthesis '(' is
+             encountered
+         (b) Remove the left parenthesis '(' from STACK
+             [Do not add '(' to POSTFIX]
+
+Step 7 : Exit

@@ -1,0 +1,32 @@
+ALGORITHM: TOWER_OF_HANOI (N, SOURCE, AUX, DEST)
+[This algorithm solves the Tower of Hanoi problem for 'N' disks.
+It moves 'N' disks from 'SOURCE' peg to 'DEST' peg using 'AUX' peg as auxiliary.
+The algorithm uses recursion]
+
+Step 1 : If N = 1, then:
+             Move disk 1 from SOURCE to DEST
+             Return
+
+Step 2 : Call TOWER_OF_HANOI (N - 1, SOURCE, DEST, AUX)
+         [Move top N-1 disks from SOURCE to AUX using DEST as auxiliary]
+
+Step 3 : Move disk N from SOURCE to DEST
+         [Move the Nth (largest) disk to destination]
+
+Step 4 : Call TOWER_OF_HANOI (N - 1, AUX, SOURCE, DEST)
+         [Move N-1 disks from AUX to DEST using SOURCE as auxiliary]
+
+Step 5 : Return
+
+
+EXAMPLE: For N = 3 disks (Pegs: A = Source, B = Auxiliary, C = Destination)
+
+Move disk 1 from A to C
+Move disk 2 from A to B
+Move disk 1 from C to B
+Move disk 3 from A to C
+Move disk 1 from B to A
+Move disk 2 from B to C
+Move disk 1 from A to C
+
+Total moves = 2^N - 1 = 2^3 - 1 = 7 moves

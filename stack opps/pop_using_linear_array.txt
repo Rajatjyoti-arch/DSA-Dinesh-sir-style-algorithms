@@ -1,0 +1,10 @@
+ALGORITHM: POP_ARRAY (STACK, MAXS, TOP)
+[This algorithm pops the top element from a stack 'STACK' implemented using a
+linear array. 'TOP' points to the top element. The deleted element is stored in 'ITEM']
+
+Step 1 : If TOP = 0, then: Write: UNDERFLOW & Exit
+
+Step 2 : Set ITEM := STACK[TOP] (or Write: STACK[TOP])
+         Set TOP := TOP - 1
+
+Step 3 : Exit
