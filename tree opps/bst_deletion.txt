@@ -1,0 +1,57 @@
+================================================================================
+                     BST DELETION ALGORITHMS
+================================================================================
+
+--------------------------------------------------------------------------------
+CASE 1 (No child) & CASE 2 (One child)
+--------------------------------------------------------------------------------
+
+ALGORITHM: CASECOMBINED (INFO, LEFT, RIGHT, ROOT, LOC, PAR)
+[Deletion Case 1 (No child) and Case 2 (One child)]
+
+Step 1 : [Initialize CHILD - finds out location of only child]
+         If LEFT[LOC] = NULL and RIGHT[LOC] = NULL, then:
+            Set CHILD := NULL
+         Else if LEFT[LOC] ≠ NULL, then:
+            Set CHILD := LEFT[LOC]
+         Else:
+            Set CHILD := RIGHT[LOC]
+
+Step 2 : [Checking the parent node]
+         If PAR ≠ NULL, then:
+            If LOC = LEFT[PAR], then:
+               Set LEFT[PAR] := CHILD
+            Else:
+               Set RIGHT[PAR] := CHILD
+         Else:
+            Set ROOT := CHILD
+
+Step 3 : Return
+
+
+--------------------------------------------------------------------------------
+CASE 3 (Node with two children)
+--------------------------------------------------------------------------------
+
+ALGORITHM: CASEBOTHCHILD (INFO, LEFT, RIGHT, ROOT, LOC, PAR)
+[Deletion Case 3 (Node with two children)]
+
+Step 1 : [Find out in-order successor (SUC) and its parent (PARS)]
+         (a) Set PTR := RIGHT[LOC] and SAVE := LOC
+         (b) Repeat while LEFT[PTR] ≠ NULL:
+               Set SAVE := PTR, PTR := LEFT[PTR]
+         (c) Set SUC := PTR, PARS := SAVE
+
+Step 2 : Call CASECOMBINED (INFO, LEFT, RIGHT, ROOT, SUC, PARS)
+
+Step 3 : [Replacement of node being deleted by its in-order successor]
+         (a) If PAR ≠ NULL, then:
+               If LOC = LEFT[PAR], then:
+                  Set LEFT[PAR] := SUC
+               Else:
+                  Set RIGHT[PAR] := SUC
+             Else:
+               Set ROOT := SUC
+         (b) Set LEFT[SUC] := LEFT[LOC] & RIGHT[SUC] := RIGHT[LOC]
+
+Step 4 : Return

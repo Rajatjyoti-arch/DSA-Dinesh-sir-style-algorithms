@@ -1,0 +1,18 @@
+ALGORITHM: DELROOT (TREE, N, ITEM)
+[Deletes the root element from a Heap]
+
+1. Set ITEM := TREE[1]. [Removes root of H.]
+2. Set LAST := TREE[N] and N := N - 1. [Removes last node of H.]
+3. Set PTR := 1, LEFT := 2 and RIGHT := 3. [Initializes pointers.]
+4. Repeat Steps 5 to 7 while RIGHT <= N:
+5.    If LAST >= TREE[LEFT] and LAST >= TREE[RIGHT], then:
+         Set TREE[PTR] := LAST and Return.
+6.    IF TREE[RIGHT] <= TREE[LEFT], then:
+         Set TREE[PTR] := TREE[LEFT] and PTR := LEFT.
+      Else:
+         Set TREE[PTR] := TREE[RIGHT] and PTR := RIGHT.
+7.    Set LEFT := 2 * PTR and RIGHT := LEFT + 1.
+8. If LEFT = N and if LAST < TREE[LEFT], then: 
+      Set PTR := LEFT.
+9. Set TREE[PTR] := LAST.
+10. Return.

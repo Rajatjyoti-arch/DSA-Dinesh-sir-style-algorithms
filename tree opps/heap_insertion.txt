@@ -1,0 +1,12 @@
+ALGORITHM: INSERT_HEAP (TREE, N, ITEM)
+[Inserts an ITEM into a Heap with N elements]
+
+Step 1. Set N := N + 1, PTR := N
+Step 2. Repeat steps 3 to 6 while PTR > 1:
+Step 3.    Set PAR := floor(PTR/2)
+Step 4.    If ITEM <= TREE[PAR], then:
+              Set TREE[PTR] := ITEM & Return
+Step 5.    Set TREE[PTR] := TREE[PAR]
+Step 6.    Set PTR := PAR
+Step 7. Set TREE[1] := ITEM
+Step 8. Return

@@ -1,0 +1,70 @@
+================================================================================
+                 AVL TREE - INSERTION & DELETION
+================================================================================
+
+--------------------------------------------------------------------------------
+1. INSERTION IN AVL TREE
+--------------------------------------------------------------------------------
+
+ALGORITHM: AVL_INSERT (INFO, LEFT, RIGHT, ROOT, ITEM)
+[This algorithm inserts an ITEM into an AVL Search Tree and rebalances
+if necessary. BF denotes the Balance Factor of a node]
+
+Step 1 : Insert ITEM using the standard BST insertion procedure.
+         [Same as BST_INSERT]
+
+Step 2 : Starting from the newly inserted node, traverse back up
+         to the root and update the Balance Factor (BF) of each
+         ancestor node.
+
+Step 3 : If all BF values are in {-1, 0, +1}, then:
+            No rotation required & Return
+
+Step 4 : Let 'X' be the first unbalanced node (closest ancestor
+         with |BF| > 1). Determine the rotation type:
+
+         (a) If BF(X) = +2 and BF(LEFT[X]) = +1, then:
+                Perform LL Rotation (Right Rotation at X)
+
+         (b) If BF(X) = +2 and BF(LEFT[X]) = -1, then:
+                Perform LR Rotation (Left Rotation at LEFT[X],
+                then Right Rotation at X)
+
+         (c) If BF(X) = -2 and BF(RIGHT[X]) = -1, then:
+                Perform RR Rotation (Left Rotation at X)
+
+         (d) If BF(X) = -2 and BF(RIGHT[X]) = +1, then:
+                Perform RL Rotation (Right Rotation at RIGHT[X],
+                then Left Rotation at X)
+
+Step 5 : Return
+
+
+--------------------------------------------------------------------------------
+2. DELETION IN AVL TREE
+--------------------------------------------------------------------------------
+
+DELETION OPERATION IN AVL TREES:
+After deletion of a node:
+
+1. Check whether the Tree is AVL or not [BF(node) = {-1, 0, +1}].
+   - If Yes: No rotation required.
+   - If No: Proceed to step 2.
+
+2. Determine the rotation type:
+   (1) Check if the deleted node was on the Left or Right side of node 'X' 
+       (where 'X' is the node that became unbalanced).
+   
+   (2) (a) If the deleted node was on the LEFT side of X:
+           Find the Balance Factor (BF) of the Right Child (RC) of X.
+           - If BF = 0  -> L0 rotation
+           - If BF = 1  -> L1 rotation
+           - If BF = -1 -> L-1 rotation
+
+       (b) If the deleted node was on the RIGHT side of X:
+           Find the Balance Factor (BF) of the Left Child (LC) of X.
+           - If BF = 0  -> R0 rotation
+           - If BF = 1  -> R1 rotation
+           - If BF = -1 -> R-1 rotation
+
+3. After rotation, verify the BF of the tree again to ensure it is balanced.

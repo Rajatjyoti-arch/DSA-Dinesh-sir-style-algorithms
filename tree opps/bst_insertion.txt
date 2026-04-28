@@ -1,0 +1,23 @@
+ALGORITHM: BST_INSERT (INFO, LEFT, RIGHT, ROOT, AVAIL, ITEM, LOC)
+[This algorithm inserts an ITEM into a Binary Search Tree]
+
+1. Call FIND_LOC (INFO, LEFT, RIGHT, ROOT, ITEM, LOC, PAR)
+
+2. IF LOC ≠ NULL, then:
+      Write: "ITEM already exists in tree" & Return
+
+3. [Copy ITEM into new node in AVAIL list]
+   (a) IF AVAIL = NULL, then:
+          Write: OVERFLOW & Return
+   (b) Set NEW := AVAIL, AVAIL := LINK[AVAIL]
+   (c) Set INFO[NEW] := ITEM, LEFT[NEW] := NULL, RIGHT[NEW] := NULL
+
+4. [Insert new node into tree]
+   IF PAR = NULL, then:
+      Set ROOT := NEW
+   Else IF ITEM < INFO[PAR], then:
+      Set LEFT[PAR] := NEW
+   Else:
+      Set RIGHT[PAR] := NEW
+
+5. Return

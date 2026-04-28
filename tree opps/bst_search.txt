@@ -1,0 +1,20 @@
+ALGORITHM: FIND_LOC (INFO, LEFT, RIGHT, ROOT, ITEM, LOC, PAR)
+[Searching for an ITEM and its parent in a BST]
+
+1. IF ROOT = NULL, then:
+      Set LOC := NULL & PAR := NULL & Return
+2. IF ITEM = INFO[ROOT], then:
+      Set LOC := ROOT, PAR := NULL & Return
+3. IF ITEM < INFO[ROOT], then:
+      Set PTR := LEFT[ROOT], SAVE := ROOT
+   Else:
+      Set PTR := RIGHT[ROOT], SAVE := ROOT
+4. Repeat steps 5 & 6 while PTR ≠ NULL:
+5.    IF ITEM = INFO[PTR], then:
+         Set LOC := PTR, PAR := SAVE & Return
+6.    IF ITEM < INFO[PTR], then:
+         Set SAVE := PTR, PTR := LEFT[PTR]
+      Else:
+         Set SAVE := PTR, PTR := RIGHT[PTR]
+7. [Unsuccessful Search] 
+   Set LOC := NULL and PAR := SAVE

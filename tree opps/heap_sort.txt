@@ -1,0 +1,13 @@
+ALGORITHM: HEAPSORT (A, N)
+[Sorts array A with N elements using a Heap]
+
+Step 1. [Build a Heap]
+        Repeat for J = 1 to N - 1:
+           Call INSERT_HEAP(A, J, A[J + 1])
+
+Step 2. [Repeatedly delete the root element]
+        Repeat While N > 1:
+           (a) Call DELROOT(A, N, ITEM)
+           (b) Set B[N + 1] := ITEM
+           
+Step 3. Exit

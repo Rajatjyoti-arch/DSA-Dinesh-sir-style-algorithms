@@ -1,0 +1,64 @@
+================================================================================
+                     TREE TRAVERSAL ALGORITHMS (STACK-BASED)
+================================================================================
+
+--------------------------------------------------------------------------------
+1. PRE-ORDER TRAVERSAL
+--------------------------------------------------------------------------------
+
+ALGORITHM: PRE_TRAVERSE (STACK, INFO, LEFT, RIGHT, ROOT)
+[This algorithm performs an iterative Preorder traversal (Root, Left, Right)]
+
+1. Set TOP := 1, STACK[1] := NULL, PTR := ROOT.
+2. Repeat while PTR != NULL:
+   (a) Write: INFO[PTR].
+   (b) If RIGHT[PTR] != NULL, then:
+       Set TOP := TOP + 1, STACK[TOP] := RIGHT[PTR].
+   (c) Set PTR := LEFT[PTR].
+3. Set PTR := STACK[TOP], TOP := TOP - 1.
+4. If PTR != NULL, then: Goto Step 2.
+5. Exit.
+
+
+--------------------------------------------------------------------------------
+2. IN-ORDER TRAVERSAL
+--------------------------------------------------------------------------------
+
+ALGORITHM: IN_TRAVERSE (STACK, INFO, LEFT, RIGHT, ROOT)
+[This algorithm performs an iterative Inorder traversal (Left, Root, Right)]
+
+1. Set TOP := 1, STACK[1] := NULL, PTR := ROOT.
+2. Repeat while PTR != NULL:
+   (a) Set TOP := TOP + 1, STACK[TOP] := PTR.
+   (b) Set PTR := LEFT[PTR].
+3. Set PTR := STACK[TOP], TOP := TOP - 1.
+4. Repeat while PTR != NULL:
+   (a) Write: INFO[PTR].
+   (b) If RIGHT[PTR] != NULL, then:
+       (i)  Set PTR := RIGHT[PTR].
+       (ii) Goto Step 2.
+   (c) Set PTR := STACK[TOP], TOP := TOP - 1.
+5. Exit.
+
+
+--------------------------------------------------------------------------------
+3. POST-ORDER TRAVERSAL
+--------------------------------------------------------------------------------
+
+ALGORITHM: POSTORD_TRAVERSAL (ROOT, INFO, LEFT, RIGHT)
+[Iterative Post-order traversal using a Stack]
+
+Step 1 : Set TOP := 1, STACK[1] := NULL and PTR := ROOT.
+Step 2 : Repeat Steps 3 to 5 while PTR ≠ NULL.
+Step 3 : Set TOP := TOP + 1 and STACK[TOP] := PTR.
+Step 4 : If RIGHT[PTR] ≠ NULL then:
+            Set TOP := TOP + 1 and STACK[TOP] := -RIGHT[PTR]
+Step 5 : Set PTR := LEFT[PTR]
+Step 6 : Set PTR := STACK[TOP] and TOP := TOP - 1
+Step 7 : Repeat while PTR > 0:
+            (a) Write: INFO[PTR]
+            (b) Set PTR := STACK[TOP] and TOP := TOP - 1
+Step 8 : If PTR < 0 then:
+            (a) Set PTR := -PTR
+            (b) Go to Step 2
+Step 9 : Exit.
