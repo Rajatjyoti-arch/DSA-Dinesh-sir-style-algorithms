@@ -1,0 +1,8 @@
+ALGORITHM: TRAVERSE_LL (INFO, LINK, START, PROCESS)
+[This algorithm traverses a linked list 'LIST' in memory and applies an operation 'PROCESS' to each node]
+
+Step 1 : Set PTR := START [Initialize pointer]
+Step 2 : Repeat Steps 3 & 4 while PTR != NULL:
+Step 3 :     Apply PROCESS to INFO[PTR] [Apply process]
+Step 4 :     Set PTR := LINK[PTR] [Advance pointer]
+Step 5 : Exit

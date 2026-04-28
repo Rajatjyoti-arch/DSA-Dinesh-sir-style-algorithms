@@ -1,0 +1,48 @@
+ALGORITHM: TRAVERSE_FORWARD_DLL (INFO, FORW, BACK, START, PROCESS)
+[This algorithm performs forward traversal in a Doubly Linked List]
+
+Step 1 : Set PTR := START
+Step 2 : Repeat Steps 3 & 4 while PTR != NULL:
+Step 3 :     Apply PROCESS to INFO[PTR]
+Step 4 :     Set PTR := FORW[PTR]
+Step 5 : Exit
+
+ALGORITHM: TRAVERSE_BACKWARD_DLL (INFO, FORW, BACK, END, PROCESS)
+[This algorithm performs backward traversal in a Doubly Linked List]
+
+Step 1 : Set PTR := END
+Step 2 : Repeat Steps 3 & 4 while PTR != NULL:
+Step 3 :     Apply PROCESS to INFO[PTR]
+Step 4 :     Set PTR := BACK[PTR]
+Step 5 : Exit
+
+ALGORITHM: INSERT_DLL (INFO, FORW, BACK, START, AVAIL, LOCA, LOCB, ITEM)
+[This algorithm inserts a node containing 'ITEM' between nodes with locations 'LOCA' and 'LOCB' in a Doubly Linked List]
+
+Step 1 : IF AVAIL = NULL, then:
+             Write: OVERFLOW & Exit
+Step 2 : Set NEW := AVAIL, AVAIL := FORW[AVAIL]
+Step 3 : Set INFO[NEW] := ITEM
+Step 4 : Set FORW[NEW] := LOCB
+Step 5 : Set BACK[NEW] := LOCA
+Step 6 : Set FORW[LOCA] := NEW
+Step 7 : Set BACK[LOCB] := NEW
+Step 8 : Exit
+
+ALGORITHM: DELETE_DLL (INFO, FORW, BACK, START, AVAIL, LOC)
+[This algorithm deletes the node at location 'LOC' from a Doubly Linked List]
+
+Step 1 : Set FORW[BACK[LOC]] := FORW[LOC]
+Step 2 : Set BACK[FORW[LOC]] := BACK[LOC]
+Step 3 : Set FORW[LOC] := AVAIL
+Step 4 : Set AVAIL := LOC
+Step 5 : Exit
+
+ALGORITHM: TRAVERSE_HEADER_CIRCULAR_DLL (INFO, FORW, BACK, START, PROCESS)
+[This algorithm traverses a Header Circular Doubly Linked List]
+
+Step 1 : Set PTR := FORW[START]
+Step 2 : Repeat Steps 3 & 4 while PTR != START:
+Step 3 :     Apply PROCESS to INFO[PTR]
+Step 4 :     Set PTR := FORW[PTR]
+Step 5 : Exit

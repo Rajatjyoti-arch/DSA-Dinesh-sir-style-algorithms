@@ -1,0 +1,9 @@
+ALGORITHM: SUM_ARRAY (A, LB, UB, SUM)
+[This algorithm calculates the 'SUM' of all elements in a linear array 'A' with lower bound 'LB' and upper bound 'UB']
+
+Step 1 : Set SUM := 0, K := LB [Initialize SUM and counter]
+Step 2 : Repeat Steps 3 & 4 while K <= UB:
+Step 3 :     Set SUM := SUM + A[K] [Add element to SUM]
+Step 4 :     Set K := K + 1 [Increase counter]
+Step 5 : Write: SUM
+Step 6 : Exit

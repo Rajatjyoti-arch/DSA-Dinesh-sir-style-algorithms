@@ -1,0 +1,13 @@
+ALGORITHM: DELETE (A, N, POS, ITEM)
+[This algorithm deletes the element at position 'POS' in a linear array 'A' containing 'N' elements and updates the array]
+
+Step 1 : IF N = 0, then:
+             Write: UNDERFLOW & Exit [Check for underflow]
+Step 2 : Set ITEM := A[POS] [Store element]
+Step 3 : Set I := POS [Shift elements]
+Step 4 : Repeat while I < N:
+         (a) Set A[I] := A[I + 1]
+         (b) Set I := I + 1
+Step 5 : Set N := N - 1 [Update count]
+Step 6 : Write: "Deleted item is", ITEM
+Step 7 : Exit

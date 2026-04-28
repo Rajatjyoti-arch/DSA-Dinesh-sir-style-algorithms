@@ -1,0 +1,112 @@
+================================================================================
+                    DATA STRUCTURES ALGORITHMS COLLECTION
+================================================================================
+
+--------------------------------------------------------------------------------
+1. ARRAY ALGORITHMS
+--------------------------------------------------------------------------------
+
+ALGORITHM: BUBBLE_SORT (LA, N)
+[This algorithm sorts the elements of the Linear Array 'LA' having 'N' elements]
+
+Step 1 : Repeat steps 2 & 3 for K = 1 to N - 1:
+Step 2 :     Set PTR := 1
+Step 3 :     Repeat while PTR <= N - K: [Comparison]
+             (a) If LA[PTR] > LA[PTR + 1], then:
+                 (i)   TEMP := LA[PTR]
+                 (ii)  LA[PTR] := LA[PTR + 1]
+                 (iii) LA[PTR + 1] := TEMP
+             (b) Set PTR := PTR + 1
+Step 4 : Exit
+
+
+ALGORITHM: DELETE_LA (LA, N, LOC, ELEM)
+[This algorithm deletes an element from the given location 'LOC' of an array 
+'LA' with 'N' elements. The deleted element is stored in 'ELEM']
+
+Step 1 : Set ELEM := LA[LOC] [Storing the element to be deleted]
+Step 2 : Repeat For I = LOC to N - 1:
+         [Move the (I + 1)th element upward]
+         Set LA[I] := LA[I + 1]
+Step 3 : Set N := N - 1 [Resizing the Array]
+Step 4 : Exit
+
+
+--------------------------------------------------------------------------------
+2. LINKED LIST ALGORITHMS
+--------------------------------------------------------------------------------
+
+ALGORITHM: FINDLOC (INFO, LINK, START, ITEM, LOC)
+[Sub-algorithm to find the location in a sorted linked list]
+
+1. IF START = NULL, then:
+   Set LOC := NULL & Return
+2. IF ITEM < INFO[START], then:
+   Set LOC := NULL & Return
+3. Set PREV := START, PTR := LINK[START]
+4. Repeat steps 5 & 6 while PTR ≠ NULL
+5. IF ITEM < INFO[PTR], then:
+   Set LOC := PREV & Return
+6. Set PREV := PTR, PTR := LINK[PTR]
+7. Set LOC := PREV [ITEM is the location of element]
+8. Return
+
+
+ALGORITHM: INSERT_SORTED (INFO, LINK, START, AVAIL, ITEM)
+[Algorithm for insertion into a sorted linked list]
+
+1. Call FINDLOC (INFO, LINK, START, ITEM, LOC)
+2. Call INSAFTER (INFO, LINK, START, AVAIL, ITEM, LOC)
+3. Exit
+
+
+ALGORITHM: SEARCH_LOC_LL (INFO, LINK, START, ITEM, LOC)
+[Search algorithm for a sorted linked list]
+
+STEP 1 : Set PTR := START, FLAG := 0, LOC := 0
+STEP 2 : Repeat Step 3 while PTR ≠ NULL
+STEP 3 : IF ITEM > INFO[PTR], then:
+            Set PTR := LINK[PTR]
+         ELSE IF ITEM = INFO[PTR], then:
+            Set FLAG := 1, LOC := PTR
+         ELSE:
+            Set LOC := NULL
+STEP 4 : IF FLAG = 1, then:
+            Write: "Element Exists at location", LOC
+         ELSE:
+            Write: "Element does not exist", LOC
+STEP 5 : Exit
+
+
+ALGORITHM: INSBEG (INFO, LINK, START, AVAIL, ITEM)
+[This algorithm inserts an element at the beginning of a Linked List]
+
+1. IF AVAIL = NULL, then:
+   Write: OVERFLOW & Exit
+2. Set NEW := AVAIL, AVAIL := LINK[AVAIL]
+3. Set INFO[NEW] := ITEM
+4. Set LINK[NEW] := START, START := NEW
+5. Exit
+
+
+ALGORITHM: INSAFTER (INFO, LINK, START, AVAIL, ITEM, LOC)
+[Inserting a new element after a given node at location 'LOC']
+
+1. IF AVAIL = NULL, then:
+   Write: OVERFLOW & Exit
+[Note: Subsequent steps involve allocating node from AVAIL and updating links]
+
+
+ALGORITHM: DEL_NODE (INFO, LINK, START, AVAIL, LOC, LOCP)
+[Deleting the node at location 'LOC' following a node at 'LOCP']
+
+1. IF LOCP = NULL, then:
+   Set START := LINK[START]
+   ELSE:
+   Set LINK[LOCP] := LINK[LOC]
+2. Set LINK[LOC] := AVAIL, AVAIL := LOC
+3. Exit
+
+================================================================================
+                                 END OF FILE
+================================================================================

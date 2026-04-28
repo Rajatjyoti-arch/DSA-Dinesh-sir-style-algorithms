@@ -1,0 +1,31 @@
+ALGORITHM: SEARCH_UNSORTED_LL (INFO, LINK, START, ITEM, LOC)
+[This algorithm finds the location 'LOC' of the node where 'ITEM' first appears in an unsorted linked list 'LIST']
+
+Step 1 : Set PTR := START [Initialize pointer]
+Step 2 : Repeat Steps 3 & 4 while PTR != NULL:
+Step 3 :     IF INFO[PTR] = ITEM, then:
+                 Set LOC := PTR
+                 Write: "Item found at location", LOC
+                 Exit
+Step 4 :     Set PTR := LINK[PTR]
+Step 5 : Set LOC := NULL [Search unsuccessful]
+Step 6 : Write: "Item not found"
+Step 7 : Exit
+
+ALGORITHM: SEARCH_SORTED_LL (INFO, LINK, START, ITEM, LOC)
+[This algorithm finds the location 'LOC' of the node containing 'ITEM' in a sorted linked list 'LIST']
+
+Step 1 : Set PTR := START [Initialize pointer]
+Step 2 : Repeat Steps 3 & 4 while PTR != NULL:
+Step 3 :     IF INFO[PTR] < ITEM, then:
+                 Set PTR := LINK[PTR]
+             ELSE IF INFO[PTR] = ITEM, then:
+                 Set LOC := PTR
+                 Write: "Item found at location", LOC
+                 Exit
+             ELSE:
+                 Set LOC := NULL [ITEM cannot be in remaining list]
+                 Write: "Item not found"
+                 Exit
+Step 4 : Set LOC := NULL [Search unsuccessful]
+Step 5 : Exit

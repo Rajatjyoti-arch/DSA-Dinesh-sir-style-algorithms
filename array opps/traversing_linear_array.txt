@@ -1,0 +1,8 @@
+ALGORITHM: TRAVERSE (A, LB, UB, PROCESS)
+[This algorithm traverses a linear array 'A' with lower bound 'LB' and upper bound 'UB' and applies an operation 'PROCESS' to each element]
+
+Step 1 : Set K := LB [Initialize counter]
+Step 2 : Repeat Steps 3 & 4 while K <= UB:
+Step 3 :     Apply PROCESS to A[K] [Visit element]
+Step 4 :     Set K := K + 1 [Increase counter]
+Step 5 : Exit

@@ -1,0 +1,29 @@
+ALGORITHM: INSERT_SORTED_LL (INFO, LINK, START, AVAIL, ITEM)
+[This algorithm inserts a new node containing 'ITEM' into a sorted linked list]
+
+Step 1 : Call FIND_POS_SORTED_LL (INFO, LINK, START, ITEM, LOC)
+Step 2 : IF AVAIL = NULL, then:
+             Write: OVERFLOW & Exit [Check for overflow]
+Step 3 : Set NEW := AVAIL, AVAIL := LINK[AVAIL] [Remove node from free list]
+Step 4 : Set INFO[NEW] := ITEM [Copy item]
+Step 5 : IF LOC = NULL, then: [Insert as first node]
+             Set LINK[NEW] := START, START := NEW
+         ELSE: [Insert after LOC]
+             Set LINK[NEW] := LINK[LOC]
+             Set LINK[LOC] := NEW
+Step 6 : Exit
+
+ALGORITHM: FIND_POS_SORTED_LL (INFO, LINK, START, ITEM, LOC)
+[This algorithm finds the location 'LOC' of the last node whose INFO value is less than 'ITEM']
+
+Step 1 : IF START = NULL or INFO[START] > ITEM, then:
+             Set LOC := NULL
+             Exit
+Step 2 : Set SAVE := START, PTR := LINK[START] [Initialize pointers]
+Step 3 : Repeat while PTR != NULL:
+         (a) IF INFO[PTR] > ITEM, then:
+                 Set LOC := SAVE
+                 Exit
+         (b) Set SAVE := PTR, PTR := LINK[PTR]
+Step 4 : Set LOC := SAVE [Return last node]
+Step 5 : Exit

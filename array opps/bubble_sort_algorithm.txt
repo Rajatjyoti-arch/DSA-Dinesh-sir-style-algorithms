@@ -1,0 +1,12 @@
+ALGORITHM: BUBBLE_SORT (A, N)
+[This algorithm sorts the elements in a linear array 'A' containing 'N' elements in ascending order]
+
+Step 1 : Repeat Steps 2 & 3 for K = 1 to N - 1:
+Step 2 :     Set PTR := 1
+Step 3 :     Repeat while PTR <= N - K:
+             (a) IF A[PTR] > A[PTR + 1], then:
+                 (i)   Set TEMP := A[PTR]
+                 (ii)  Set A[PTR] := A[PTR + 1]
+                 (iii) Set A[PTR + 1] := TEMP
+             (b) Set PTR := PTR + 1
+Step 4 : Exit

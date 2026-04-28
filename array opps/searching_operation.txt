@@ -1,0 +1,31 @@
+ALGORITHM: LINEAR_SEARCH (A, N, ITEM, LOC)
+[This algorithm searches for an 'ITEM' in a linear array 'A' containing 'N' elements and returns its location 'LOC']
+
+Step 1 : Set K := 1, LOC := 0 [Initialize]
+Step 2 : Repeat Steps 3 & 4 while K <= N:
+Step 3 :     IF A[K] = ITEM, then:
+                 Set LOC := K
+                 Write: "Item found at location", LOC
+                 Exit
+Step 4 :     Set K := K + 1
+Step 5 : IF LOC = 0, then:
+             Write: "Item not found"
+Step 6 : Exit
+
+ALGORITHM: BINARY_SEARCH (A, N, ITEM, LOC)
+[This algorithm searches for an 'ITEM' in a sorted linear array 'A' containing 'N' elements and returns its location 'LOC']
+
+Step 1 : Set BEG := 1, END := N, MID := INT((BEG + END) / 2) [Initialize segment variables]
+Step 2 : Repeat Steps 3 & 4 while BEG <= END and A[MID] != ITEM:
+Step 3 :     IF ITEM < A[MID], then:
+                 Set END := MID - 1
+             ELSE:
+                 Set BEG := MID + 1
+Step 4 :     Set MID := INT((BEG + END) / 2)
+Step 5 : IF A[MID] = ITEM, then:
+             Set LOC := MID
+             Write: "Item found at location", LOC
+         ELSE:
+             Set LOC := 0
+             Write: "Item not found"
+Step 6 : Exit

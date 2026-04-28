@@ -1,0 +1,40 @@
+ALGORITHM: INSERT_BEGINNING_LL (INFO, LINK, START, AVAIL, ITEM)
+[This algorithm inserts a new node containing 'ITEM' at the beginning of the linked list 'LIST']
+
+Step 1 : IF AVAIL = NULL, then:
+             Write: OVERFLOW & Exit [Check for overflow]
+Step 2 : Set NEW := AVAIL, AVAIL := LINK[AVAIL] [Remove first node from free list]
+Step 3 : Set INFO[NEW] := ITEM [Copy item into new node]
+Step 4 : Set LINK[NEW] := START, START := NEW [Adjust links]
+Step 5 : Exit
+
+ALGORITHM: INSERT_AFTER_NODE_LL (INFO, LINK, START, AVAIL, LOC, ITEM)
+[This algorithm inserts a new node containing 'ITEM' after a given node with location 'LOC']
+
+Step 1 : IF AVAIL = NULL, then:
+             Write: OVERFLOW & Exit [Check for overflow]
+Step 2 : Set NEW := AVAIL, AVAIL := LINK[AVAIL] [Remove first node from free list]
+Step 3 : Set INFO[NEW] := ITEM [Copy item into new node]
+Step 4 : IF LOC = NULL, then: [Insert at beginning]
+             Set LINK[NEW] := START, START := NEW
+         ELSE: [Insert after LOC]
+             Set LINK[NEW] := LINK[LOC]
+             Set LINK[LOC] := NEW
+Step 5 : Exit
+
+ALGORITHM: INSERT_END_LL (INFO, LINK, START, AVAIL, ITEM)
+[This algorithm inserts a new node containing 'ITEM' at the end of the linked list 'LIST']
+
+Step 1 : IF AVAIL = NULL, then:
+             Write: OVERFLOW & Exit [Check for overflow]
+Step 2 : Set NEW := AVAIL, AVAIL := LINK[AVAIL] [Remove first node from free list]
+Step 3 : Set INFO[NEW] := ITEM [Copy item into new node]
+Step 4 : Set LINK[NEW] := NULL
+Step 5 : IF START = NULL, then: [Check if list is empty]
+             Set START := NEW
+             Exit
+Step 6 : Set PTR := START [Find last node]
+Step 7 : Repeat while LINK[PTR] != NULL:
+             Set PTR := LINK[PTR]
+Step 8 : Set LINK[PTR] := NEW [Adjust link of last node]
+Step 9 : Exit

@@ -1,0 +1,63 @@
+ALGORITHM: DELETE_FIRST_NODE_LL (INFO, LINK, START, AVAIL, ITEM)
+[This algorithm deletes the first node from a linked list and puts it back in the free pool]
+
+Step 1 : IF START = NULL, then:
+             Write: UNDERFLOW & Exit [Check for underflow]
+Step 2 : Set ITEM := INFO[START] [Store info of deleted node]
+Step 3 : Set PTR := START, START := LINK[START] [Update start pointer]
+Step 4 : Set LINK[PTR] := AVAIL, AVAIL := PTR [Put deleted node in free pool]
+Step 5 : Exit
+
+ALGORITHM: DELETE_LAST_NODE_LL (INFO, LINK, START, AVAIL, ITEM)
+[This algorithm deletes the last node from a linked list and puts it back in the free pool]
+
+Step 1 : IF START = NULL, then:
+             Write: UNDERFLOW & Exit [Check for underflow]
+Step 2 : IF LINK[START] = NULL, then: [List has only one node]
+             Set ITEM := INFO[START]
+             Set PTR := START, START := NULL
+             Set LINK[PTR] := AVAIL, AVAIL := PTR
+             Exit
+Step 3 : Set SAVE := START, PTR := LINK[START] [Initialize pointers]
+Step 4 : Repeat while LINK[PTR] != NULL:
+             Set SAVE := PTR, PTR := LINK[PTR]
+Step 5 : Set ITEM := INFO[PTR], LINK[SAVE] := NULL [Store info and adjust link]
+Step 6 : Set LINK[PTR] := AVAIL, AVAIL := PTR [Put deleted node in free pool]
+Step 7 : Exit
+
+ALGORITHM: DELETE_NODE_LOC_LL (INFO, LINK, START, AVAIL, LOC, LOCP)
+[This algorithm deletes a node at location 'LOC', where 'LOCP' is the location of the previous node]
+
+Step 1 : IF LOCP = NULL, then: [Node is first node]
+             Set START := LINK[START]
+         ELSE:
+             Set LINK[LOCP] := LINK[LOC]
+Step 2 : Set LINK[LOC] := AVAIL, AVAIL := LOC [Put deleted node in free pool]
+Step 3 : Exit
+
+ALGORITHM: DELETE_NODE_ITEM_LL (INFO, LINK, START, AVAIL, ITEM)
+[This algorithm deletes the first occurrence of a node containing 'ITEM' from the list]
+
+Step 1 : Call FIND_NODE_AND_PREV_LL (INFO, LINK, START, ITEM, LOC, LOCP)
+Step 2 : IF LOC = NULL, then:
+             Write: "Item not found" & Exit
+Step 3 : Call DELETE_NODE_LOC_LL (INFO, LINK, START, AVAIL, LOC, LOCP)
+Step 4 : Exit
+
+ALGORITHM: FIND_NODE_AND_PREV_LL (INFO, LINK, START, ITEM, LOC, LOCP)
+[This algorithm finds the location 'LOC' of node containing 'ITEM' and location 'LOCP' of preceding node]
+
+Step 1 : IF START = NULL, then:
+             Set LOC := NULL, LOCP := NULL
+             Exit
+Step 2 : IF INFO[START] = ITEM, then: [First node contains item]
+             Set LOC := START, LOCP := NULL
+             Exit
+Step 3 : Set SAVE := START, PTR := LINK[START] [Initialize pointers]
+Step 4 : Repeat while PTR != NULL:
+         (a) IF INFO[PTR] = ITEM, then:
+                 Set LOC := PTR, LOCP := SAVE
+                 Exit
+         (b) Set SAVE := PTR, PTR := LINK[PTR]
+Step 5 : Set LOC := NULL, LOCP := NULL [Item not found]
+Step 6 : Exit

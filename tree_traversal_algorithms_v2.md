@@ -1,0 +1,57 @@
+# Tree Traversal Algorithms (Stack-Based)
+
+These algorithms follow the iterative logic used for binary tree traversals as detailed in your study materials.
+
+---
+
+## 1. PRE-TRAVERSE (STACK, INFO, LEFT, RIGHT, ROOT)
+This algorithm performs an iterative Preorder traversal (Root, Left, Right).
+
+1. [Initialize] Set TOP := 1, STACK[1] := NULL, PTR := ROOT.
+2. Repeat while PTR != NULL:
+   (a) **Write:** INFO[PTR].
+   (b) **If** RIGHT[PTR] != NULL, **then**:
+       Set TOP := TOP + 1, STACK[TOP] := RIGHT[PTR].
+   (c) Set PTR := LEFT[PTR].
+3. [Pop from Stack] Set PTR := STACK[TOP], TOP := TOP - 1.
+4. **If** PTR != NULL, **then**:
+   **Goto Step 2**.
+5. [Exit]
+
+---
+
+## 2. IN-TRAVERSE (STACK, INFO, LEFT, RIGHT, ROOT)
+This algorithm performs an iterative Inorder traversal (Left, Root, Right).
+
+1. [Initialize] Set TOP := 1, STACK[1] := NULL, PTR := ROOT.
+2. [Push Left-most Path] Repeat while PTR != NULL:
+   (a) Set TOP := TOP + 1, STACK[TOP] := PTR.
+   (b) Set PTR := LEFT[PTR].
+3. [Pop and Process] Set PTR := STACK[TOP], TOP := TOP - 1.
+4. Repeat while PTR != NULL:
+   (a) **Write:** INFO[PTR].
+   (b) **If** RIGHT[PTR] != NULL, **then**:
+       (i) Set PTR := RIGHT[PTR].
+       (ii) **Goto Step 2**.
+   (c) Set PTR := STACK[TOP], TOP := TOP - 1.
+5. [Exit]
+
+---
+
+## 3. POST-TRAVERSE (STACK, INFO, LEFT, RIGHT, ROOT)
+This algorithm performs an iterative Postorder traversal (Left, Right, Root). This version uses negative flags in the stack to indicate nodes whose right subtree is yet to be processed.
+
+1. [Initialize] Set TOP := 1, STACK[1] := NULL, PTR := ROOT.
+2. [Push Path with Flags] Repeat while PTR != NULL:
+   (a) Set TOP := TOP + 1, STACK[TOP] := PTR.
+   (b) **If** RIGHT[PTR] != NULL, **then**:
+       Set TOP := TOP + 1, STACK[TOP] := -RIGHT[PTR].
+   (c) Set PTR := LEFT[PTR].
+3. [Pop and Check Flag] Set PTR := STACK[TOP], TOP := TOP - 1.
+4. [Process Nodes] Repeat while PTR > 0:
+   (a) **Write:** INFO[PTR].
+   (b) Set PTR := STACK[TOP], TOP := TOP - 1.
+5. [Evaluate Right Subtree] **If** PTR < 0, **then**:
+   (a) Set PTR := -PTR.
+   (b) **Goto Step 2**.
+6. [Exit]

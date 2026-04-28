@@ -1,0 +1,45 @@
+ALGORITHM: TRAVERSE_CIRCULAR_LL (INFO, LINK, START, PROCESS)
+[This algorithm traverses a Circular Linked List]
+
+Step 1 : IF START = NULL, then: Exit
+Step 2 : Set PTR := START
+Step 3 : Repeat:
+         (a) Apply PROCESS to INFO[PTR]
+         (b) Set PTR := LINK[PTR]
+         Until PTR = START
+Step 4 : Exit
+
+ALGORITHM: INSERT_CIRCULAR_LL (INFO, LINK, START, AVAIL, ITEM)
+[This algorithm inserts at the beginning of a Circular Linked List]
+
+Step 1 : IF AVAIL = NULL, then:
+             Write: OVERFLOW & Exit
+Step 2 : Set NEW := AVAIL, AVAIL := LINK[AVAIL]
+Step 3 : Set INFO[NEW] := ITEM
+Step 4 : IF START = NULL, then:
+             Set LINK[NEW] := NEW, START := NEW
+             Exit
+Step 5 : Set PTR := START
+Step 6 : Repeat while LINK[PTR] != START:
+             Set PTR := LINK[PTR]
+Step 7 : Set LINK[NEW] := START
+Step 8 : Set LINK[PTR] := NEW
+Step 9 : Set START := NEW
+Step 10: Exit
+
+ALGORITHM: DELETE_CIRCULAR_LL (INFO, LINK, START, AVAIL, ITEM)
+[This algorithm deletes the first node from a Circular Linked List]
+
+Step 1 : IF START = NULL, then:
+             Write: UNDERFLOW & Exit
+Step 2 : Set PTR := START
+Step 3 : IF LINK[START] = START, then:
+             Set START := NULL
+         ELSE:
+             Set LAST := START
+             Repeat while LINK[LAST] != START:
+                 Set LAST := LINK[LAST]
+             Set START := LINK[START]
+             Set LINK[LAST] := START
+Step 4 : Set LINK[PTR] := AVAIL, AVAIL := PTR
+Step 5 : Exit

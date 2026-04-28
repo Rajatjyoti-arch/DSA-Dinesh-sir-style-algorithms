@@ -1,0 +1,25 @@
+ALGORITHM: INSERT_UNSORTED (A, N, K, ITEM, POS)
+[This algorithm inserts an 'ITEM' at a specific 'POS' in an unsorted linear array 'A' of size 'N', currently containing 'K' elements]
+
+Step 1 : IF K >= N, then:
+             Write: OVERFLOW & Exit [Check for overflow]
+Step 2 : Set I := K [Initialize counter]
+Step 3 : Repeat while I >= POS: [Shift elements]
+         (a) Set A[I + 1] := A[I]
+         (b) Set I := I - 1
+Step 4 : Set A[POS] := ITEM [Insert element]
+Step 5 : Set K := K + 1 [Update count]
+Step 6 : Exit
+
+ALGORITHM: INSERT_SORTED (A, N, K, ITEM)
+[This algorithm inserts an 'ITEM' maintaining the sorted order in a sorted linear array 'A' of size 'N', currently containing 'K' elements]
+
+Step 1 : IF K >= N, then:
+             Write: OVERFLOW & Exit [Check for overflow]
+Step 2 : Set I := K [Find position]
+Step 3 : Repeat while I >= 1 and A[I] > ITEM:
+         (a) Set A[I + 1] := A[I]
+         (b) Set I := I - 1
+Step 4 : Set A[I + 1] := ITEM [Insert element]
+Step 5 : Set K := K + 1 [Update count]
+Step 6 : Exit
