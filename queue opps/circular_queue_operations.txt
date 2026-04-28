@@ -1,0 +1,34 @@
+================================================================================
+                     CIRCULAR QUEUE ALGORITHMS
+================================================================================
+
+ALGORITHM: CQUEUE_INSERT (CQUEUE, N, FRONT, REAR, ITEM)
+[This algorithm inserts an element into a Circular Queue using a Linear Array
+of size 'N']
+
+Step 1 : If FRONT = 1 and REAR = N, or If FRONT = REAR + 1, then:
+            Write: OVERFLOW & Exit
+Step 2 : If FRONT = NULL and REAR = NULL, then: [Queue is empty]
+            Set FRONT := 1, REAR := 1
+         Else If REAR = N, then: [Wrap around to front]
+            Set REAR := 1
+         Else:
+            Set REAR := REAR + 1
+Step 3 : Set CQUEUE[REAR] := ITEM
+Step 4 : Exit
+
+
+ALGORITHM: CQUEUE_DELETE (CQUEUE, N, FRONT, REAR, ITEM)
+[This algorithm deletes an element from a Circular Queue using a Linear Array
+of size 'N']
+
+Step 1 : If FRONT = NULL and REAR = NULL, then:
+            Write: UNDERFLOW & Exit
+Step 2 : Set ITEM := CQUEUE[FRONT]
+Step 3 : If FRONT = REAR, then: [Special Case: Deleting the last element]
+            Set FRONT := NULL, REAR := NULL
+         Else If FRONT = N, then: [Wrap around to front]
+            Set FRONT := 1
+         Else:
+            Set FRONT := FRONT + 1
+Step 4 : Exit

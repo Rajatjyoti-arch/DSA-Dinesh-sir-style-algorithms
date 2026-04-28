@@ -1,0 +1,12 @@
+ALGORITHM: QUEUE_LL_INSERT (INFO, LINK, FRONT, REAR, ITEM, AVAIL)
+[This algorithm inserts an element into a Queue implemented as a Linked List]
+
+1. If AVAIL = NULL, then: 
+      Write: OVERFLOW & Exit
+2. Set NEW := AVAIL, AVAIL := LINK[AVAIL]
+3. Set INFO[NEW] := ITEM, LINK[NEW] := NULL
+4. If FRONT = NULL, then: [Case: Inserting the very first element]
+      Set FRONT := NEW, REAR := NEW
+   Else: [Case: Inserting at the end of the list]
+      Set LINK[REAR] := NEW, REAR := NEW
+5. Exit

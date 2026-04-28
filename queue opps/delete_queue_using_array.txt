@@ -1,0 +1,12 @@
+ALGORITHM: DELETE_QUEUE (QUEUE, N, FRONT, REAR, ITEM)
+[This algorithm deletes an element from a Queue using a Linear Array]
+
+Step 1 : If FRONT = NULL and REAR = NULL, then:
+            Write: UNDERFLOW & Exit
+Step 2 : If FRONT = REAR, then: [Special Case: Deleting the last element]
+            Set ITEM := QUEUE[FRONT] (Optional)
+            Set FRONT := NULL, REAR := NULL
+         Else:
+            Set ITEM := QUEUE[FRONT] (Optional)
+            Set FRONT := FRONT + 1
+Step 3 : Exit

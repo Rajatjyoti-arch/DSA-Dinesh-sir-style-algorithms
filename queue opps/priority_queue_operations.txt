@@ -1,0 +1,69 @@
+================================================================================
+                     PRIORITY QUEUE ALGORITHMS
+================================================================================
+
+Various operations that can be performed on priority queue are:
+  ☑ Insertion
+  ☑ Deletion
+  ☑ Printing elements of the priority queue
+
+[A Priority Queue is a queue where each element has a priority number.
+Elements with higher priority are served before elements with lower priority.
+Elements with the same priority are served in FIFO order]
+
+
+--------------------------------------------------------------------------------
+1. INSERTION INTO PRIORITY QUEUE
+--------------------------------------------------------------------------------
+
+ALGORITHM: PQUEUE_INSERT (INFO, PRN, LINK, FRONT, REAR, AVAIL, ITEM, N)
+[This algorithm inserts an 'ITEM' with priority number 'N' into a Priority
+Queue maintained as a Linked List. 'PRN' stores the priority of each node]
+
+1. If AVAIL = NULL, then:
+      Write: OVERFLOW & Exit
+2. Set NEW := AVAIL, AVAIL := LINK[AVAIL]
+3. Set INFO[NEW] := ITEM, PRN[NEW] := N
+4. If FRONT = NULL, then: [Case: Queue is empty]
+      Set FRONT := NEW, LINK[NEW] := NULL
+   Else If N < PRN[FRONT], then: [Case: Higher priority than front]
+      Set LINK[NEW] := FRONT, FRONT := NEW
+   Else:
+      Set PTR := FRONT
+      Repeat while LINK[PTR] ≠ NULL and PRN[LINK[PTR]] ≤ N:
+         Set PTR := LINK[PTR]
+      Set LINK[NEW] := LINK[PTR], LINK[PTR] := NEW
+5. Exit
+
+
+--------------------------------------------------------------------------------
+2. DELETION FROM PRIORITY QUEUE
+--------------------------------------------------------------------------------
+
+ALGORITHM: PQUEUE_DELETE (INFO, PRN, LINK, FRONT, REAR, AVAIL, ITEM)
+[This algorithm deletes the element with the highest priority (lowest priority
+number) from the Priority Queue. The deleted element is stored in 'ITEM']
+
+1. If FRONT = NULL, then:
+      Write: UNDERFLOW & Exit
+2. Set ITEM := INFO[FRONT]
+3. Set TEMP := FRONT, FRONT := LINK[FRONT]
+4. Set LINK[TEMP] := AVAIL, AVAIL := TEMP
+5. Exit
+
+
+--------------------------------------------------------------------------------
+3. PRINTING ELEMENTS OF PRIORITY QUEUE
+--------------------------------------------------------------------------------
+
+ALGORITHM: PQUEUE_PRINT (INFO, PRN, LINK, FRONT)
+[This algorithm prints all the elements of a Priority Queue along with
+their priority numbers]
+
+1. If FRONT = NULL, then:
+      Write: "Priority Queue is EMPTY" & Exit
+2. Set PTR := FRONT
+3. Repeat while PTR ≠ NULL:
+      Write: INFO[PTR], PRN[PTR]
+      Set PTR := LINK[PTR]
+4. Exit

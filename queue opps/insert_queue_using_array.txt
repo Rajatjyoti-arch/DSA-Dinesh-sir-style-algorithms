@@ -1,0 +1,11 @@
+ALGORITHM: INSERT_QUEUE (QUEUE, N, FRONT, REAR, ITEM)
+[This algorithm inserts an element into a Queue using a Linear Array]
+
+Step 1 : If FRONT = 1 and REAR = N, then: 
+            Write: OVERFLOW & Exit
+Step 2 : If FRONT = NULL and REAR = NULL, then: [Queue is empty]
+            Set FRONT := 1, REAR := 1
+         Else:
+            Set REAR := REAR + 1
+Step 3 : Set QUEUE[REAR] := ITEM
+Step 4 : Exit

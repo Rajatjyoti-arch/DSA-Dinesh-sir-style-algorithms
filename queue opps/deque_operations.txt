@@ -1,0 +1,84 @@
+================================================================================
+                  DOUBLE ENDED QUEUE (DEQUE) ALGORITHMS
+================================================================================
+
+Various operations of deque are:
+  ☑ Insertion of an element at rear
+  ☑ Insertion of an element at front
+  ☑ Deletion of an element from front
+  ☑ Deletion of an element from rear
+
+--------------------------------------------------------------------------------
+1. INSERTION AT REAR
+--------------------------------------------------------------------------------
+
+ALGORITHM: DEQUE_INSERT_REAR (DEQUE, N, FRONT, REAR, ITEM)
+[This algorithm inserts an element at the REAR end of a Deque]
+
+Step 1 : If FRONT = 1 and REAR = N, or If FRONT = REAR + 1, then:
+            Write: OVERFLOW & Exit
+Step 2 : If FRONT = NULL and REAR = NULL, then: [Deque is empty]
+            Set FRONT := 1, REAR := 1
+         Else If REAR = N, then:
+            Set REAR := 1
+         Else:
+            Set REAR := REAR + 1
+Step 3 : Set DEQUE[REAR] := ITEM
+Step 4 : Exit
+
+
+--------------------------------------------------------------------------------
+2. INSERTION AT FRONT
+--------------------------------------------------------------------------------
+
+ALGORITHM: DEQUE_INSERT_FRONT (DEQUE, N, FRONT, REAR, ITEM)
+[This algorithm inserts an element at the FRONT end of a Deque]
+
+Step 1 : If FRONT = 1 and REAR = N, or If FRONT = REAR + 1, then:
+            Write: OVERFLOW & Exit
+Step 2 : If FRONT = NULL and REAR = NULL, then: [Deque is empty]
+            Set FRONT := 1, REAR := 1
+         Else If FRONT = 1, then:
+            Set FRONT := N
+         Else:
+            Set FRONT := FRONT - 1
+Step 3 : Set DEQUE[FRONT] := ITEM
+Step 4 : Exit
+
+
+--------------------------------------------------------------------------------
+3. DELETION FROM FRONT
+--------------------------------------------------------------------------------
+
+ALGORITHM: DEQUE_DELETE_FRONT (DEQUE, N, FRONT, REAR, ITEM)
+[This algorithm deletes an element from the FRONT end of a Deque]
+
+Step 1 : If FRONT = NULL and REAR = NULL, then:
+            Write: UNDERFLOW & Exit
+Step 2 : Set ITEM := DEQUE[FRONT]
+Step 3 : If FRONT = REAR, then: [Special Case: Deleting the last element]
+            Set FRONT := NULL, REAR := NULL
+         Else If FRONT = N, then:
+            Set FRONT := 1
+         Else:
+            Set FRONT := FRONT + 1
+Step 4 : Exit
+
+
+--------------------------------------------------------------------------------
+4. DELETION FROM REAR
+--------------------------------------------------------------------------------
+
+ALGORITHM: DEQUE_DELETE_REAR (DEQUE, N, FRONT, REAR, ITEM)
+[This algorithm deletes an element from the REAR end of a Deque]
+
+Step 1 : If FRONT = NULL and REAR = NULL, then:
+            Write: UNDERFLOW & Exit
+Step 2 : Set ITEM := DEQUE[REAR]
+Step 3 : If FRONT = REAR, then: [Special Case: Deleting the last element]
+            Set FRONT := NULL, REAR := NULL
+         Else If REAR = 1, then:
+            Set REAR := N
+         Else:
+            Set REAR := REAR - 1
+Step 4 : Exit

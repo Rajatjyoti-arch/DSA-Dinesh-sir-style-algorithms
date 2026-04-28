@@ -1,0 +1,13 @@
+ALGORITHM: QUEUE_LL_DELETE (INFO, LINK, FRONT, REAR, ITEM, AVAIL)
+[This algorithm deletes an element from a Queue implemented as a Linked List]
+
+1. If FRONT = NULL, then:
+      Write: UNDERFLOW & Exit
+2. Set TEMP := FRONT
+3. Set ITEM := INFO[TEMP]
+4. If FRONT = REAR, then: [Special Case: Deleting the last element]
+      Set FRONT := NULL, REAR := NULL
+   Else:
+      Set FRONT := LINK[FRONT]
+5. Set LINK[TEMP] := AVAIL, AVAIL := TEMP
+6. Exit
