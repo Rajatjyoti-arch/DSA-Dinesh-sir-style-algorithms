@@ -1,0 +1,493 @@
+================================================================================
+   HOW TO WRITE ALGORITHMS: GRAPH EDITION
+================================================================================
+   "I know BFS and DFS work, but I can't write graph algorithms."
+   This tutorial covers graph representation, BFS, DFS, and the key
+   concepts you need for writing graph algorithms in your exam.
+================================================================================
+
+
+THE KEY INSIGHT ABOUT GRAPHS
+=============================
+A graph is the most general data structure. Unlike a tree:
+  - A node can have ANY number of connections (not just 2)
+  - Connections can go in BOTH directions (undirected) or ONE direction
+  - There can be CYCLES (you can go in circles)
+  - There is NO "root" — any node can be a starting point
+
+Think of it like this:
+  Tree   = a family tree (parent-child, no going back up)
+  Graph  = a road map (cities connected by roads, you can go anywhere)
+
+
+================================================================================
+PART 1: GRAPH VOCABULARY
+================================================================================
+
+  ┌──────────────────────────────────────────────────────────────┐
+  │  GRAPH TERMINOLOGY                                          │
+  ├──────────┬───────────────────────────────────────────────────┤
+  │ Vertex   │ A node in the graph (also called a NODE)          │
+  │ Edge     │ A connection between two vertices                 │
+  │ Adjacent │ Two vertices connected by an edge are "adjacent"  │
+  │ Degree   │ Number of edges connected to a vertex             │
+  │ Path     │ A sequence of vertices connected by edges         │
+  │ Cycle    │ A path that starts and ends at the same vertex    │
+  │ Directed │ Edges have a direction (one-way)                  │
+  │ Undirected│ Edges go both ways (two-way)                     │
+  └──────────┴───────────────────────────────────────────────────┘
+
+
+GRAPH REPRESENTATION (How graphs are stored):
+
+There are TWO main representations you need to know:
+
+  1. ADJACENCY MATRIX:
+     A 2D array where ADJ[I][J] = 1 if there's an edge from I to J.
+     
+     Example:    A—B—C        Adjacency Matrix:
+                 |   |          A  B  C  D
+                 D———┘        A [0, 1, 0, 1]
+                              B [1, 0, 1, 0]
+                              C [0, 1, 0, 1]
+                              D [1, 0, 1, 0]
+
+  2. ADJACENCY LIST (Linked List representation):
+     Each vertex has a linked list of its neighbours.
+
+     Maintained using TWO lists:
+     ┌──────────────────────────────────────────────────────────┐
+     │  NODE LIST: [NODE | NEXT | ADJ]                         │
+     │    NODE  = data of the vertex                           │
+     │    NEXT  = pointer to next vertex in the NODE list      │
+     │    ADJ   = pointer to first edge in the EDGE list       │
+     │                                                         │
+     │  EDGE LIST: [DEST | LINK]                               │
+     │    DEST  = destination vertex of this edge              │
+     │    LINK  = pointer to next edge from the same vertex    │
+     └──────────────────────────────────────────────────────────┘
+
+     Example:    A—B—C
+                 |   |
+                 D———┘
+
+     Node List:            Edge List:
+     A → [B, D]            A: DEST=B → DEST=D → NULL
+     B → [A, C]            B: DEST=A → DEST=C → NULL
+     C → [B, D]            C: DEST=B → DEST=D → NULL
+     D → [A, C]            D: DEST=A → DEST=C → NULL
+
+
+VARIABLES USED IN GRAPH ALGORITHMS:
+
+  ┌──────────┬────────────────────────────────────────────────────┐
+  │ Variable │ What it means                                     │
+  ├──────────┼────────────────────────────────────────────────────┤
+  │ NODE     │ Array holding vertex data                         │
+  │ NEXT     │ Pointer to next vertex in NODE list               │
+  │ ADJ      │ Pointer to adjacency list of a vertex             │
+  │ DEST     │ Destination vertex of an edge                     │
+  │ LINK     │ Pointer to next edge from the same vertex         │
+  │ START    │ First vertex in the NODE list                     │
+  │ AVAILN   │ Free pool for NODE list                           │
+  │ AVAILE   │ Free pool for EDGE list                           │
+  ├──────────┼────────────────────────────────────────────────────┤
+  │ STATUS   │ Array tracking state of each vertex during        │
+  │          │ traversal:                                        │
+  │          │   1 = READY (not yet visited)                     │
+  │          │   2 = WAITING (in queue/stack, not yet processed) │
+  │          │   3 = PROCESSED (visited and done)                │
+  ├──────────┼────────────────────────────────────────────────────┤
+  │ QUEUE    │ Used in BFS                                       │
+  │ STACK    │ Used in DFS                                       │
+  └──────────┴────────────────────────────────────────────────────┘
+
+
+================================================================================
+PART 2: THE TRANSLATION DICTIONARY (C → Algorithm for Graphs)
+================================================================================
+
++---------------------------------------+---------------------------------------+
+|    C CODE                             |    ALGORITHM EQUIVALENT               |
++---------------------------------------+---------------------------------------+
+|  visited[v] = false; (for all v)      |  Set STATUS[V] := 1 for all vertices |
+|  visited[v] = true;                   |  Set STATUS[V] := 3                  |
++---------------------------------------+---------------------------------------+
+|  queue.enqueue(v);                    |  Insert V into QUEUE                 |
+|  v = queue.dequeue();                 |  Remove FRONT vertex from QUEUE      |
+|  stack.push(v);                       |  Push V onto STACK                   |
+|  v = stack.pop();                     |  Pop TOP vertex from STACK           |
++---------------------------------------+---------------------------------------+
+|  for each neighbor u of v:            |  Examine each neighbour U of W       |
+|  (using adjacency list in C)          |  (traverse the EDGE list of W)       |
+|  node* ptr = graph[v].adj;            |  Set PTR := ADJ[W]                   |
+|  while (ptr != NULL) {                |  Repeat while PTR != NULL:           |
+|      int u = ptr->dest;              |      Set U := DEST[PTR]              |
+|      ptr = ptr->link;               |      Set PTR := LINK[PTR]            |
+|  }                                    |                                       |
++---------------------------------------+---------------------------------------+
+|  printf("Visit %d", v);              |  Write: V  (or "Process V")          |
++---------------------------------------+---------------------------------------+
+
+
+================================================================================
+PART 3: THE STATUS SYSTEM — KEY TO GRAPH TRAVERSALS
+================================================================================
+
+  Unlike trees, graphs can have CYCLES. Without tracking which nodes
+  you've already visited, you'll loop forever!
+
+  That's why we use STATUS:
+
+  ┌──────────┬──────────────────────────────────────────────────┐
+  │ STATUS=1 │ READY: Not discovered yet. Hasn't been seen.    │
+  │ STATUS=2 │ WAITING: Discovered but not yet processed.      │
+  │          │ Sitting in the Queue (BFS) or Stack (DFS).      │
+  │ STATUS=3 │ PROCESSED: Fully visited and done.              │
+  └──────────┴──────────────────────────────────────────────────┘
+
+  Why THREE states instead of just "visited/not visited"?
+  → STATUS=2 prevents adding a vertex to the queue/stack TWICE.
+  → Without it, you'd process the same vertex multiple times.
+
+  THE RULE:
+    Only add a vertex to Queue/Stack if its STATUS = 1 (READY).
+    If STATUS = 2 or 3, skip it (already being handled).
+
+
+================================================================================
+PART 4: COMPLETE WORKED EXAMPLES
+================================================================================
+
+
+─────────────────────────────────────────────────────────────
+EXAMPLE 1: BREADTH FIRST SEARCH (BFS)
+─────────────────────────────────────────────────────────────
+
+BFS visits vertices LEVEL BY LEVEL (like ripples in a pond).
+It uses a QUEUE.
+
+(A) C CODE YOU KNOW:
+    void bfs(int start) {
+        bool visited[MAX] = {false};
+        queue q;
+        enqueue(q, start);
+        visited[start] = true;
+        while (!isEmpty(q)) {
+            int v = dequeue(q);
+            printf("%d ", v);
+            for each neighbor u of v:
+                if (!visited[u]) {
+                    visited[u] = true;
+                    enqueue(q, u);
+                }
+        }
+    }
+
+(B) PLAIN ENGLISH THINKING:
+    "Mark all vertices as READY. Pick a starting vertex, put it in
+     the QUEUE and mark it WAITING. Then keep doing:
+       - Take a vertex from the front of the queue
+       - Process it (print it), mark it PROCESSED
+       - Look at all its neighbours
+       - Any neighbour still READY? Put them in queue, mark WAITING
+     Stop when the queue is empty."
+
+(C) FINAL ALGORITHM:
+
+    ALGORITHM: BFS (ADJ, DEST, LINK, STATUS, V)
+    [This algorithm performs BFS starting from vertex V using a QUEUE.
+     STATUS: 1=Ready, 2=Waiting, 3=Processed]
+
+    Step 1 : Initialize all vertices: Set STATUS[K] := 1 for all K
+
+    Step 2 : Set STATUS[V] := 2             [Put start vertex in WAITING]
+             Insert V into QUEUE
+
+    Step 3 : Repeat Steps 4 and 5 while QUEUE is not empty:
+
+    Step 4 : Remove the FRONT vertex W from QUEUE
+             Write: W                       [Process W]
+             Set STATUS[W] := 3             [Mark as PROCESSED]
+
+    Step 5 : Examine each neighbour U of W:
+             (a) IF STATUS[U] = 1, then:    [U is READY]
+                     Set STATUS[U] := 2     [Mark WAITING]
+                     Insert U into QUEUE
+             (b) IF STATUS[U] = 2 or 3, then:
+                     [Already waiting or processed — do nothing]
+
+    Step 6 : Exit
+
+    TRACE EXAMPLE:
+    Graph: A—B—C            Start: A
+           |   |
+           D———┘
+
+    ┌──────┬─────────────────┬──────────────────┬──────────────┐
+    │ Step │ Queue           │ Process          │ Output       │
+    ├──────┼─────────────────┼──────────────────┼──────────────┤
+    │  1   │ [A]             │ —                │              │
+    │  2   │ [B, D]          │ A (add B, D)     │ A            │
+    │  3   │ [D, C]          │ B (add C)        │ A B          │
+    │  4   │ [C]             │ D (C already in) │ A B D        │
+    │  5   │ []              │ C (all done)     │ A B D C      │
+    └──────┴─────────────────┴──────────────────┴──────────────┘
+
+    BFS Output: A B D C (level by level)
+
+
+─────────────────────────────────────────────────────────────
+EXAMPLE 2: DEPTH FIRST SEARCH (DFS)
+─────────────────────────────────────────────────────────────
+
+DFS goes as DEEP as possible before backtracking.
+It uses a STACK.
+
+(A) C CODE YOU KNOW:
+    void dfs(int start) {
+        bool visited[MAX] = {false};
+        stack s;
+        push(s, start);
+        visited[start] = true;
+        while (!isEmpty(s)) {
+            int v = pop(s);
+            printf("%d ", v);
+            for each neighbor u of v:
+                if (!visited[u]) {
+                    visited[u] = true;
+                    push(s, u);
+                }
+        }
+    }
+
+(B) PLAIN ENGLISH THINKING:
+    "Exactly the same as BFS, but replace QUEUE with STACK.
+     Because a STACK is LIFO, we go deep (always exploring the
+     most recently discovered vertex) instead of wide."
+
+(C) FINAL ALGORITHM:
+
+    ALGORITHM: DFS (ADJ, DEST, LINK, STATUS, V)
+    [This algorithm performs DFS starting from vertex V using a STACK.
+     STATUS: 1=Ready, 2=Waiting, 3=Processed]
+
+    Step 1 : Initialize all vertices: Set STATUS[K] := 1 for all K
+
+    Step 2 : Set STATUS[V] := 2             [Put start vertex in WAITING]
+             Push V onto STACK
+
+    Step 3 : Repeat Steps 4 and 5 while STACK is not empty:
+
+    Step 4 : Pop the TOP vertex W from STACK
+             Write: W                       [Process W]
+             Set STATUS[W] := 3             [Mark as PROCESSED]
+
+    Step 5 : Examine each neighbour U of W:
+             (a) IF STATUS[U] = 1, then:    [U is READY]
+                     Set STATUS[U] := 2     [Mark WAITING]
+                     Push U onto STACK
+             (b) IF STATUS[U] = 2 or 3, then:
+                     [Already waiting or processed — do nothing]
+
+    Step 6 : Exit
+
+    TRACE EXAMPLE:
+    Graph: A—B—C            Start: A
+           |   |
+           D———┘
+
+    ┌──────┬─────────────────┬──────────────────┬──────────────┐
+    │ Step │ Stack           │ Process          │ Output       │
+    ├──────┼─────────────────┼──────────────────┼──────────────┤
+    │  1   │ [A]             │ —                │              │
+    │  2   │ [D, B]          │ A (push B, D)    │ A            │
+    │  3   │ [D, C]          │ B (push C)       │ A B          │
+    │  4   │ [D]             │ C (push D? no,   │ A B C        │
+    │      │                 │  D already wait) │              │
+    │  5   │ []              │ D (all done)     │ A B C D      │
+    └──────┴─────────────────┴──────────────────┴──────────────┘
+
+    DFS Output: A B C D (goes deep first)
+
+
+─────────────────────────────────────────────────────────────
+EXAMPLE 3: INSERT A VERTEX INTO A GRAPH
+─────────────────────────────────────────────────────────────
+
+(A) PLAIN ENGLISH THINKING:
+    "Get a free node from the NODE free pool (AVAILN).
+     Store the vertex data. Set its adjacency list to NULL (no edges yet).
+     Insert it into the NODE list."
+
+(B) FINAL ALGORITHM:
+
+    ALGORITHM: INSERT_VERTEX (NODE, NEXT, ADJ, START, AVAILN, ITEM)
+    [This algorithm inserts a new vertex ITEM into the graph]
+
+    Step 1 : IF AVAILN = NULL, then:
+                 Write: OVERFLOW & Exit
+
+    Step 2 : Set NEW := AVAILN
+             Set AVAILN := NEXT[AVAILN]
+
+    Step 3 : Set NODE[NEW] := ITEM
+             Set ADJ[NEW] := NULL            [No edges yet]
+
+    Step 4 : Set NEXT[NEW] := START          [Insert at beginning of NODE list]
+             Set START := NEW
+
+    Step 5 : Exit
+
+
+─────────────────────────────────────────────────────────────
+EXAMPLE 4: INSERT AN EDGE INTO A GRAPH
+─────────────────────────────────────────────────────────────
+
+(A) PLAIN ENGLISH THINKING:
+    "Get a free node from the EDGE free pool (AVAILE).
+     Set its DEST to the destination vertex.
+     Insert it at the beginning of the source vertex's adjacency list."
+
+(B) FINAL ALGORITHM:
+
+    ALGORITHM: INSERT_EDGE (NODE, NEXT, ADJ, DEST, LINK, START, AVAILE, V1, V2)
+    [This algorithm inserts an edge from vertex V1 to vertex V2]
+
+    Step 1 : [Find location LOC of vertex V1 in NODE list]
+             Set PTR := START
+             Repeat while PTR != NULL:
+                 IF NODE[PTR] = V1, then:
+                     Set LOC := PTR & Goto Step 2
+                 Set PTR := NEXT[PTR]
+             Write: "Vertex V1 not found" & Exit
+
+    Step 2 : IF AVAILE = NULL, then:
+                 Write: OVERFLOW & Exit
+
+    Step 3 : Set NEW := AVAILE
+             Set AVAILE := LINK[AVAILE]
+
+    Step 4 : Set DEST[NEW] := V2
+             Set LINK[NEW] := ADJ[LOC]      [Insert at beginning of adj list]
+             Set ADJ[LOC] := NEW
+
+    Step 5 : Exit
+
+    Note: For an UNDIRECTED graph, repeat Steps 1-4 with V1 and V2 swapped
+    to add the edge in both directions.
+
+
+================================================================================
+PART 5: BFS vs DFS — WHEN TO USE WHICH
+================================================================================
+
+  ┌──────────────────────────────────────────────────────────────┐
+  │                     BFS                 DFS                 │
+  ├──────────────────────────────────────────────────────────────┤
+  │  Data structure:   QUEUE               STACK                │
+  │  Visits:           Level by level      Deep first           │
+  │  Finds shortest:   YES (unweighted)    NO                   │
+  │  Memory:           More (all of a      Less (only current   │
+  │                    level in queue)     path in stack)        │
+  │  Use for:          Shortest path,      Cycle detection,     │
+  │                    connected           topological sort,    │
+  │                    components          maze solving         │
+  └──────────────────────────────────────────────────────────────┘
+
+  THE KEY DIFFERENCE IN THE ALGORITHM:
+  BFS and DFS are IDENTICAL algorithms except:
+    BFS uses a QUEUE (FIFO) → explores breadth-first
+    DFS uses a STACK (LIFO) → explores depth-first
+
+  That's why the algorithms look almost exactly the same!
+
+
+================================================================================
+PART 6: THE PATTERN — HOW TO WRITE ANY GRAPH ALGORITHM
+================================================================================
+
+Almost every graph algorithm follows this pattern:
+
+  ┌──────────────────────────────────────────────────────────────┐
+  │  1. Initialize STATUS of all vertices to 1 (READY)          │
+  │  2. Pick a starting vertex, add to Queue/Stack              │
+  │  3. LOOP while Queue/Stack is not empty:                    │
+  │     (a) Remove a vertex                                    │
+  │     (b) Process it (print, check condition, etc.)          │
+  │     (c) Examine all its NEIGHBOURS                         │
+  │     (d) If neighbour is READY, add to Queue/Stack           │
+  │  4. Exit                                                    │
+  └──────────────────────────────────────────────────────────────┘
+
+  To write ANY new graph algorithm, just modify what "process" means:
+    - BFS/DFS: Process = print the vertex
+    - Shortest path: Process = update distance
+    - Connected components: Process = assign component number
+    - Cycle detection: Process = check if neighbour is WAITING
+
+
+================================================================================
+PART 7: COMMON MISTAKES TO AVOID
+================================================================================
+
+MISTAKE 1: Forgetting to initialize STATUS for ALL vertices
+  Step 1 MUST set STATUS[K] := 1 for ALL K.
+  If you skip this, some vertices might never be visited.
+
+MISTAKE 2: Not checking STATUS before adding to Queue/Stack
+  ✗ WRONG: Adding a neighbour without checking its status
+  ✓ RIGHT: IF STATUS[U] = 1, then: insert U
+  Without this check, you'll process vertices multiple times.
+
+MISTAKE 3: Confusing BFS and DFS
+  BFS = QUEUE (FIFO) → wide, level by level
+  DFS = STACK (LIFO) → deep, path by path
+  The ONLY difference is Queue vs Stack!
+
+MISTAKE 4: For undirected graphs, forgetting to add BOTH directions
+  Edge A—B means: add B to A's adj list AND add A to B's adj list.
+
+MISTAKE 5: Not handling disconnected graphs
+  If the graph is disconnected, BFS/DFS from one vertex won't visit
+  all vertices. You need to check after traversal:
+  "Are there any vertices with STATUS = 1?" If yes, restart from one.
+
+MISTAKE 6: Using tree terminology for graphs
+  ✗ WRONG: "parent", "child", "root" (these are tree terms)
+  ✓ RIGHT: "vertex", "neighbour/adjacent", "starting vertex"
+
+
+================================================================================
+PART 8: PRACTICE EXERCISES
+================================================================================
+
+  1. [EASY] Given this graph, trace BFS starting from vertex 1:
+
+         1 — 2 — 3
+         |       |
+         4 — 5 — 6
+
+     Write the order of vertices visited and show the queue state.
+
+  2. [EASY] For the same graph, trace DFS starting from vertex 1.
+     Write the order of vertices visited and show the stack state.
+
+  3. [MEDIUM] Write the algorithm to find if a PATH exists between
+     two vertices V1 and V2 in a graph.
+     Hint: Run BFS from V1. If you ever process V2, path exists.
+
+  4. [MEDIUM] Write the algorithm to count the number of
+     CONNECTED COMPONENTS in an undirected graph.
+     Hint: Run BFS. After it finishes, check for unvisited vertices.
+     Each new BFS run = one more connected component.
+
+  5. [HARD] Write the algorithm to detect a CYCLE in a directed graph.
+     Hint: During DFS, if you find a neighbour with STATUS = 2
+     (WAITING, still in the stack), that means there's a cycle.
+
+================================================================================
+REMEMBER: Graph algorithms are just BFS or DFS with different "process"
+logic. BFS = Queue, DFS = Stack. Always use STATUS to avoid infinite
+loops. Draw the graph, trace through the algorithm step by step.
+================================================================================

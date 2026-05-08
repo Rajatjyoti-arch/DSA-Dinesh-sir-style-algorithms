@@ -1,0 +1,392 @@
+================================================================================
+   HOW TO WRITE ALGORITHMS: STACK EDITION
+================================================================================
+   "I know how push and pop work in C, but I can't write stack algorithms."
+   This tutorial will make stack algorithms feel automatic.
+================================================================================
+
+
+THE KEY INSIGHT ABOUT STACKS
+=============================
+A stack is the SIMPLEST data structure to write algorithms for. Why?
+Because you can ONLY do things at ONE end — the TOP.
+
+Think of it like this:
+  Stack = a pile of plates in a cafeteria
+    → You can only ADD a plate on TOP (PUSH)
+    → You can only REMOVE the plate on TOP (POP)
+    → You can only LOOK at the plate on TOP (PEEK)
+    → You CANNOT touch anything below the top plate
+
+This is called LIFO: Last In, First Out.
+The last plate you put on is the first one you take off.
+
+
+================================================================================
+PART 1: STACK VOCABULARY
+================================================================================
+
+Stacks can be implemented TWO ways. Know BOTH for your exam.
+
+  ┌──────────────────────────────────────────────────────────────┐
+  │  IMPLEMENTATION 1: USING A LINEAR ARRAY                     │
+  ├──────────┬───────────────────────────────────────────────────┤
+  │ STACK    │ The array that holds the stack elements           │
+  │ TOP      │ Index of the topmost element (0 = empty stack)    │
+  │ MAXS     │ Maximum capacity of the stack array               │
+  │ ITEM     │ The element being pushed or popped                │
+  └──────────┴───────────────────────────────────────────────────┘
+
+  ┌──────────────────────────────────────────────────────────────┐
+  │  IMPLEMENTATION 2: USING A LINKED LIST                      │
+  ├──────────┬───────────────────────────────────────────────────┤
+  │ INFO     │ Data stored in each node                          │
+  │ LINK     │ Pointer to the next node below                    │
+  │ TOP      │ Pointer to the topmost node (like START)          │
+  │ AVAIL    │ Free pool (same as in linked list)                │
+  │ ITEM     │ The element being pushed or popped                │
+  └──────────┴───────────────────────────────────────────────────┘
+
+
+================================================================================
+PART 2: THE TRANSLATION DICTIONARY (C → Algorithm for Stacks)
+================================================================================
+
+ARRAY-BASED STACK:
++-------------------------------+------------------------------------------+
+|    C CODE                     |    ALGORITHM EQUIVALENT                  |
++-------------------------------+------------------------------------------+
+|  if (top == maxs)             |  IF TOP = MAXS, then: OVERFLOW & Exit    |
+|  if (top == 0 || top == -1)   |  IF TOP = 0, then: UNDERFLOW & Exit     |
+|  stack[++top] = item;         |  Set TOP := TOP + 1                     |
+|                               |  Set STACK[TOP] := ITEM                 |
+|  item = stack[top--];         |  Set ITEM := STACK[TOP]                 |
+|                               |  Set TOP := TOP - 1                     |
+|  peek = stack[top];           |  Set ITEM := STACK[TOP]  (no TOP change)|
++-------------------------------+------------------------------------------+
+
+LINKED LIST-BASED STACK:
++-------------------------------+------------------------------------------+
+|    C CODE                     |    ALGORITHM EQUIVALENT                  |
++-------------------------------+------------------------------------------+
+|  node* new = malloc(...)      |  Set NEW := AVAIL                       |
+|                               |  Set AVAIL := LINK[AVAIL]               |
+|  new->data = item;            |  Set INFO[NEW] := ITEM                  |
+|  new->next = top;             |  Set LINK[NEW] := TOP                   |
+|  top = new;                   |  Set TOP := NEW                         |
+|  (this is PUSH)               |                                         |
++-------------------------------+------------------------------------------+
+|  item = top->data;            |  Set ITEM := INFO[TOP]                  |
+|  temp = top;                  |  Set PTR := TOP                         |
+|  top = top->next;             |  Set TOP := LINK[TOP]                   |
+|  free(temp);                  |  Set LINK[PTR] := AVAIL, AVAIL := PTR   |
+|  (this is POP)                |                                         |
++-------------------------------+------------------------------------------+
+
+
+================================================================================
+PART 3: THE TEMPLATE — EVERY STACK ALGORITHM FOLLOWS THIS
+================================================================================
+
+PUSH (Array):
+  Step 1: Check OVERFLOW (TOP = MAXS?)
+  Step 2: Increment TOP
+  Step 3: Place ITEM at STACK[TOP]
+  Step 4: Exit
+
+POP (Array):
+  Step 1: Check UNDERFLOW (TOP = 0?)
+  Step 2: Read STACK[TOP] into ITEM
+  Step 3: Decrement TOP
+  Step 4: Exit
+
+PUSH (Linked List):
+  Step 1: Check OVERFLOW (AVAIL = NULL?)
+  Step 2: Get a new node from AVAIL
+  Step 3: Store ITEM in new node
+  Step 4: Point new node to current TOP, update TOP
+  Step 5: Exit
+
+POP (Linked List):
+  Step 1: Check UNDERFLOW (TOP = NULL?)
+  Step 2: Read INFO[TOP] into ITEM
+  Step 3: Save TOP, advance TOP to next node
+  Step 4: Return old TOP to AVAIL
+  Step 5: Exit
+
+
+================================================================================
+PART 4: COMPLETE WORKED EXAMPLES
+================================================================================
+
+
+─────────────────────────────────────────────────────────────
+EXAMPLE 1: PUSH USING ARRAY
+─────────────────────────────────────────────────────────────
+
+(A) C CODE YOU KNOW:
+    if (top == maxs) { printf("Overflow"); return; }
+    top++;
+    stack[top] = item;
+
+(B) PLAIN ENGLISH THINKING:
+    "Is the stack full? If yes, overflow. Otherwise, move the TOP
+     pointer up by one and put the item there."
+
+(C) FINAL ALGORITHM:
+
+    ALGORITHM: PUSH_ARRAY (STACK, TOP, MAXS, ITEM)
+    [This algorithm pushes ITEM onto a stack implemented using an array]
+
+    Step 1 : IF TOP = MAXS, then:
+                 Write: OVERFLOW & Exit
+    Step 2 : Set TOP := TOP + 1
+    Step 3 : Set STACK[TOP] := ITEM
+    Step 4 : Exit
+
+
+─────────────────────────────────────────────────────────────
+EXAMPLE 2: POP USING ARRAY
+─────────────────────────────────────────────────────────────
+
+(A) C CODE YOU KNOW:
+    if (top == 0) { printf("Underflow"); return; }
+    item = stack[top];
+    top--;
+
+(B) PLAIN ENGLISH THINKING:
+    "Is the stack empty? If yes, underflow. Otherwise, read the top
+     element, then move the TOP pointer down."
+
+(C) FINAL ALGORITHM:
+
+    ALGORITHM: POP_ARRAY (STACK, TOP, ITEM)
+    [This algorithm pops the top element from a stack into ITEM]
+
+    Step 1 : IF TOP = 0, then:
+                 Write: UNDERFLOW & Exit
+    Step 2 : Set ITEM := STACK[TOP]
+    Step 3 : Set TOP := TOP - 1
+    Step 4 : Exit
+
+
+─────────────────────────────────────────────────────────────
+EXAMPLE 3: PUSH USING LINKED LIST
+─────────────────────────────────────────────────────────────
+
+(A) C CODE YOU KNOW:
+    node* new = (node*)malloc(sizeof(node));
+    if (new == NULL) { printf("Overflow"); return; }
+    new->data = item;
+    new->next = top;
+    top = new;
+
+(B) PLAIN ENGLISH THINKING:
+    "Get a free node. Store the item in it. Make it point to the
+     current top. Then it becomes the new top."
+
+    Note: This is EXACTLY like inserting at the beginning of a linked list!
+    PUSH on linked list = INSERT AT BEGINNING.
+
+(C) FINAL ALGORITHM:
+
+    ALGORITHM: PUSH_LL (INFO, LINK, TOP, AVAIL, ITEM)
+    [This algorithm pushes ITEM onto a stack implemented using a linked list]
+
+    Step 1 : IF AVAIL = NULL, then:
+                 Write: OVERFLOW & Exit
+    Step 2 : Set NEW := AVAIL
+             Set AVAIL := LINK[AVAIL]
+    Step 3 : Set INFO[NEW] := ITEM
+    Step 4 : Set LINK[NEW] := TOP
+             Set TOP := NEW
+    Step 5 : Exit
+
+
+─────────────────────────────────────────────────────────────
+EXAMPLE 4: POP USING LINKED LIST
+─────────────────────────────────────────────────────────────
+
+(A) C CODE YOU KNOW:
+    if (top == NULL) { printf("Underflow"); return; }
+    int item = top->data;
+    node* temp = top;
+    top = top->next;
+    free(temp);
+
+(B) PLAIN ENGLISH THINKING:
+    "Is the stack empty? If yes, underflow. Otherwise, save the top
+     element's data. Move TOP to the next node. Return the old top
+     node to the free pool."
+
+    Note: This is EXACTLY like deleting the first node of a linked list!
+    POP from linked list = DELETE FIRST NODE.
+
+(C) FINAL ALGORITHM:
+
+    ALGORITHM: POP_LL (INFO, LINK, TOP, AVAIL, ITEM)
+    [This algorithm pops the top element from a stack into ITEM]
+
+    Step 1 : IF TOP = NULL, then:
+                 Write: UNDERFLOW & Exit
+    Step 2 : Set ITEM := INFO[TOP]
+    Step 3 : Set PTR := TOP
+             Set TOP := LINK[TOP]
+    Step 4 : Set LINK[PTR] := AVAIL
+             Set AVAIL := PTR
+    Step 5 : Exit
+
+
+─────────────────────────────────────────────────────────────
+EXAMPLE 5: INFIX TO POSTFIX CONVERSION (The Big One)
+─────────────────────────────────────────────────────────────
+
+This is the most common exam question on stacks. Don't panic.
+The algorithm is long but each step is simple.
+
+(A) WHAT YOU KNOW:
+    Infix:    A + B * C       (operators BETWEEN operands)
+    Postfix:  A B C * +       (operators AFTER operands)
+
+    Rules:
+    - Operands (A, B, C) go directly to output
+    - Operators (+, -, *, /) go to the stack
+    - Higher precedence operators get popped first
+    - Parentheses override precedence
+
+(B) PLAIN ENGLISH THINKING:
+    "Scan the expression left to right.
+     If I see a number/variable → put it in the output.
+     If I see '(' → push it on the stack.
+     If I see an operator → pop everything with higher/equal precedence
+       from the stack to output, then push this operator.
+     If I see ')' → pop everything until I find '(' and discard '('."
+
+(C) FINAL ALGORITHM:
+
+    ALGORITHM: INFIX_TO_POSTFIX (STACK, TOP, X)
+    [This algorithm converts infix expression X to postfix using a stack]
+
+    Step 1 : Push '(' onto STACK and add ')' to end of X
+
+    Step 2 : Scan X from left to right and Repeat Steps 3 to 6
+             for each element of X until the STACK is empty:
+
+    Step 3 : IF an operand is encountered,
+                 add it to POSTFIX
+
+    Step 4 : IF a left parenthesis '(' is encountered,
+                 Push it onto STACK
+
+    Step 5 : IF an operator ⊕ is encountered, then:
+             (a) Repeatedly POP from STACK and add to POSTFIX
+                 each operator which has same or higher
+                 precedence than ⊕
+             (b) Push ⊕ onto STACK
+
+    Step 6 : IF a right parenthesis ')' is encountered, then:
+             (a) Repeatedly POP from STACK and add to POSTFIX
+                 each operator until a '(' is encountered
+             (b) Remove '(' from STACK
+                 [Do NOT add '(' to POSTFIX]
+
+    Step 7 : Exit
+
+
+    HOW TO TRACE (Example: A + B * C):
+
+    Add ')' → Expression becomes: A + B * C )
+    Push '(' → Stack: [ ( ]
+
+    ┌────────┬──────────┬───────────┬──────────────────────┐
+    │ Symbol │ Stack    │ Postfix   │ Action               │
+    ├────────┼──────────┼───────────┼──────────────────────┤
+    │   A    │ (        │ A         │ Operand → output     │
+    │   +    │ ( +      │ A         │ Push +               │
+    │   B    │ ( +      │ A B       │ Operand → output     │
+    │   *    │ ( + *    │ A B       │ * > +, so push *     │
+    │   C    │ ( + *    │ A B C     │ Operand → output     │
+    │   )    │          │ A B C * + │ Pop until (          │
+    └────────┴──────────┴───────────┴──────────────────────┘
+
+    RESULT: A B C * +    ✓
+
+
+================================================================================
+PART 5: STACK APPLICATIONS — ALGORITHM PATTERNS
+================================================================================
+
+Stacks are used in MANY places. Here are the key patterns:
+
+  1. EXPRESSION CONVERSION: Infix → Postfix, Infix → Prefix
+     Pattern: Use stack for OPERATORS, output for OPERANDS.
+
+  2. EXPRESSION EVALUATION: Evaluate a postfix expression
+     Pattern: Use stack for OPERANDS. When operator found, pop two
+     operands, apply operator, push result back.
+
+  3. RECURSION: Tower of Hanoi, Factorial
+     Pattern: Push function calls onto stack, pop and process.
+
+  4. TREE TRAVERSAL: Iterative preorder, inorder, postorder
+     Pattern: Use stack to simulate the recursive call stack.
+
+  5. BACKTRACKING: Maze solving, DFS on graphs
+     Pattern: Push current position, explore. If dead end, pop (backtrack).
+
+
+================================================================================
+PART 6: COMMON MISTAKES TO AVOID
+================================================================================
+
+MISTAKE 1: Confusing TOP = 0 and TOP = NULL
+  Array stack:   TOP = 0 means empty      (UNDERFLOW check)
+  Array stack:   TOP = MAXS means full     (OVERFLOW check)
+  LL stack:      TOP = NULL means empty    (UNDERFLOW check)
+  LL stack:      AVAIL = NULL means full   (OVERFLOW check)
+
+MISTAKE 2: Wrong order of operations in PUSH
+  ✓ CORRECT: First increment TOP, THEN place item
+     Set TOP := TOP + 1
+     Set STACK[TOP] := ITEM
+
+  ✗ WRONG: First place item, then increment
+     (You'd overwrite the current top element!)
+
+MISTAKE 3: Wrong order of operations in POP
+  ✓ CORRECT: First read item, THEN decrement TOP
+     Set ITEM := STACK[TOP]
+     Set TOP := TOP - 1
+
+  ✗ WRONG: First decrement, then read
+     (You'd read the element BELOW the top!)
+
+MISTAKE 4: In Infix→Postfix, forgetting precedence rules
+  Precedence (high to low): ^ (highest), *, /, +, - (lowest)
+  Same precedence = left to right (so pop the one already on stack)
+
+
+================================================================================
+PART 7: PRACTICE EXERCISES
+================================================================================
+
+  1. [EASY] Write PEEK operation for array-based stack.
+     Hint: Same as POP but DON'T decrement TOP.
+
+  2. [EASY] Check if a stack is empty (array-based and linked list-based).
+     Hint: Just check TOP = 0 or TOP = NULL.
+
+  3. [MEDIUM] Evaluate the postfix expression: 6 2 3 + - 3 8 2 / + * 2 ^ 3 +
+     Hint: Operand → push. Operator → pop two, apply, push result.
+
+  4. [MEDIUM] Convert A * (B + C) - D / E to postfix using the algorithm.
+     Hint: Trace through the algorithm step by step using the table format.
+
+  5. [HARD] Write an algorithm to reverse a string using a stack.
+     Hint: Push each character. Then pop all characters into output.
+
+================================================================================
+REMEMBER: A stack is the simplest DS — you only touch the TOP.
+PUSH = increment TOP + place item.  POP = read item + decrement TOP.
+Everything else is just using push/pop as building blocks.
+================================================================================

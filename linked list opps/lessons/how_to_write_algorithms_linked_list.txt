@@ -1,0 +1,429 @@
+================================================================================
+   HOW TO WRITE ALGORITHMS: LINKED LIST EDITION
+================================================================================
+   "I know how pointers work in C, but I can't write linked list algorithms."
+   This tutorial bridges the gap between your C knowledge and algorithm writing.
+================================================================================
+
+
+THE ROOT PROBLEM WITH LINKED LISTS
+===================================
+Linked lists are harder to write algorithms for than arrays because you're
+dealing with NODES, POINTERS, and a FREE POOL — concepts that don't have
+direct equivalents in simple C programs you may have written.
+
+But here's the secret: every linked list algorithm is just about
+CHANGING WHO POINTS TO WHOM. That's it. You're just rewiring connections.
+
+Think of it like this:
+  Array    = a row of lockers (fixed positions)
+  Linked   = a chain of train cars (you can unhook and rehook them)
+  List       each car knows which car comes NEXT, but nothing else
+
+
+================================================================================
+PART 1: THE LINKED LIST VOCABULARY
+================================================================================
+
+Before you write a single step, you MUST understand these variables.
+They show up in EVERY linked list algorithm.
+
+  ┌──────────┬─────────────────────────────────────────────────────────┐
+  │ Variable │ What it means                                          │
+  ├──────────┼─────────────────────────────────────────────────────────┤
+  │ INFO     │ An array that holds the DATA of each node.             │
+  │          │ INFO[5] = the data stored in node #5.                  │
+  ├──────────┼─────────────────────────────────────────────────────────┤
+  │ LINK     │ An array that holds the NEXT POINTER of each node.     │
+  │          │ LINK[5] = the address of the node that comes after #5. │
+  ├──────────┼─────────────────────────────────────────────────────────┤
+  │ START    │ The address of the FIRST node in the list.             │
+  │          │ If START = NULL, the list is EMPTY.                    │
+  ├──────────┼─────────────────────────────────────────────────────────┤
+  │ AVAIL    │ The address of the first node in the FREE POOL.       │
+  │          │ This is where unused/deleted nodes live.               │
+  │          │ If AVAIL = NULL, there's no memory left → OVERFLOW.    │
+  ├──────────┼─────────────────────────────────────────────────────────┤
+  │ PTR      │ A "finger" that walks through the list, node by node. │
+  │          │ Like 'current' pointer in C.                           │
+  ├──────────┼─────────────────────────────────────────────────────────┤
+  │ SAVE     │ A pointer that remembers the PREVIOUS node.           │
+  │          │ Like 'prev' pointer in C.                              │
+  ├──────────┼─────────────────────────────────────────────────────────┤
+  │ NEW      │ The address of a newly allocated node (taken from     │
+  │          │ AVAIL list).                                           │
+  ├──────────┼─────────────────────────────────────────────────────────┤
+  │ LOC      │ The LOCATION (address) of a specific node.            │
+  │ LOCP     │ The LOCATION of the PREVIOUS node (before LOC).       │
+  ├──────────┼─────────────────────────────────────────────────────────┤
+  │ ITEM     │ The value you want to insert, search for, or delete.  │
+  └──────────┴─────────────────────────────────────────────────────────┘
+
+
+IMPORTANT: HOW THE FREE POOL (AVAIL) WORKS
+--------------------------------------------
+In C, you use malloc() and free(). In algorithm notation, we use AVAIL.
+
+  C: node* new = (node*)malloc(sizeof(node));
+  ALGORITHM: Set NEW := AVAIL, AVAIL := LINK[AVAIL]
+     ↑ This means: "Take the first free node. Update AVAIL to point
+       to the NEXT free node."
+
+  C: free(ptr);
+  ALGORITHM: Set LINK[PTR] := AVAIL, AVAIL := PTR
+     ↑ This means: "Put this node BACK at the front of the free pool."
+
+
+================================================================================
+PART 2: THE TRANSLATION DICTIONARY (C → Algorithm for Linked Lists)
+================================================================================
+
++--------------------------------------+---------------------------------------+
+|    C CODE                            |    ALGORITHM EQUIVALENT               |
++--------------------------------------+---------------------------------------+
+|  node* new = malloc(sizeof(node));   |  Set NEW := AVAIL                    |
+|                                      |  Set AVAIL := LINK[AVAIL]            |
++--------------------------------------+---------------------------------------+
+|  new->data = item;                   |  Set INFO[NEW] := ITEM               |
++--------------------------------------+---------------------------------------+
+|  new->next = start;                  |  Set LINK[NEW] := START              |
+|  start = new;                        |  Set START := NEW                    |
++--------------------------------------+---------------------------------------+
+|  new->next = current->next;          |  Set LINK[NEW] := LINK[LOC]          |
+|  current->next = new;               |  Set LINK[LOC] := NEW                |
++--------------------------------------+---------------------------------------+
+|  current = current->next;            |  Set PTR := LINK[PTR]                |
++--------------------------------------+---------------------------------------+
+|  while (current != NULL)             |  Repeat while PTR != NULL            |
++--------------------------------------+---------------------------------------+
+|  if (current->data == item)          |  IF INFO[PTR] = ITEM                 |
++--------------------------------------+---------------------------------------+
+|  free(ptr);                          |  Set LINK[PTR] := AVAIL              |
+|                                      |  Set AVAIL := PTR                    |
++--------------------------------------+---------------------------------------+
+|  prev = current;                     |  Set SAVE := PTR                     |
+|  current = current->next;            |  Set PTR := LINK[PTR]                |
++--------------------------------------+---------------------------------------+
+
+
+================================================================================
+PART 3: THE 5-STEP RECIPE FOR LINKED LIST ALGORITHMS
+================================================================================
+
+  ┌──────────────────────────────────────────────────────────────┐
+  │  STEP 0: Write the HEADER (Name + Inputs + Description)     │
+  │  STEP 1: Check EDGE CASES (OVERFLOW / UNDERFLOW / Empty)    │
+  │  STEP 2: ALLOCATE or LOCATE the node                        │
+  │  STEP 3: Do the CORE LOGIC (rewire the pointers)            │
+  │  STEP 4: RETURN node to free pool (deletion) / Exit         │
+  └──────────────────────────────────────────────────────────────┘
+
+
+--- STEP 1: EDGE CASE CHECKS ---
+
+  ┌─────────────┬────────────────────────────────────────────────┐
+  │  Operation  │  What can go wrong?                            │
+  ├─────────────┼────────────────────────────────────────────────┤
+  │  Insert     │  No free memory: AVAIL = NULL → OVERFLOW       │
+  │  Delete     │  List is empty:  START = NULL → UNDERFLOW      │
+  │  Search     │  List is empty:  START = NULL → "Not found"    │
+  │  Traverse   │  List is empty:  START = NULL → nothing to do  │
+  └─────────────┴────────────────────────────────────────────────┘
+
+
+--- STEP 2: ALLOCATE A NODE (for insertion) ---
+
+  This is ALWAYS the same two lines. Memorize them:
+    Set NEW := AVAIL
+    Set AVAIL := LINK[AVAIL]
+
+  Then fill the data:
+    Set INFO[NEW] := ITEM
+
+
+--- STEP 3: CORE LOGIC — THE POINTER REWIRING ---
+
+  This is where it gets tricky. The key insight:
+
+  ╔══════════════════════════════════════════════════════════════╗
+  ║  DRAW THE DIAGRAM. Always. Every single time.              ║
+  ║  Draw boxes with arrows. Show BEFORE and AFTER.            ║
+  ║  The algorithm steps are just you describing the arrows    ║
+  ║  you need to change.                                       ║
+  ╚══════════════════════════════════════════════════════════════╝
+
+  INSERTION AT BEGINNING — What changes?
+    BEFORE:  START → [A] → [B] → [C] → NULL
+    AFTER:   START → [NEW] → [A] → [B] → [C] → NULL
+
+    You need: NEW points to old START, then START becomes NEW.
+    Algorithm: Set LINK[NEW] := START, START := NEW
+
+  INSERTION AFTER LOC — What changes?
+    BEFORE:  ... → [LOC] → [X] → ...
+    AFTER:   ... → [LOC] → [NEW] → [X] → ...
+
+    You need: NEW points to what LOC used to point to,
+              then LOC points to NEW.
+    Algorithm: Set LINK[NEW] := LINK[LOC]
+               Set LINK[LOC] := NEW
+
+  DELETION OF FIRST NODE — What changes?
+    BEFORE:  START → [A] → [B] → [C] → NULL
+    AFTER:   START → [B] → [C] → NULL    (A goes to free pool)
+
+    You need: START jumps to second node, first node goes to AVAIL.
+    Algorithm: Set START := LINK[START]
+               Set LINK[PTR] := AVAIL, AVAIL := PTR
+
+
+================================================================================
+PART 4: COMPLETE WORKED EXAMPLES (C → Thinking → Algorithm)
+================================================================================
+
+
+─────────────────────────────────────────────────────────────
+EXAMPLE 1: TRAVERSAL (Print all nodes)
+─────────────────────────────────────────────────────────────
+
+(A) C CODE YOU KNOW:
+    node* current = start;
+    while (current != NULL) {
+        printf("%d ", current->data);
+        current = current->next;
+    }
+
+(B) PLAIN ENGLISH THINKING:
+    "Start at the first node. Print its data. Move to the next node.
+     Keep going until you hit NULL."
+
+(C) FINAL ALGORITHM:
+
+    ALGORITHM: TRAVERSE_LL (INFO, LINK, START)
+    [This algorithm traverses a linked list and prints all elements]
+
+    Step 1 : Set PTR := START
+    Step 2 : Repeat while PTR != NULL:
+             (a) Write: INFO[PTR]
+             (b) Set PTR := LINK[PTR]
+    Step 3 : Exit
+
+
+─────────────────────────────────────────────────────────────
+EXAMPLE 2: INSERT AT BEGINNING
+─────────────────────────────────────────────────────────────
+
+(A) C CODE YOU KNOW:
+    node* new = (node*)malloc(sizeof(node));
+    if (new == NULL) { printf("Overflow"); return; }
+    new->data = item;
+    new->next = start;
+    start = new;
+
+(B) PLAIN ENGLISH THINKING:
+    "Get a free node. If no free nodes, overflow. Put the item in it.
+     Make it point to the current first node. Then make it the new first node."
+
+(C) FINAL ALGORITHM:
+
+    ALGORITHM: INSERT_BEG_LL (INFO, LINK, START, AVAIL, ITEM)
+    [This algorithm inserts ITEM at the beginning of a linked list]
+
+    Step 1 : IF AVAIL = NULL, then:
+                 Write: OVERFLOW & Exit
+    Step 2 : Set NEW := AVAIL                [Get a free node]
+             Set AVAIL := LINK[AVAIL]        [Update free pool]
+    Step 3 : Set INFO[NEW] := ITEM           [Store data]
+    Step 4 : Set LINK[NEW] := START          [New node points to old first]
+             Set START := NEW                [New node becomes first]
+    Step 5 : Exit
+
+
+─────────────────────────────────────────────────────────────
+EXAMPLE 3: DELETE FIRST NODE
+─────────────────────────────────────────────────────────────
+
+(A) C CODE YOU KNOW:
+    if (start == NULL) { printf("Underflow"); return; }
+    node* temp = start;
+    int item = start->data;
+    start = start->next;
+    free(temp);
+
+(B) PLAIN ENGLISH THINKING:
+    "If list is empty, underflow. Otherwise, save the first node's data.
+     Make START point to the second node. Return the old first node
+     to the free pool."
+
+(C) FINAL ALGORITHM:
+
+    ALGORITHM: DELETE_FIRST_LL (INFO, LINK, START, AVAIL, ITEM)
+    [This algorithm deletes the first node and stores its data in ITEM]
+
+    Step 1 : IF START = NULL, then:
+                 Write: UNDERFLOW & Exit
+    Step 2 : Set ITEM := INFO[START]         [Save data of first node]
+    Step 3 : Set PTR := START                [Remember the node to free]
+             Set START := LINK[START]        [START jumps to second node]
+    Step 4 : Set LINK[PTR] := AVAIL          [Return node to free pool]
+             Set AVAIL := PTR
+    Step 5 : Exit
+
+
+─────────────────────────────────────────────────────────────
+EXAMPLE 4: SEARCH FOR AN ITEM
+─────────────────────────────────────────────────────────────
+
+(A) C CODE YOU KNOW:
+    node* current = start;
+    while (current != NULL) {
+        if (current->data == item) {
+            printf("Found!");
+            return;
+        }
+        current = current->next;
+    }
+    printf("Not found");
+
+(B) PLAIN ENGLISH THINKING:
+    "Walk through the list. At each node, check if it contains ITEM.
+     If yes, we found it — report the location and stop.
+     If we reach NULL without finding it, it's not there."
+
+(C) FINAL ALGORITHM:
+
+    ALGORITHM: SEARCH_LL (INFO, LINK, START, ITEM, LOC)
+    [This algorithm searches for ITEM in a linked list. LOC gives the
+     location if found, NULL otherwise]
+
+    Step 1 : Set PTR := START
+    Step 2 : Repeat while PTR != NULL:
+             (a) IF INFO[PTR] = ITEM, then:
+                     Set LOC := PTR
+                     Write: "Found at", LOC & Exit
+             (b) Set PTR := LINK[PTR]
+    Step 3 : Set LOC := NULL
+             Write: "Element not found"
+    Step 4 : Exit
+
+
+─────────────────────────────────────────────────────────────
+EXAMPLE 5: INSERT AFTER A GIVEN NODE (LOC)
+─────────────────────────────────────────────────────────────
+
+(A) C CODE YOU KNOW:
+    node* new = (node*)malloc(sizeof(node));
+    new->data = item;
+    if (loc == NULL) {          // insert at beginning
+        new->next = start;
+        start = new;
+    } else {                    // insert after loc
+        new->next = loc->next;
+        loc->next = new;
+    }
+
+(B) PLAIN ENGLISH THINKING:
+    "Get a free node. Store the item. Now there are two cases:
+     Case 1: LOC is NULL → insert at the beginning (like Example 2).
+     Case 2: LOC points to a node → insert after it by rewiring."
+
+(C) FINAL ALGORITHM:
+
+    ALGORITHM: INSERT_AFTER_LL (INFO, LINK, START, AVAIL, LOC, ITEM)
+    [This algorithm inserts ITEM after the node at location LOC]
+
+    Step 1 : IF AVAIL = NULL, then:
+                 Write: OVERFLOW & Exit
+    Step 2 : Set NEW := AVAIL
+             Set AVAIL := LINK[AVAIL]
+    Step 3 : Set INFO[NEW] := ITEM
+    Step 4 : IF LOC = NULL, then:            [Insert at beginning]
+                 Set LINK[NEW] := START
+                 Set START := NEW
+             ELSE:                           [Insert after LOC]
+                 Set LINK[NEW] := LINK[LOC]
+                 Set LINK[LOC] := NEW
+    Step 5 : Exit
+
+
+================================================================================
+PART 5: THE GOLDEN RULES OF LINKED LIST ALGORITHMS
+================================================================================
+
+RULE 1: ALWAYS CHECK AVAIL BEFORE INSERTING
+  IF AVAIL = NULL → OVERFLOW & Exit
+  This is like checking malloc() return value in C.
+
+RULE 2: ALWAYS CHECK START BEFORE DELETING/SEARCHING
+  IF START = NULL → UNDERFLOW & Exit (or "Not found")
+
+RULE 3: WHEN REWIRING, ORDER MATTERS!
+  When inserting: FIRST set the new node's LINK, THEN update the
+  previous node's LINK. If you do it backwards, you LOSE the rest
+  of the list.
+
+  ✓ CORRECT ORDER:
+    Set LINK[NEW] := LINK[LOC]    ← NEW grabs the chain first
+    Set LINK[LOC] := NEW          ← THEN LOC lets go of old chain
+
+  ✗ WRONG ORDER:
+    Set LINK[LOC] := NEW          ← LOC lets go! Chain is LOST!
+    Set LINK[NEW] := LINK[LOC]    ← Too late, LINK[LOC] is now NEW
+
+RULE 4: ALWAYS RETURN DELETED NODES TO AVAIL
+  After every deletion:
+    Set LINK[PTR] := AVAIL
+    Set AVAIL := PTR
+
+RULE 5: USE TWO POINTERS (PTR + SAVE) WHEN DELETING FROM MIDDLE
+  You need SAVE to point to the node BEFORE the one you're deleting,
+  because you can't go backwards in a singly linked list.
+
+
+================================================================================
+PART 6: COMMON MISTAKES TO AVOID
+================================================================================
+
+MISTAKE 1: Forgetting the AVAIL list operations
+  ✗ WRONG: Just writing "Create a new node"
+  ✓ RIGHT: Set NEW := AVAIL, AVAIL := LINK[AVAIL]
+
+MISTAKE 2: Not handling the "single node" case in deletion
+  When deleting the last node, START should become NULL.
+
+MISTAKE 3: Forgetting to use SAVE/PREV pointer
+  In a singly linked list, you CANNOT go backward.
+  If you need to delete a node, you must ALSO track the previous one.
+
+MISTAKE 4: Using array notation (A[I]) instead of linked list notation
+  ✗ WRONG: A[I] := A[I+1]   (this is array shifting!)
+  ✓ RIGHT: LINK[SAVE] := LINK[PTR]   (this is pointer rewiring!)
+
+
+================================================================================
+PART 7: PRACTICE EXERCISES
+================================================================================
+
+  1. [EASY] Count the number of nodes in a linked list.
+     Hint: Traverse and use a COUNTER variable.
+
+  2. [EASY] Insert a node at the END of a linked list.
+     Hint: Traverse until LINK[PTR] = NULL, then insert after PTR.
+
+  3. [MEDIUM] Delete the LAST node from a linked list.
+     Hint: Use two pointers (SAVE and PTR). When LINK[PTR] = NULL,
+     PTR is the last node and SAVE is the second-to-last.
+
+  4. [MEDIUM] Delete a node containing a specific ITEM.
+     Hint: First FIND the node (and its predecessor), then delete it.
+     This requires TWO sub-algorithms (FIND + DELETE).
+
+  5. [HARD] Reverse a linked list in-place.
+     Hint: Use three pointers (PREV, PTR, NEXT). At each node:
+     save NEXT, point current backward, advance all three.
+
+================================================================================
+REMEMBER: Linked list algorithms are just about REWIRING ARROWS.
+Draw the diagram. See which arrows need to change. Write those
+changes as steps. That's your algorithm.
+================================================================================

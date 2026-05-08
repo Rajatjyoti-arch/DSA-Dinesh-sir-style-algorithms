@@ -1,0 +1,546 @@
+================================================================================
+   HOW TO WRITE ALGORITHMS: TREE EDITION
+================================================================================
+   "I know how BSTs and traversals work, but I can't write tree algorithms."
+   This tutorial covers Binary Trees, BST operations, Traversals,
+   Heaps, and AVL trees — the complete tree toolkit for your exam.
+================================================================================
+
+
+THE KEY INSIGHT ABOUT TREES
+============================
+Trees feel harder than arrays, stacks, and queues because they are
+NON-LINEAR — each node can branch into TWO (or more) children.
+
+But here's the thing: every tree algorithm boils down to ONE question:
+
+  "Should I go LEFT or RIGHT?"
+
+That's it. At every node, you make a decision, and then you keep going.
+
+Think of it like this:
+  Array  = a straight road with numbered houses
+  Tree   = a road that keeps splitting into two paths
+           At each fork, you choose LEFT or RIGHT
+
+
+================================================================================
+PART 1: TREE VOCABULARY
+================================================================================
+
+  ┌──────────┬────────────────────────────────────────────────────┐
+  │ Variable │ What it means                                     │
+  ├──────────┼────────────────────────────────────────────────────┤
+  │ INFO     │ Array holding DATA of each node                   │
+  │          │ INFO[5] = data in node #5                         │
+  ├──────────┼────────────────────────────────────────────────────┤
+  │ LEFT     │ Array holding LEFT CHILD pointer of each node     │
+  │          │ LEFT[5] = left child of node #5                   │
+  ├──────────┼────────────────────────────────────────────────────┤
+  │ RIGHT    │ Array holding RIGHT CHILD pointer of each node    │
+  │          │ RIGHT[5] = right child of node #5                 │
+  ├──────────┼────────────────────────────────────────────────────┤
+  │ ROOT     │ Pointer to the ROOT node (the topmost node)       │
+  │          │ If ROOT = NULL, tree is EMPTY                     │
+  ├──────────┼────────────────────────────────────────────────────┤
+  │ AVAIL    │ Free pool of unused nodes                         │
+  ├──────────┼────────────────────────────────────────────────────┤
+  │ PTR      │ Current node pointer (like "current" in C)        │
+  │ PAR      │ PARENT of the current node                        │
+  ├──────────┼────────────────────────────────────────────────────┤
+  │ ITEM     │ The value being inserted, searched, or deleted    │
+  ├──────────┼────────────────────────────────────────────────────┤
+  │ STACK    │ Used in iterative traversals (replaces recursion)  │
+  │ TOP      │ Top of the stack used in traversals                │
+  └──────────┴────────────────────────────────────────────────────┘
+
+
+  BINARY SEARCH TREE (BST) PROPERTY:
+  ┌──────────────────────────────────────────────────────────────┐
+  │  For every node N:                                          │
+  │    ALL nodes in N's LEFT subtree  have value < INFO[N]      │
+  │    ALL nodes in N's RIGHT subtree have value > INFO[N]      │
+  └──────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+PART 2: THE TRANSLATION DICTIONARY (C → Algorithm for Trees)
+================================================================================
+
++------------------------------------+------------------------------------------+
+|    C CODE                          |    ALGORITHM EQUIVALENT                  |
++------------------------------------+------------------------------------------+
+|  node->data                        |  INFO[PTR]                               |
+|  node->left                        |  LEFT[PTR]                               |
+|  node->right                       |  RIGHT[PTR]                              |
++------------------------------------+------------------------------------------+
+|  if (node == NULL)                 |  IF PTR = NULL                           |
+|  if (item < node->data)            |  IF ITEM < INFO[PTR]                     |
+|     go left                        |     Set PTR := LEFT[PTR]                 |
+|  else                              |  ELSE                                    |
+|     go right                       |     Set PTR := RIGHT[PTR]                |
++------------------------------------+------------------------------------------+
+|  node* new = malloc(...)           |  Set NEW := AVAIL                        |
+|                                    |  Set AVAIL := LINK[AVAIL]                |
+|  new->data = item;                 |  Set INFO[NEW] := ITEM                   |
+|  new->left = NULL;                 |  Set LEFT[NEW] := NULL                   |
+|  new->right = NULL;                |  Set RIGHT[NEW] := NULL                  |
++------------------------------------+------------------------------------------+
+|  parent->left = new;               |  Set LEFT[PAR] := NEW                    |
+|  parent->right = new;              |  Set RIGHT[PAR] := NEW                   |
++------------------------------------+------------------------------------------+
+|  // Recursive traversal:           |  // Iterative uses STACK:                |
+|  inorder(node->left);              |  Push PTR onto STACK                     |
+|  print(node->data);                |  Set PTR := LEFT[PTR]                    |
+|  inorder(node->right);             |  Write: INFO[PTR]                        |
++------------------------------------+------------------------------------------+
+
+
+================================================================================
+PART 3: THE THREE TRAVERSALS — THE HEART OF TREE ALGORITHMS
+================================================================================
+
+WHAT IS TRAVERSAL?
+  "Visiting every node in the tree exactly once, in a specific order."
+
+THE THREE ORDERS (memorize these!):
+
+  ┌─────────────┬────────────────────┬──────────────────────┐
+  │  Traversal  │  Order             │  Memory Trick        │
+  ├─────────────┼────────────────────┼──────────────────────┤
+  │  Pre-order  │  ROOT, Left, Right │  ROOT comes FIRST    │
+  │  In-order   │  Left, ROOT, Right │  ROOT is in MIDDLE   │
+  │  Post-order │  Left, Right, ROOT │  ROOT comes LAST     │
+  └─────────────┴────────────────────┴──────────────────────┘
+
+  Example tree:
+             50
+           /    \
+         30      70
+        /  \    /  \
+      20   40  60   80
+
+  Pre-order:   50, 30, 20, 40, 70, 60, 80
+  In-order:    20, 30, 40, 50, 60, 70, 80   ← Always SORTED for BST!
+  Post-order:  20, 40, 30, 60, 80, 70, 50
+
+
+RECURSIVE vs ITERATIVE:
+  In exams, you often need the ITERATIVE version (using a STACK).
+  The recursive version is easy to think about, but the algorithm
+  notation uses the iterative version with explicit stack operations.
+
+
+================================================================================
+PART 4: COMPLETE WORKED EXAMPLES
+================================================================================
+
+
+─────────────────────────────────────────────────────────────
+EXAMPLE 1: BST SEARCH
+─────────────────────────────────────────────────────────────
+
+(A) C CODE YOU KNOW:
+    node* current = root;
+    while (current != NULL) {
+        if (item == current->data) { return current; }
+        else if (item < current->data) { current = current->left; }
+        else { current = current->right; }
+    }
+    return NULL;  // not found
+
+(B) PLAIN ENGLISH THINKING:
+    "Start at the root. Compare the item with the current node.
+     If equal, found it! If item is smaller, go left. If bigger, go right.
+     If I hit NULL, the item doesn't exist in the tree."
+
+(C) FINAL ALGORITHM:
+
+    ALGORITHM: BST_SEARCH (INFO, LEFT, RIGHT, ROOT, ITEM, LOC, PAR)
+    [This algorithm searches for ITEM in a BST. LOC gives the location
+     of the node if found, PAR gives the parent. Both are NULL if not found]
+
+    Step 1 : Set PTR := ROOT, PAR := NULL
+
+    Step 2 : Repeat while PTR != NULL:
+             (a) IF ITEM = INFO[PTR], then:
+                     Set LOC := PTR & Return
+             (b) IF ITEM < INFO[PTR], then:
+                     Set PAR := PTR
+                     Set PTR := LEFT[PTR]
+                 ELSE:
+                     Set PAR := PTR
+                     Set PTR := RIGHT[PTR]
+
+    Step 3 : Set LOC := NULL                [Item not found]
+             Write: "Item not in tree"
+    Step 4 : Return
+
+
+─────────────────────────────────────────────────────────────
+EXAMPLE 2: BST INSERTION
+─────────────────────────────────────────────────────────────
+
+(A) C CODE YOU KNOW:
+    if (root == NULL) { root = createNode(item); return; }
+    node* current = root;
+    node* parent = NULL;
+    while (current != NULL) {
+        parent = current;
+        if (item < current->data) current = current->left;
+        else if (item > current->data) current = current->right;
+        else { printf("Already exists"); return; }
+    }
+    node* new = createNode(item);
+    if (item < parent->data) parent->left = new;
+    else parent->right = new;
+
+(B) PLAIN ENGLISH THINKING:
+    "First, SEARCH for where the item should go. Walk down the tree
+     until I find a NULL spot — that's where the new node goes.
+     Also keep track of the PARENT so I know where to attach it.
+     If the item already exists, don't insert (no duplicates in BST)."
+
+(C) FINAL ALGORITHM:
+
+    ALGORITHM: BST_INSERT (INFO, LEFT, RIGHT, ROOT, AVAIL, ITEM)
+    [This algorithm inserts ITEM into a BST]
+
+    1. Call BST_SEARCH (INFO, LEFT, RIGHT, ROOT, ITEM, LOC, PAR)
+
+    2. IF LOC != NULL, then:
+           Write: "ITEM already exists" & Return
+
+    3. [Create new node from AVAIL]
+       (a) IF AVAIL = NULL, then:
+               Write: OVERFLOW & Return
+       (b) Set NEW := AVAIL, AVAIL := LINK[AVAIL]
+       (c) Set INFO[NEW] := ITEM
+           Set LEFT[NEW] := NULL, RIGHT[NEW] := NULL
+
+    4. [Insert new node into tree]
+       IF PAR = NULL, then:
+           Set ROOT := NEW                  [Tree was empty]
+       ELSE IF ITEM < INFO[PAR], then:
+           Set LEFT[PAR] := NEW             [Insert as left child]
+       ELSE:
+           Set RIGHT[PAR] := NEW            [Insert as right child]
+
+    5. Return
+
+
+─────────────────────────────────────────────────────────────
+EXAMPLE 3: PREORDER TRAVERSAL (Iterative, using Stack)
+─────────────────────────────────────────────────────────────
+
+(A) C CODE (RECURSIVE) YOU KNOW:
+    void preorder(node* root) {
+        if (root == NULL) return;
+        printf("%d ", root->data);     // Process ROOT
+        preorder(root->left);          // Go LEFT
+        preorder(root->right);         // Go RIGHT
+    }
+
+(B) PLAIN ENGLISH THINKING (Iterative):
+    "Start at root. Process it (print it). Then I need to go left first
+     and right later. So I SAVE the right child on a stack for later.
+     Then go left. When I can't go left anymore, pop from the stack
+     to process the right subtrees I saved."
+
+(C) FINAL ALGORITHM:
+
+    ALGORITHM: PRE_TRAVERSE (STACK, INFO, LEFT, RIGHT, ROOT)
+    [Iterative Preorder traversal: Root, Left, Right]
+
+    Step 1 : Set TOP := 1, STACK[1] := NULL, PTR := ROOT
+
+    Step 2 : Repeat while PTR != NULL:
+             (a) Write: INFO[PTR]                    [Process ROOT]
+             (b) IF RIGHT[PTR] != NULL, then:        [Save right for later]
+                     Set TOP := TOP + 1
+                     Set STACK[TOP] := RIGHT[PTR]
+             (c) Set PTR := LEFT[PTR]                [Go LEFT]
+
+    Step 3 : Set PTR := STACK[TOP], TOP := TOP - 1   [Pop from stack]
+
+    Step 4 : IF PTR != NULL, then: Goto Step 2
+
+    Step 5 : Exit
+
+
+─────────────────────────────────────────────────────────────
+EXAMPLE 4: INORDER TRAVERSAL (Iterative, using Stack)
+─────────────────────────────────────────────────────────────
+
+(A) C CODE (RECURSIVE) YOU KNOW:
+    void inorder(node* root) {
+        if (root == NULL) return;
+        inorder(root->left);           // Go LEFT first
+        printf("%d ", root->data);     // Process ROOT
+        inorder(root->right);          // Go RIGHT
+    }
+
+(B) PLAIN ENGLISH THINKING (Iterative):
+    "Keep going left and pushing every node onto the stack.
+     When I can't go left anymore, pop a node — that's the one to process.
+     Then go to its right child and repeat."
+
+(C) FINAL ALGORITHM:
+
+    ALGORITHM: IN_TRAVERSE (STACK, INFO, LEFT, RIGHT, ROOT)
+    [Iterative Inorder traversal: Left, Root, Right]
+
+    Step 1 : Set TOP := 1, STACK[1] := NULL, PTR := ROOT
+
+    Step 2 : Repeat while PTR != NULL:               [Go LEFT as far as possible]
+             (a) Set TOP := TOP + 1
+                 Set STACK[TOP] := PTR               [Push current node]
+             (b) Set PTR := LEFT[PTR]
+
+    Step 3 : Set PTR := STACK[TOP], TOP := TOP - 1   [Pop node]
+
+    Step 4 : Repeat while PTR != NULL:
+             (a) Write: INFO[PTR]                    [Process ROOT]
+             (b) IF RIGHT[PTR] != NULL, then:        [Has right child?]
+                     Set PTR := RIGHT[PTR]
+                     Goto Step 2                     [Process right subtree]
+             (c) Set PTR := STACK[TOP], TOP := TOP - 1 [Pop next]
+
+    Step 5 : Exit
+
+
+─────────────────────────────────────────────────────────────
+EXAMPLE 5: BST DELETION (The Hardest Tree Algorithm)
+─────────────────────────────────────────────────────────────
+
+BST Deletion is the most complex tree algorithm because there are
+THREE CASES to handle.
+
+(A) THE THREE CASES:
+
+  CASE 1: Node has NO children (leaf node)
+    → Simply remove it. Set parent's pointer to NULL.
+
+  CASE 2: Node has ONE child
+    → Replace the node with its only child.
+    → Parent now points to the grandchild.
+
+  CASE 3: Node has TWO children (the tricky one!)
+    → Find the INORDER SUCCESSOR (smallest node in right subtree)
+    → Copy successor's data into the node being deleted
+    → Delete the successor instead (which will be Case 1 or 2)
+
+(B) VISUAL:
+
+  DELETE 30 from:
+           50
+         /    \
+       30      70        Case 3: 30 has two children
+      /  \                Inorder successor of 30 = 40
+    20   40              Copy 40 into 30's position, then delete old 40
+   
+   After:
+           50
+         /    \
+       40      70
+      /
+    20
+
+(C) FINAL ALGORITHM:
+
+    ALGORITHM: BST_DELETE (INFO, LEFT, RIGHT, ROOT, AVAIL, ITEM)
+    [This algorithm deletes ITEM from a BST]
+
+    1. Call BST_SEARCH (INFO, LEFT, RIGHT, ROOT, ITEM, LOC, PAR)
+
+    2. IF LOC = NULL, then:
+           Write: "Item not found" & Return
+
+    3. [Determine which case]
+       IF RIGHT[LOC] != NULL and LEFT[LOC] != NULL, then:
+           Goto Step 5                      [Case 3: Two children]
+
+    4. [Case 1 or 2: Zero or one child]
+       (a) IF LEFT[LOC] = NULL and RIGHT[LOC] = NULL, then:
+               Set CHILD := NULL            [Case 1: Leaf]
+           ELSE IF LEFT[LOC] != NULL, then:
+               Set CHILD := LEFT[LOC]       [Case 2: Has left child]
+           ELSE:
+               Set CHILD := RIGHT[LOC]      [Case 2: Has right child]
+       (b) IF PAR = NULL, then:
+               Set ROOT := CHILD            [Deleting root node]
+           ELSE IF LOC = LEFT[PAR], then:
+               Set LEFT[PAR] := CHILD       [Node was left child]
+           ELSE:
+               Set RIGHT[PAR] := CHILD      [Node was right child]
+       (c) Set LEFT[LOC] := AVAIL, AVAIL := LOC [Return to free pool]
+       (d) Return
+
+    5. [Case 3: Two children — find inorder successor]
+       (a) Set PTR := RIGHT[LOC], SAVE := LOC
+       (b) Repeat while LEFT[PTR] != NULL:
+               Set SAVE := PTR
+               Set PTR := LEFT[PTR]
+           [PTR is now the inorder successor]
+       (c) Set INFO[LOC] := INFO[PTR]       [Copy successor's data]
+       (d) [Now delete the successor node (Case 1 or 2)]
+           IF SAVE = LOC, then:
+               Set RIGHT[SAVE] := RIGHT[PTR]
+           ELSE:
+               Set LEFT[SAVE] := RIGHT[PTR]
+       (e) Set LEFT[PTR] := AVAIL, AVAIL := PTR
+       (f) Return
+
+
+================================================================================
+PART 5: HEAP ALGORITHMS
+================================================================================
+
+A HEAP is a special binary tree with TWO properties:
+  1. COMPLETE BINARY TREE: All levels are full except possibly the last,
+     which is filled from LEFT to RIGHT.
+  2. HEAP PROPERTY:
+     - MAX-HEAP: Parent >= Both children (root is the MAXIMUM)
+     - MIN-HEAP: Parent <= Both children (root is the MINIMUM)
+
+HEAP is implemented using an ARRAY (because it's complete):
+  Parent of node I     = I / 2
+  Left child of node I = 2 * I
+  Right child of node I = 2 * I + 1
+
+
+─────────────────────────────────────────────────────────────
+HEAP INSERTION
+─────────────────────────────────────────────────────────────
+
+(A) PLAIN ENGLISH:
+    "Add the new element at the END of the array (next available position).
+     Then BUBBLE UP: compare it with its parent. If it's bigger (max-heap),
+     swap them. Keep going up until the heap property is restored."
+
+(B) ALGORITHM:
+
+    ALGORITHM: HEAP_INSERT (TREE, N, ITEM)
+    [This algorithm inserts ITEM into a max-heap TREE with N elements]
+
+    Step 1 : Set N := N + 1                  [Increase size]
+             Set TREE[N] := ITEM             [Place at end]
+
+    Step 2 : Set I := N                      [Start at new element]
+
+    Step 3 : Repeat while I > 1:             [Bubble up]
+             (a) Set PAR := I / 2            [Parent index]
+             (b) IF TREE[I] > TREE[PAR], then:
+                     [Swap]
+                     Set TEMP := TREE[I]
+                     Set TREE[I] := TREE[PAR]
+                     Set TREE[PAR] := TEMP
+                     Set I := PAR            [Move up]
+                 ELSE:
+                     Goto Step 4             [Heap property ok]
+
+    Step 4 : Exit
+
+
+─────────────────────────────────────────────────────────────
+HEAP DELETION (Delete Root)
+─────────────────────────────────────────────────────────────
+
+(A) PLAIN ENGLISH:
+    "Remove the root (max element). Replace it with the LAST element.
+     Then BUBBLE DOWN: compare it with its children. Swap with the
+     LARGER child. Keep going down until heap property is restored."
+
+(B) ALGORITHM:
+
+    ALGORITHM: HEAP_DELETE (TREE, N, ITEM)
+    [This algorithm deletes the root from a max-heap TREE with N elements]
+
+    Step 1 : Set ITEM := TREE[1]             [Save root value]
+             Set TREE[1] := TREE[N]          [Move last to root]
+             Set N := N - 1                  [Decrease size]
+
+    Step 2 : Set I := 1                      [Start at root]
+
+    Step 3 : Repeat while 2 * I <= N:        [Bubble down]
+             (a) Set LEFT := 2 * I
+                 Set RIGHT := 2 * I + 1
+             (b) Set LARGE := LEFT           [Assume left is larger]
+             (c) IF RIGHT <= N and TREE[RIGHT] > TREE[LEFT], then:
+                     Set LARGE := RIGHT      [Right is actually larger]
+             (d) IF TREE[I] < TREE[LARGE], then:
+                     [Swap]
+                     Set TEMP := TREE[I]
+                     Set TREE[I] := TREE[LARGE]
+                     Set TREE[LARGE] := TEMP
+                     Set I := LARGE          [Move down]
+                 ELSE:
+                     Goto Step 4             [Heap property ok]
+
+    Step 4 : Exit
+
+
+================================================================================
+PART 6: COMMON MISTAKES TO AVOID
+================================================================================
+
+MISTAKE 1: Forgetting to track the PARENT in BST insertion/deletion
+  You ALWAYS need PAR to know WHERE to attach the new node.
+  Without PAR, you can find the right spot but can't insert.
+
+MISTAKE 2: Confusing LEFT and RIGHT in BST search
+  IF ITEM < INFO[PTR] → go LEFT   (smaller values on left)
+  IF ITEM > INFO[PTR] → go RIGHT  (larger values on right)
+
+MISTAKE 3: BST Deletion — not handling all three cases
+  Case 1 (leaf), Case 2 (one child), Case 3 (two children).
+  Students often forget Case 3 or handle it incorrectly.
+
+MISTAKE 4: In iterative traversal, forgetting to push NULL as sentinel
+  Step 1 always starts with: STACK[1] := NULL
+  This NULL acts as a sentinel to know when the stack is empty.
+
+MISTAKE 5: Heap — wrong parent/child index formulas
+  Parent of I = I / 2  (integer division)
+  Left child of I = 2 * I
+  Right child of I = 2 * I + 1
+  Do NOT confuse these with 0-indexed formulas.
+
+MISTAKE 6: Not checking for empty tree (ROOT = NULL)
+  Always check at the start of search/delete algorithms.
+
+
+================================================================================
+PART 7: PRACTICE EXERCISES
+================================================================================
+
+  1. [EASY] Write the algorithm for finding the MINIMUM value in a BST.
+     Hint: Keep going LEFT until LEFT[PTR] = NULL.
+
+  2. [EASY] Trace preorder, inorder, postorder for:
+              40
+            /    \
+          25      60
+         /  \       \
+       10   30      75
+
+  3. [MEDIUM] Write the post-order traversal algorithm (iterative, with stack).
+     Hint: This is the hardest traversal. Use negative values on the stack
+     to mark right children that haven't been processed yet.
+
+  4. [MEDIUM] Insert the following values into a max-heap and show the heap
+     after each insertion: 45, 36, 54, 27, 63, 72, 81
+
+  5. [HARD] Delete the node containing 50 from this BST:
+              50
+            /    \
+          30      70
+         /  \    /  \
+       20   40  60   80
+     Trace through the deletion algorithm step by step.
+
+================================================================================
+REMEMBER: Trees are about making LEFT or RIGHT decisions at each node.
+BST Search is the foundation — Insertion calls Search, Deletion calls Search.
+Traversals use a STACK to simulate recursion. Heaps use BUBBLE UP/DOWN.
+================================================================================

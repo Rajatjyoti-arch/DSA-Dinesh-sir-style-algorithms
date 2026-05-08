@@ -1,0 +1,449 @@
+================================================================================
+   HOW TO WRITE ALGORITHMS: QUEUE EDITION
+================================================================================
+   "I know how queues work in C, but I can't write the algorithms."
+   This tutorial covers Linear Queue, Circular Queue, Deque, and
+   Priority Queue — everything you need for your exam.
+================================================================================
+
+
+THE KEY INSIGHT ABOUT QUEUES
+=============================
+A queue is like a line at a ticket counter:
+  → New people join at the REAR (back of the line)
+  → People leave from the FRONT (front of the line)
+  → Nobody cuts in line (well, unless it's a Priority Queue!)
+
+This is called FIFO: First In, First Out.
+The first person who joined the line is the first to leave.
+
+The DIFFERENCE from a stack:
+  Stack → one end only (TOP). LIFO.
+  Queue → TWO ends (FRONT and REAR). FIFO.
+
+This TWO-END nature is what makes queue algorithms slightly trickier.
+
+
+================================================================================
+PART 1: QUEUE VOCABULARY
+================================================================================
+
+  ┌──────────────────────────────────────────────────────────────┐
+  │  IMPLEMENTATION 1: USING A LINEAR ARRAY                     │
+  ├──────────┬───────────────────────────────────────────────────┤
+  │ QUEUE    │ The array that holds the queue elements           │
+  │ FRONT    │ Index of the first element (head of the line)     │
+  │ REAR     │ Index of the last element (tail of the line)      │
+  │ N        │ Maximum capacity of the queue array               │
+  │ ITEM     │ The element being inserted or deleted             │
+  └──────────┴───────────────────────────────────────────────────┘
+
+  ┌──────────────────────────────────────────────────────────────┐
+  │  IMPLEMENTATION 2: USING A LINKED LIST                      │
+  ├──────────┬───────────────────────────────────────────────────┤
+  │ INFO     │ Data stored in each node                          │
+  │ LINK     │ Pointer to the next node                          │
+  │ FRONT    │ Pointer to the first node (head)                  │
+  │ REAR     │ Pointer to the last node (tail)                   │
+  │ AVAIL    │ Free pool of nodes                                │
+  │ ITEM     │ The element being inserted or deleted             │
+  └──────────┴───────────────────────────────────────────────────┘
+
+  SPECIAL STATES:
+    Empty Queue (Array):   FRONT = NULL, REAR = NULL (or FRONT = -1)
+    Full Queue (Array):    REAR = N (linear) or wrapped around (circular)
+    Empty Queue (LL):      FRONT = NULL
+
+
+================================================================================
+PART 2: THE TRANSLATION DICTIONARY (C → Algorithm for Queues)
+================================================================================
+
+ARRAY-BASED QUEUE:
++----------------------------------+----------------------------------------+
+|    C CODE                        |    ALGORITHM EQUIVALENT                |
++----------------------------------+----------------------------------------+
+|  if (rear == n)                  |  IF REAR = N, then: OVERFLOW & Exit    |
+|  if (front == -1)                |  IF FRONT = NULL, then: UNDERFLOW      |
+|  queue[++rear] = item;           |  Set REAR := REAR + 1                 |
+|                                  |  Set QUEUE[REAR] := ITEM              |
+|  item = queue[front++];          |  Set ITEM := QUEUE[FRONT]             |
+|                                  |  Set FRONT := FRONT + 1               |
++----------------------------------+----------------------------------------+
+
+LINKED LIST-BASED QUEUE:
++----------------------------------+----------------------------------------+
+|    C CODE                        |    ALGORITHM EQUIVALENT                |
++----------------------------------+----------------------------------------+
+|  (Enqueue = insert at REAR)      |  Set NEW := AVAIL                     |
+|  new->data = item;               |  Set INFO[NEW] := ITEM                |
+|  rear->next = new;               |  Set LINK[REAR] := NEW                |
+|  rear = new;                     |  Set REAR := NEW                      |
++----------------------------------+----------------------------------------+
+|  (Dequeue = delete from FRONT)   |  Set ITEM := INFO[FRONT]              |
+|  item = front->data;             |  Set PTR := FRONT                     |
+|  front = front->next;            |  Set FRONT := LINK[FRONT]             |
+|  free(temp);                     |  Set LINK[PTR] := AVAIL, AVAIL := PTR |
++----------------------------------+----------------------------------------+
+
+
+================================================================================
+PART 3: THE FOUR TYPES OF QUEUES
+================================================================================
+
+You need to know algorithms for all four. Here's how they differ:
+
+  ┌─────────────────┬─────────────────────────────────────────────┐
+  │  Queue Type     │  Key Difference                             │
+  ├─────────────────┼─────────────────────────────────────────────┤
+  │  Linear Queue   │  Basic FIFO. Insert at REAR, delete from   │
+  │                 │  FRONT. Problem: wasted space at front.     │
+  ├─────────────────┼─────────────────────────────────────────────┤
+  │  Circular Queue │  Solves wasted space. REAR wraps around    │
+  │                 │  to the beginning when it hits the end.     │
+  │                 │  Uses modulo: REAR = (REAR % N) + 1         │
+  ├─────────────────┼─────────────────────────────────────────────┤
+  │  Deque          │  Double-Ended Queue. Insert and delete      │
+  │  (DEQ)          │  from BOTH ends.                            │
+  ├─────────────────┼─────────────────────────────────────────────┤
+  │  Priority Queue │  Each element has a PRIORITY. Higher        │
+  │                 │  priority elements get dequeued first,      │
+  │                 │  regardless of arrival order.               │
+  └─────────────────┴─────────────────────────────────────────────┘
+
+
+================================================================================
+PART 4: COMPLETE WORKED EXAMPLES
+================================================================================
+
+
+─────────────────────────────────────────────────────────────
+EXAMPLE 1: INSERT INTO LINEAR QUEUE (Array)
+─────────────────────────────────────────────────────────────
+
+(A) C CODE YOU KNOW:
+    if (rear == n) { printf("Overflow"); return; }
+    if (front == -1) { front = 0; rear = 0; }
+    else { rear++; }
+    queue[rear] = item;
+
+(B) PLAIN ENGLISH THINKING:
+    "Is the queue full? If yes, overflow.
+     Is the queue empty? If yes, set both FRONT and REAR to 1.
+     Otherwise, just move REAR forward by 1.
+     Then place the item at REAR."
+
+(C) FINAL ALGORITHM:
+
+    ALGORITHM: INSERT_QUEUE (QUEUE, N, FRONT, REAR, ITEM)
+    [This algorithm inserts ITEM into a linear queue of size N]
+
+    Step 1 : IF FRONT = 1 and REAR = N, then:
+                 Write: OVERFLOW & Exit
+    Step 2 : IF FRONT = NULL and REAR = NULL, then:
+                 Set FRONT := 1, REAR := 1
+             ELSE:
+                 Set REAR := REAR + 1
+    Step 3 : Set QUEUE[REAR] := ITEM
+    Step 4 : Exit
+
+
+─────────────────────────────────────────────────────────────
+EXAMPLE 2: DELETE FROM LINEAR QUEUE (Array)
+─────────────────────────────────────────────────────────────
+
+(A) C CODE YOU KNOW:
+    if (front == -1) { printf("Underflow"); return; }
+    item = queue[front];
+    if (front == rear) { front = -1; rear = -1; }
+    else { front++; }
+
+(B) PLAIN ENGLISH THINKING:
+    "Is the queue empty? If yes, underflow.
+     Read the element at FRONT. Now, was that the LAST element?
+     If yes, reset both FRONT and REAR to NULL (queue is now empty).
+     Otherwise, just move FRONT forward by 1."
+
+(C) FINAL ALGORITHM:
+
+    ALGORITHM: DELETE_QUEUE (QUEUE, N, FRONT, REAR, ITEM)
+    [This algorithm deletes the front element from a linear queue]
+
+    Step 1 : IF FRONT = NULL, then:
+                 Write: UNDERFLOW & Exit
+    Step 2 : Set ITEM := QUEUE[FRONT]
+    Step 3 : IF FRONT = REAR, then:          [Last element being deleted]
+                 Set FRONT := NULL, REAR := NULL
+             ELSE:
+                 Set FRONT := FRONT + 1
+    Step 4 : Exit
+
+
+─────────────────────────────────────────────────────────────
+EXAMPLE 3: INSERT INTO CIRCULAR QUEUE
+─────────────────────────────────────────────────────────────
+
+(A) C CODE YOU KNOW:
+    if ((rear + 1) % n == front) { printf("Overflow"); return; }
+    if (front == -1) { front = 0; rear = 0; }
+    else { rear = (rear + 1) % n; }
+    cqueue[rear] = item;
+
+(B) PLAIN ENGLISH THINKING:
+    "The circular queue is full when:
+     - FRONT = 1 and REAR = N (normal full), OR
+     - FRONT is right after REAR (wrapped around full).
+     
+     If empty, set both to 1.
+     If REAR is at the end (N), wrap it around to 1.
+     Otherwise, just increment REAR.
+     Then place the item."
+
+(C) FINAL ALGORITHM:
+
+    ALGORITHM: CQUEUE_INSERT (CQUEUE, N, FRONT, REAR, ITEM)
+    [This algorithm inserts ITEM into a circular queue of size N]
+
+    Step 1 : IF FRONT = 1 and REAR = N, or IF FRONT = REAR + 1, then:
+                 Write: OVERFLOW & Exit
+    Step 2 : IF FRONT = NULL and REAR = NULL, then:
+                 Set FRONT := 1, REAR := 1
+             ELSE IF REAR = N, then:         [Wrap around!]
+                 Set REAR := 1
+             ELSE:
+                 Set REAR := REAR + 1
+    Step 3 : Set CQUEUE[REAR] := ITEM
+    Step 4 : Exit
+
+
+─────────────────────────────────────────────────────────────
+EXAMPLE 4: DELETE FROM CIRCULAR QUEUE
+─────────────────────────────────────────────────────────────
+
+(A) C CODE YOU KNOW:
+    if (front == -1) { printf("Underflow"); return; }
+    item = cqueue[front];
+    if (front == rear) { front = -1; rear = -1; }
+    else { front = (front + 1) % n; }
+
+(B) PLAIN ENGLISH THINKING:
+    "Is the queue empty? If yes, underflow.
+     Read the element at FRONT.
+     Was that the last element? If yes, reset both to NULL.
+     Is FRONT at position N? If yes, wrap it around to 1.
+     Otherwise, just increment FRONT."
+
+(C) FINAL ALGORITHM:
+
+    ALGORITHM: CQUEUE_DELETE (CQUEUE, N, FRONT, REAR, ITEM)
+    [This algorithm deletes the front element from a circular queue]
+
+    Step 1 : IF FRONT = NULL and REAR = NULL, then:
+                 Write: UNDERFLOW & Exit
+    Step 2 : Set ITEM := CQUEUE[FRONT]
+    Step 3 : IF FRONT = REAR, then:          [Last element]
+                 Set FRONT := NULL, REAR := NULL
+             ELSE IF FRONT = N, then:        [Wrap around!]
+                 Set FRONT := 1
+             ELSE:
+                 Set FRONT := FRONT + 1
+    Step 4 : Exit
+
+
+─────────────────────────────────────────────────────────────
+EXAMPLE 5: INSERT INTO QUEUE USING LINKED LIST
+─────────────────────────────────────────────────────────────
+
+(A) C CODE YOU KNOW:
+    node* new = malloc(sizeof(node));
+    new->data = item;
+    new->next = NULL;
+    if (front == NULL) { front = new; rear = new; }
+    else { rear->next = new; rear = new; }
+
+(B) PLAIN ENGLISH THINKING:
+    "Get a free node. Store item in it. Its next is NULL (it goes to end).
+     If queue is empty, this node is BOTH front and rear.
+     Otherwise, attach it after the current rear and update rear."
+
+(C) FINAL ALGORITHM:
+
+    ALGORITHM: INSERT_QUEUE_LL (INFO, LINK, FRONT, REAR, AVAIL, ITEM)
+    [This algorithm inserts ITEM into a queue using a linked list]
+
+    Step 1 : IF AVAIL = NULL, then:
+                 Write: OVERFLOW & Exit
+    Step 2 : Set NEW := AVAIL
+             Set AVAIL := LINK[AVAIL]
+    Step 3 : Set INFO[NEW] := ITEM
+             Set LINK[NEW] := NULL
+    Step 4 : IF FRONT = NULL, then:          [Queue is empty]
+                 Set FRONT := NEW, REAR := NEW
+             ELSE:
+                 Set LINK[REAR] := NEW       [Attach after current rear]
+                 Set REAR := NEW             [Update rear]
+    Step 5 : Exit
+
+
+─────────────────────────────────────────────────────────────
+EXAMPLE 6: DELETE FROM QUEUE USING LINKED LIST
+─────────────────────────────────────────────────────────────
+
+(A) C CODE YOU KNOW:
+    if (front == NULL) { printf("Underflow"); return; }
+    int item = front->data;
+    node* temp = front;
+    front = front->next;
+    if (front == NULL) rear = NULL;
+    free(temp);
+
+(B) PLAIN ENGLISH THINKING:
+    "Is the queue empty? If yes, underflow.
+     Read the front element's data. Save the front node.
+     Move FRONT to the next node.
+     If FRONT is now NULL, the queue is empty — set REAR to NULL too.
+     Return old front node to free pool."
+
+(C) FINAL ALGORITHM:
+
+    ALGORITHM: DELETE_QUEUE_LL (INFO, LINK, FRONT, REAR, AVAIL, ITEM)
+    [This algorithm deletes the front element from a queue using a linked list]
+
+    Step 1 : IF FRONT = NULL, then:
+                 Write: UNDERFLOW & Exit
+    Step 2 : Set ITEM := INFO[FRONT]
+    Step 3 : Set PTR := FRONT
+             Set FRONT := LINK[FRONT]
+    Step 4 : IF FRONT = NULL, then:          [Queue became empty]
+                 Set REAR := NULL
+    Step 5 : Set LINK[PTR] := AVAIL
+             Set AVAIL := PTR
+    Step 6 : Exit
+
+
+================================================================================
+PART 5: CIRCULAR QUEUE — WHY IT EXISTS
+================================================================================
+
+THE PROBLEM WITH LINEAR QUEUES:
+
+  Imagine a queue of size 5. After several inserts and deletes:
+
+  Queue:  [ _ | _ | _ | D | E ]
+           ↑               ↑
+         wasted!         FRONT=4  REAR=5
+
+  REAR = 5 = N, so the algorithm says OVERFLOW!
+  But positions 1, 2, 3 are empty! That's WASTED SPACE.
+
+THE CIRCULAR QUEUE SOLUTION:
+
+  When REAR reaches N, it WRAPS AROUND to position 1.
+
+  Queue:  [ F | _ | _ | D | E ]
+           ↑           ↑
+         REAR=1      FRONT=4
+
+  Now we can use those empty positions!
+
+  THE WRAP-AROUND LOGIC:
+    IF REAR = N, then:
+        Set REAR := 1       ← wrap to beginning
+    ELSE:
+        Set REAR := REAR + 1
+
+    IF FRONT = N, then:
+        Set FRONT := 1      ← wrap to beginning
+    ELSE:
+        Set FRONT := FRONT + 1
+
+  FULL CONDITION (Circular):
+    Queue is full when FRONT is immediately AFTER REAR:
+    IF FRONT = 1 and REAR = N → full
+    IF FRONT = REAR + 1      → full (wrapped case)
+
+
+================================================================================
+PART 6: THE "SPECIAL CASE" CHECKLIST FOR QUEUES
+================================================================================
+
+Queue algorithms have MORE special cases than stacks. Here's every one:
+
+  ┌──────────────────────────────────────────────────────────────┐
+  │  INSERTION SPECIAL CASES:                                   │
+  │  1. Queue is FULL         → OVERFLOW                        │
+  │  2. Queue is EMPTY        → Set FRONT := 1, REAR := 1      │
+  │  3. REAR at end (circ.)   → Wrap REAR to 1                  │
+  │  4. Normal case           → REAR := REAR + 1                │
+  └──────────────────────────────────────────────────────────────┘
+
+  ┌──────────────────────────────────────────────────────────────┐
+  │  DELETION SPECIAL CASES:                                    │
+  │  1. Queue is EMPTY        → UNDERFLOW                       │
+  │  2. LAST element deleted  → Set FRONT := NULL, REAR := NULL │
+  │  3. FRONT at end (circ.)  → Wrap FRONT to 1                 │
+  │  4. Normal case           → FRONT := FRONT + 1              │
+  └──────────────────────────────────────────────────────────────┘
+
+  ╔══════════════════════════════════════════════════════════════╗
+  ║  TIP: The "last element" case (FRONT = REAR) is the one    ║
+  ║  most students FORGET. If you delete the last element and   ║
+  ║  don't reset FRONT and REAR to NULL, your queue will be    ║
+  ║  in a broken state!                                         ║
+  ╚══════════════════════════════════════════════════════════════╝
+
+
+================================================================================
+PART 7: COMMON MISTAKES TO AVOID
+================================================================================
+
+MISTAKE 1: Forgetting to handle the EMPTY queue case during insertion
+  When inserting into an empty queue, BOTH FRONT and REAR must be set to 1.
+  ✗ WRONG: Only setting REAR := 1
+  ✓ RIGHT: Set FRONT := 1, REAR := 1
+
+MISTAKE 2: Forgetting to reset BOTH pointers when deleting the last element
+  ✗ WRONG: Only setting FRONT := NULL
+  ✓ RIGHT: Set FRONT := NULL, REAR := NULL
+
+MISTAKE 3: Not wrapping around in circular queue
+  ✗ WRONG: Always doing REAR := REAR + 1
+  ✓ RIGHT: Check IF REAR = N first, then set REAR := 1
+
+MISTAKE 4: Confusing OVERFLOW conditions
+  Linear Queue:   REAR = N → OVERFLOW
+  Circular Queue: (FRONT = 1 and REAR = N) OR (FRONT = REAR + 1) → OVERFLOW
+  These are DIFFERENT! Don't mix them up.
+
+MISTAKE 5: Using stack terminology for queues
+  ✗ WRONG: "PUSH onto queue" or "POP from queue"
+  ✓ RIGHT: "INSERT/ENQUEUE into queue" or "DELETE/DEQUEUE from queue"
+
+
+================================================================================
+PART 8: PRACTICE EXERCISES
+================================================================================
+
+  1. [EASY] Write the algorithm for PEEK operation (read FRONT without deleting).
+     Hint: Check underflow, then just Write: QUEUE[FRONT]. Don't change FRONT.
+
+  2. [EASY] Display all elements of a linear queue.
+     Hint: Loop from FRONT to REAR and print each element.
+
+  3. [MEDIUM] Trace through these operations on a circular queue of size 5:
+     INSERT 10, INSERT 20, INSERT 30, DELETE, DELETE, INSERT 40, INSERT 50,
+     INSERT 60, INSERT 70.
+     Draw the queue state and FRONT/REAR after each operation.
+
+  4. [MEDIUM] Write the algorithm for Input-Restricted Deque
+     (insert only at REAR, delete from BOTH ends).
+
+  5. [HARD] Write the algorithm for a Priority Queue where lower number
+     = higher priority. When inserting, find the correct position to maintain
+     sorted order by priority.
+
+================================================================================
+REMEMBER: A queue has TWO pointers (FRONT and REAR) — always track BOTH.
+The most common exam mistake is forgetting the special cases:
+empty queue on insert, last element on delete, and wrap-around on circular.
+================================================================================
