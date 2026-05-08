@@ -1,0 +1,68 @@
+ARRAY OPERATIONS: CORE CONCEPTS AND ALGORITHM WRITING FRAMEWORK
+
+Part 1: The Core Concept of an Array
+An array is the simplest and most foundational data structure. Think of it as a row of lockers in a school hallway.
+1. Contiguous Memory: The lockers are right next to each other. If you know where locker #1 is, you know exactly where locker #5 is. This makes accessing any element incredibly fast (O(1) time).
+2. Fixed Size (Usually): When you buy a row of lockers, you have to decide in advance how many lockers you want (Capacity N). 
+3. Current Count: Even if you have 100 lockers (N = 100), you might only be using 5 of them right now (K = 5).
+4. Indexing: Lockers are numbered sequentially. In most programming languages, they start at 0 (0-indexed) or 1 (1-indexed, common in algorithm design).
+
+Part 2: The "Algorithm Writing" Framework
+To handle *any* array question, follow this 4-step framework. We will use "Insertion into an Unsorted Array" as our guiding example.
+
+Step 1: Define Your Inputs and Variables
+Before writing any steps, ask yourself: "What data do I have, and what am I trying to achieve?"
+- A: The Array itself.
+- N: The Total Capacity (how many lockers exist).
+- K: The Current Number of Elements (how many lockers are full).
+- ITEM: The thing you want to do an operation with (e.g., the new value to insert).
+- POS: The specific index where the action happens.
+
+Step 2: The "Edge Case" Check (The Bouncers)
+Always protect your algorithm from crashing. For arrays, this almost always means checking Capacity or Validity.
+- For Insertion: Are all lockers full? If K >= N, you can't insert. (OVERFLOW)
+- For Deletion: Are there no lockers in use? If K == 0, you can't delete. (UNDERFLOW)
+- For Position: Did the user ask to insert at position 1000 when you only have 5 elements? Check if POS is valid.
+
+Example:
+Step 1 : IF K >= N, then:
+             Write: OVERFLOW & Exit
+
+Step 3: The Core Logic (The Heavy Lifting)
+This is where the magic happens. For arrays, this almost always involves shifting elements or visiting elements using a loop.
+Ask yourself: "If I want to insert an item at Position 3, what happens to the item already at Position 3 and everything after it?"
+- They need to move to the right to make space.
+- Crucial Rule of Shifting: If you are shifting RIGHT, start from the END and move backwards. If you start at the front, you will overwrite and destroy your data.
+
+Example:
+Step 2 : Set I := K  [Start at the very last filled element]
+Step 3 : Repeat while I >= POS:
+         (a) Set A[I + 1] := A[I] [Shift right]
+         (b) Set I := I - 1       [Move pointer backwards]
+
+Step 4: Execute the Action & Update State
+Once you've made space (or found the item, or deleted the item), do the final action and update your variables.
+- Put the new item in the empty spot.
+- Since you added an item, your total count K increases by 1.
+
+Example:
+Step 4 : Set A[POS] := ITEM 
+Step 5 : Set K := K + 1
+
+
+Part 3: Mental Exercise - Deletion Algorithm
+Goal: Delete an item at a specific POS in array A with K elements.
+
+1. Inputs: Array A, count K, target POS.
+2. Edge Case: Can we delete from an empty array? No.
+   - Step 1: If K == 0, Write: UNDERFLOW & Exit.
+   - Step 2: If POS < 1 or POS > K, Write: INVALID POSITION & Exit.
+3. Core Logic: If we remove the item at POS, there is an empty hole. We need to shift everything after POS to the left to fill the hole.
+   - Crucial Rule of Shifting: If shifting LEFT, start from the FRONT (POS) and move forwards.
+   - Step 3: Set I := POS
+   - Step 4: Repeat while I < K:
+        (a) Set A[I] := A[I + 1]  [Shift left]
+        (b) Set I := I + 1
+4. Execute & Update: The item is gone. Update the count.
+   - Step 5: Set K := K - 1
+   - Step 6: Exit
