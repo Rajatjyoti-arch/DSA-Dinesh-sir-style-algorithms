@@ -1,0 +1,516 @@
+================================================================================
+     LINKED LIST OPERATIONS — DEEP DIVE (How & Why Each One Works)
+================================================================================
+  After reading this, you will understand every linked list operation
+  so deeply that you could TEACH it to someone else.
+================================================================================
+
+
+================================================================================
+FIRST: HOW A LINKED LIST ACTUALLY LIVES IN MEMORY
+================================================================================
+
+Forget the clean diagrams for a moment. Here's what's REALLY happening:
+
+In C, a linked list node is a struct with DATA and a NEXT pointer.
+In algorithm notation, we use two parallel arrays:
+  INFO[] holds the data, LINK[] holds the next pointer.
+
+EXAMPLE: A list containing 10 → 25 → 30
+
+  In memory (not in order!):
+  ┌──────┬────────┬─────────┐
+  │ Slot │ INFO[] │ LINK[]  │
+  ├──────┼────────┼─────────┤
+  │  1   │  30    │  NULL   │   ← Third node (points to nothing)
+  │  2   │  —     │  4      │   ← FREE (part of AVAIL list)
+  │  3   │  10    │  5      │   ← First node (points to slot 5)
+  │  4   │  —     │  6      │   ← FREE
+  │  5   │  25    │  1      │   ← Second node (points to slot 1)
+  │  6   │  —     │  NULL   │   ← FREE (last free node)
+  └──────┴────────┴─────────┘
+
+  START = 3  (the list starts at slot 3)
+  AVAIL = 2  (the free pool starts at slot 2)
+
+  Following the chain:
+    START=3 → INFO[3]=10, LINK[3]=5
+    → INFO[5]=25, LINK[5]=1
+    → INFO[1]=30, LINK[1]=NULL → END
+
+  Following AVAIL:
+    AVAIL=2 → LINK[2]=4 → LINK[4]=6 → LINK[6]=NULL → END
+
+  KEY INSIGHT: The nodes are NOT stored in order! Slot 3 holds the
+  first node, slot 5 holds the second, slot 1 holds the third.
+  The LINK pointers create the logical order, not the physical position.
+
+WHY THIS MATTERS:
+  This is why linked lists can INSERT and DELETE in O(1) — you just
+  change pointers, you don't shift elements. But it's also why you
+  CAN'T access element #3 directly — you have to FOLLOW the chain.
+
+
+================================================================================
+OPERATION 1: TRAVERSAL
+================================================================================
+
+WHAT IT DOES:
+  Visit every node in the list by following the chain of LINK pointers.
+
+HOW IT WORKS — STEP BY STEP:
+
+  List: 10 → 25 → 30 → NULL    (START = 3)
+
+  We use a pointer PTR that starts at START and follows LINK until NULL.
+
+  ┌────────┬──────────────┬──────────────┬──────────────────────┐
+  │ Step   │ PTR          │ INFO[PTR]    │ Action               │
+  ├────────┼──────────────┼──────────────┼──────────────────────┤
+  │ Start  │ PTR = 3      │ INFO[3] = 10 │ Process 10           │
+  │ Next   │ PTR = LINK[3]│ = 5          │ Move to next node    │
+  │        │ PTR = 5      │ INFO[5] = 25 │ Process 25           │
+  │ Next   │ PTR = LINK[5]│ = 1          │ Move to next node    │
+  │        │ PTR = 1      │ INFO[1] = 30 │ Process 30           │
+  │ Next   │ PTR = LINK[1]│ = NULL       │ STOP. End of list.   │
+  └────────┴──────────────┴──────────────┴──────────────────────┘
+
+WHY PTR := LINK[PTR] WORKS:
+  LINK[PTR] contains the ADDRESS of the next node. By setting PTR to
+  this address, we "jump" to the next node. It's like following a treasure
+  map: each clue (LINK) tells you where the next clue is.
+
+WHY WE STOP AT NULL:
+  NULL means "there is no next node." It's the signal that we've reached
+  the end of the chain. Without NULL, we'd loop forever or crash.
+
+THE DIFFERENCE FROM ARRAY TRAVERSAL:
+  Array:       for I = 1 to K       (we KNOW where each element is)
+  Linked List: while PTR != NULL    (we FOLLOW pointers to find each element)
+
+  Array traversal is like walking down a numbered hallway.
+  Linked list traversal is like following a trail of breadcrumbs.
+
+
+================================================================================
+OPERATION 2: INSERTION AT THE BEGINNING
+================================================================================
+
+WHAT IT DOES:
+  Add a new node BEFORE the current first node, making it the new first.
+
+WHY IT'S THE SIMPLEST INSERTION:
+  You don't need to traverse the list at all! You just:
+  1. Create a new node
+  2. Point it to the current first node
+  3. Update START
+
+HOW IT WORKS — STEP BY STEP:
+
+  BEFORE: START → [10] → [25] → [30] → NULL
+  INSERT: ITEM = 5
+
+  Step 1: Get a node from the free pool
+    Set NEW := AVAIL             AVAIL was pointing to slot 2
+    Set AVAIL := LINK[AVAIL]     AVAIL now points to the NEXT free slot
+
+    ┌─────────────────────────────────────────────────┐
+    │  BEFORE: AVAIL → [slot 2] → [slot 4] → [slot 6]│
+    │  AFTER:  AVAIL → [slot 4] → [slot 6]           │
+    │  NEW = slot 2 (taken from pool)                 │
+    └─────────────────────────────────────────────────┘
+
+  Step 2: Store the data
+    Set INFO[NEW] := 5
+
+  Step 3: Rewire pointers
+    Set LINK[NEW] := START       NEW node now points to old first node
+    Set START := NEW             START now points to NEW node
+
+    BEFORE step 3:
+      START → [10] → [25] → [30] → NULL
+      NEW → [5]  (disconnected, pointing nowhere useful)
+
+    After LINK[NEW] := START:
+      START → [10] → [25] → [30] → NULL
+      NEW → [5] → [10] → [25] → [30] → NULL
+
+    After START := NEW:
+      START → [5] → [10] → [25] → [30] → NULL     ✓ Done!
+
+WHY THE ORDER OF POINTER CHANGES MATTERS:
+
+  ╔═══════════════════════════════════════════════════════════════╗
+  ║  WRONG ORDER:                                                ║
+  ║  Set START := NEW            ← START now points to NEW      ║
+  ║  Set LINK[NEW] := START      ← LINK[NEW] = NEW (points to  ║
+  ║                                 itself!) INFINITE LOOP!     ║
+  ║                                                              ║
+  ║  The old list is LOST because START no longer points to it.  ║
+  ╚═══════════════════════════════════════════════════════════════╝
+
+  ╔═══════════════════════════════════════════════════════════════╗
+  ║  CORRECT ORDER:                                              ║
+  ║  Set LINK[NEW] := START      ← NEW grabs the old chain first║
+  ║  Set START := NEW            ← THEN START lets go of old     ║
+  ║                                                              ║
+  ║  Rule: ALWAYS connect the new node to the chain BEFORE       ║
+  ║  disconnecting any existing pointers.                        ║
+  ╚═══════════════════════════════════════════════════════════════╝
+
+
+================================================================================
+OPERATION 3: INSERTION AFTER A GIVEN NODE (LOC)
+================================================================================
+
+WHAT IT DOES:
+  Add a new node right AFTER a specific node at location LOC.
+
+HOW IT WORKS — STEP BY STEP:
+
+  BEFORE: START → [10] → [25] → [30] → NULL
+  INSERT: ITEM = 99 AFTER the node containing 25 (LOC points to [25])
+
+  Step 1: Get a node from free pool (same as before)
+    Set NEW := AVAIL, AVAIL := LINK[AVAIL]
+
+  Step 2: Store the data
+    Set INFO[NEW] := 99
+
+  Step 3: Rewire pointers — THIS IS THE KEY PART
+
+    BEFORE:
+      ... → [25] → [30] → ...
+              ↑
+             LOC
+
+    We need to INSERT [99] between [25] and [30]:
+      ... → [25] → [99] → [30] → ...
+
+    LINK[NEW] := LINK[LOC]   ← NEW (99) points to what LOC (25) used to point to (30)
+    LINK[LOC] := NEW         ← LOC (25) now points to NEW (99)
+
+    Step by step:
+
+    After LINK[NEW] := LINK[LOC]:
+      [25] → [30]
+      [99] → [30]     (99 now also points to 30)
+
+    After LINK[LOC] := NEW:
+      [25] → [99] → [30]    ✓ Chain is complete!
+
+WHY THIS ORDER?
+  If we did LINK[LOC] := NEW first, then LINK[LOC] would be NEW,
+  and when we do LINK[NEW] := LINK[LOC], we'd get LINK[NEW] := NEW
+  (99 would point to itself!). The chain to [30] would be LOST.
+
+  Always: NEW grabs the rest of the chain → THEN LOC hands off to NEW.
+
+TWO SPECIAL CASES:
+  IF LOC = NULL → Insert at beginning (same as Operation 2)
+  IF LINK[LOC] = NULL → Insert at end (NEW becomes the last node)
+
+
+================================================================================
+OPERATION 4: INSERTION AT THE END
+================================================================================
+
+WHAT IT DOES:
+  Add a new node after the LAST node in the list.
+
+WHY IT REQUIRES TRAVERSAL:
+  Unlike insertion at the beginning, we don't have a direct pointer to
+  the last node. We have to WALK the entire list to find it.
+
+HOW IT WORKS — STEP BY STEP:
+
+  BEFORE: START → [10] → [25] → [30] → NULL
+  INSERT: ITEM = 99 at the end
+
+  Step 1: Get a free node, store data, set LINK[NEW] := NULL
+    (the new last node should point to nothing)
+
+  Step 2: Handle special case — is the list EMPTY?
+    IF START = NULL → Set START := NEW, Exit.  (NEW is both first and last)
+
+  Step 3: FIND the last node (traverse until LINK[PTR] = NULL)
+
+    ┌────────┬──────────────┬──────────────────────────────────┐
+    │ Step   │ PTR          │ Is LINK[PTR] = NULL?             │
+    ├────────┼──────────────┼──────────────────────────────────┤
+    │ Start  │ PTR = START  │ LINK[START]=5, not NULL. Continue│
+    │ Move   │ PTR = 5      │ LINK[5]=1, not NULL. Continue    │
+    │ Move   │ PTR = 1      │ LINK[1]=NULL! FOUND last node.  │
+    └────────┴──────────────┴──────────────────────────────────┘
+
+  Step 4: Attach new node: Set LINK[PTR] := NEW
+
+    BEFORE: [10] → [25] → [30] → NULL
+    AFTER:  [10] → [25] → [30] → [99] → NULL     ✓
+
+WHY WE CHECK LINK[PTR] NOT PTR:
+  If we checked PTR != NULL, we'd stop AFTER passing the last node
+  (PTR would be NULL and we'd have lost our position). By checking
+  LINK[PTR] != NULL, we stop AT the last node, which is where we
+  need to be to attach the new node.
+
+
+================================================================================
+OPERATION 5: DELETION OF FIRST NODE
+================================================================================
+
+WHAT IT DOES:
+  Remove the first node and return it to the free pool.
+
+HOW IT WORKS — STEP BY STEP:
+
+  BEFORE: START → [10] → [25] → [30] → NULL
+
+  Step 1: Check for underflow
+    IF START = NULL → UNDERFLOW (list is empty, nothing to delete)
+
+  Step 2: Save the data of the first node
+    Set ITEM := INFO[START] = 10
+
+  Step 3: Remember the first node (we need to free it later)
+    Set PTR := START
+
+  Step 4: Move START to the second node
+    Set START := LINK[START]
+
+    BEFORE: START → [10] → [25] → [30] → NULL
+    AFTER:  START → [25] → [30] → NULL
+            PTR → [10]  (disconnected, floating)
+
+  Step 5: Return the old first node to the free pool
+    Set LINK[PTR] := AVAIL     ← old node points to free pool
+    Set AVAIL := PTR           ← old node becomes the first free node
+
+    Free pool BEFORE: AVAIL → [slot 4] → [slot 6]
+    Free pool AFTER:  AVAIL → [old first node] → [slot 4] → [slot 6]
+
+WHY WE NEED PTR:
+  After we do START := LINK[START], we've lost the reference to the
+  old first node. Without PTR saving it, we can never return it
+  to the free pool — that node would be LEAKED (lost memory).
+
+
+================================================================================
+OPERATION 6: DELETION OF LAST NODE
+================================================================================
+
+WHAT IT DOES:
+  Remove the last node from the list.
+
+WHY IT'S HARDER THAN DELETING THE FIRST:
+  To delete the last node, we need the SECOND-TO-LAST node (to set its
+  LINK to NULL). But in a singly linked list, we can't go BACKWARD!
+  So we need TWO pointers: PTR (current) and SAVE (previous).
+
+HOW IT WORKS — STEP BY STEP:
+
+  BEFORE: START → [10] → [25] → [30] → NULL
+
+  Step 1: Check underflow (START = NULL?)
+
+  Step 2: Special case — only ONE node?
+    IF LINK[START] = NULL:
+      Save data, free the node, set START := NULL, Exit.
+
+  Step 3: Walk to the end using TWO pointers
+
+    ┌────────┬────────────┬────────────┬──────────────────────┐
+    │ Step   │ SAVE       │ PTR        │ LINK[PTR] = NULL?    │
+    ├────────┼────────────┼────────────┼──────────────────────┤
+    │ Init   │ SAVE=START │ PTR=LINK[S]│ No                   │
+    │        │ (slot 3)   │ (slot 5)   │                      │
+    │ Move   │ SAVE=5     │ PTR=LINK[5]│ PTR=1                │
+    │        │            │ = slot 1   │ LINK[1]=NULL? YES!   │
+    └────────┴────────────┴────────────┴──────────────────────┘
+
+    Now: SAVE points to [25], PTR points to [30] (the last node)
+
+  Step 4: Cut the last node
+    Set LINK[SAVE] := NULL      ← [25] now points to nothing (new last)
+    Set ITEM := INFO[PTR] = 30  ← save the deleted data
+
+  Step 5: Return PTR to free pool
+    Set LINK[PTR] := AVAIL, AVAIL := PTR
+
+    AFTER: START → [10] → [25] → NULL     ✓
+
+THE TWO-POINTER TECHNIQUE:
+  ┌──────────────────────────────────────────────────────────────┐
+  │  SAVE always stays ONE STEP BEHIND PTR.                     │
+  │                                                              │
+  │  When PTR reaches the target node, SAVE is at the           │
+  │  node BEFORE it — exactly where we need to modify LINK.     │
+  │                                                              │
+  │  This technique appears EVERYWHERE:                         │
+  │    - Deleting any specific node                             │
+  │    - Inserting into a sorted list                           │
+  │    - Finding the middle of a list                           │
+  └──────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+OPERATION 7: SEARCHING
+================================================================================
+
+WHAT IT DOES:
+  Find a node containing a specific ITEM and return its LOCATION (LOC).
+
+HOW IT WORKS — STEP BY STEP:
+
+  List: 10 → 25 → 30 → NULL    Find ITEM = 25
+
+  ┌────────┬──────────────┬────────────────┬───────────────────┐
+  │ Step   │ PTR          │ INFO[PTR]=ITEM?│ Action            │
+  ├────────┼──────────────┼────────────────┼───────────────────┤
+  │ Start  │ PTR = START  │ 10 = 25? NO   │ Move: PTR=LINK[PTR]│
+  │ Move   │ PTR = 5      │ 25 = 25? YES! │ LOC := 5, STOP!   │
+  └────────┴──────────────┴────────────────┴───────────────────┘
+
+  For deletion, we often need BOTH the node AND its previous node.
+  That uses the same TWO-POINTER technique from Operation 6:
+    - LOC = location of the found node
+    - LOCP = location of the PREVIOUS node
+
+  Why LOCP? Because to DELETE a node, we need to make the PREVIOUS
+  node skip over it: Set LINK[LOCP] := LINK[LOC]
+
+
+================================================================================
+OPERATION 8: DELETION OF A SPECIFIC ITEM
+================================================================================
+
+WHAT IT DOES:
+  Find and remove the first node containing a given ITEM.
+
+HOW IT WORKS — STEP BY STEP:
+
+  List: 10 → 25 → 30 → NULL    Delete ITEM = 25
+
+  Step 1: FIND the node and its predecessor
+    Call FIND(ITEM) → LOC = slot of [25], LOCP = slot of [10]
+
+  Step 2: Is LOC = NULL? (item not found) → Exit with error
+
+  Step 3: Two cases:
+
+    CASE A: Deleting the FIRST node (LOCP = NULL)
+      Set START := LINK[START]
+
+    CASE B: Deleting a middle/last node (LOCP != NULL)
+      Set LINK[LOCP] := LINK[LOC]   ← Skip over the deleted node
+
+      BEFORE: [10] → [25] → [30]
+                ↑       ↑
+              LOCP     LOC
+
+      AFTER:  [10] ─────────→ [30]     (25 is bypassed)
+              [25] → [30]               (25 still points to 30, but
+                                         nobody points to 25 anymore)
+
+  Step 4: Return LOC to free pool
+    Set LINK[LOC] := AVAIL, AVAIL := LOC
+
+WHY TWO CASES?
+  The first node has no predecessor (LOCP = NULL). Its "previous pointer"
+  is START itself. So to delete it, we update START, not LINK[LOCP].
+  For every other node, the predecessor's LINK does the skipping.
+
+
+================================================================================
+CIRCULAR LINKED LIST — HOW IT DIFFERS
+================================================================================
+
+WHAT CHANGES:
+  In a regular list: last node → NULL
+  In a circular list: last node → START (points back to the first node!)
+
+  Regular:   [10] → [25] → [30] → NULL
+  Circular:  [10] → [25] → [30] → [10] → [25] → [30] → ... (infinite loop!)
+
+WHY IT EXISTS:
+  Useful when you need to repeatedly cycle through elements (like a
+  round-robin scheduler). You never "fall off the end."
+
+KEY DIFFERENCE IN ALGORITHMS:
+  Regular:   Repeat while PTR != NULL
+  Circular:  Repeat while PTR != START (stop when you've come full circle)
+
+  Or more precisely: process the first node, then keep going until
+  you get BACK to the first node.
+
+DANGER:
+  If you use the regular "while PTR != NULL" loop on a circular list,
+  you'll loop FOREVER because no node points to NULL!
+
+
+================================================================================
+DOUBLY LINKED LIST — HOW IT DIFFERS
+================================================================================
+
+WHAT CHANGES:
+  Each node has TWO pointers: NEXT (forward) and PREV (backward).
+
+  Singly:  [PREV | INFO | NEXT]  ← only NEXT exists, no PREV
+  Doubly:  [PREV | INFO | NEXT]  ← both PREV and NEXT exist
+
+  Doubly: NULL ← [10] ⇌ [25] ⇌ [30] → NULL
+
+WHY IT EXISTS:
+  You can go BACKWARD! This solves the biggest problem of singly linked
+  lists — you don't need the TWO-POINTER technique anymore because
+  any node already knows its predecessor.
+
+KEY DIFFERENCES IN ALGORITHMS:
+  Insertion requires updating FOUR pointers instead of two:
+    Set LINK[NEW] := LINK[LOC]         ← NEW's NEXT = LOC's old NEXT
+    Set PREV[LINK[LOC]] := NEW         ← LOC's old NEXT's PREV = NEW
+    Set LINK[LOC] := NEW               ← LOC's NEXT = NEW
+    Set PREV[NEW] := LOC               ← NEW's PREV = LOC
+
+  Deletion is EASIER because you don't need to find the previous node:
+    Set LINK[PREV[LOC]] := LINK[LOC]   ← Previous node skips LOC
+    Set PREV[LINK[LOC]] := PREV[LOC]   ← Next node skips LOC backward
+
+
+================================================================================
+THE BIG PICTURE: HOW ALL LINKED LIST OPERATIONS CONNECT
+================================================================================
+
+  ┌──────────────┐
+  │  TRAVERSAL   │──→ Walk the chain. Foundation of everything.
+  └──────┬───────┘
+         │
+    ┌────┴────┐
+    │         │
+    ▼         ▼
+┌────────┐ ┌────────────────────────────────────┐
+│ SEARCH │ │ INSERT at BEG / AFTER / END        │
+│        │ │                                    │
+│  Find  │ │  Get node from AVAIL               │
+│  LOC   │ │  Store data                        │
+│  and   │ │  Rewire pointers (order matters!)  │
+│  LOCP  │ │  Update START if needed            │
+└───┬────┘ └────────────────────────────────────┘
+    │
+    ▼
+┌───────────────────────────────────────────────┐
+│ DELETE (first / last / by item / by loc)      │
+│                                               │
+│  1. Find the node (uses SEARCH)               │
+│  2. Bypass it (LINK[LOCP] := LINK[LOC])       │
+│  3. Return to AVAIL                           │
+└───────────────────────────────────────────────┘
+
+  KEY TAKEAWAY:
+  Every linked list operation is about three things:
+    1. FINDING the right node (traversal/search)
+    2. REWIRING pointers (in the correct order!)
+    3. MANAGING the free pool (AVAIL)
+  Master these three, and you can build any linked list algorithm.
+
+================================================================================

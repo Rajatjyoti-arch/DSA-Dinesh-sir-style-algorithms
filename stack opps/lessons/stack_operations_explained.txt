@@ -1,0 +1,480 @@
+================================================================================
+     STACK OPERATIONS — DEEP DIVE (How & Why Each One Works)
+================================================================================
+  After reading this, you will understand every stack operation so
+  deeply that you'll never forget how they work.
+================================================================================
+
+
+================================================================================
+FIRST: WHAT MAKES A STACK SPECIAL?
+================================================================================
+
+A stack has ONE RULE that defines everything:
+
+  ╔═══════════════════════════════════════════════════════════════╗
+  ║  You can ONLY access the TOP element.                        ║
+  ║  You cannot look at, add to, or remove from anywhere else.  ║
+  ╚═══════════════════════════════════════════════════════════════╝
+
+This is called LIFO: Last In, First Out.
+
+REAL-WORLD ANALOGY:
+  Think of a stack of plates at a buffet:
+  - You add plates ON TOP (push)
+  - You take plates FROM THE TOP (pop)
+  - You can only see the TOP plate (peek)
+  - You CANNOT pull a plate from the middle without disaster
+
+WHY THIS RESTRICTION IS USEFUL:
+  It seems limiting, but LIFO is exactly what you need for:
+  - Undo/Redo operations (most recent action undone first)
+  - Function calls in programs (most recent function returns first)
+  - Expression evaluation (operators work on the most recent operands)
+  - Backtracking (undo the most recent choice first)
+
+
+================================================================================
+OPERATION 1: PUSH (Using Array)
+================================================================================
+
+WHAT IT DOES:
+  Add a new element on top of the stack.
+
+HOW IT WORKS — STEP BY STEP:
+
+  Given: STACK = [15, 22, 8, _, _],  TOP = 3, MAXS = 5
+                  ↑       ↑
+                 [1]     [3]=TOP
+
+  PUSH ITEM = 45
+
+  Step 1: Is the stack full? (TOP = MAXS?)
+    TOP = 3, MAXS = 5 → 3 ≠ 5 → NOT full. Proceed.
+
+  Step 2: Move TOP up by 1
+    TOP := TOP + 1 = 4
+
+  Step 3: Place ITEM at the new TOP
+    STACK[4] := 45
+
+  RESULT: STACK = [15, 22, 8, 45, _],  TOP = 4
+                   ↑           ↑
+                  [1]        [4]=TOP
+
+  VISUAL:
+    BEFORE:           AFTER:
+    ┌────┐            ┌────┐
+    │    │ [5]        │    │ [5]
+    ├────┤            ├────┤
+    │    │ [4]        │ 45 │ [4] ← TOP
+    ├────┤            ├────┤
+    │  8 │ [3] ← TOP │  8 │ [3]
+    ├────┤            ├────┤
+    │ 22 │ [2]        │ 22 │ [2]
+    ├────┤            ├────┤
+    │ 15 │ [1]        │ 15 │ [1]
+    └────┘            └────┘
+
+WHY INCREMENT FIRST, THEN PLACE?
+  TOP points to the CURRENT top element. If we place the item first
+  (STACK[TOP] := ITEM), we'd OVERWRITE the current top element!
+  We must move to an EMPTY position first, then place the item.
+
+  Think of it: TOP = 3 means position 3 has data. Position 4 is empty.
+  We need to PUT the item at position 4, so we increment TOP to 4 first.
+
+WHAT IF THE STACK IS FULL? (TOP = MAXS)
+  STACK = [15, 22, 8, 45, 99],  TOP = 5 = MAXS
+  There's no position 6! If we increment and write, we'd write outside
+  the array → CRASH. That's why Step 1 checks for OVERFLOW.
+
+
+================================================================================
+OPERATION 2: POP (Using Array)
+================================================================================
+
+WHAT IT DOES:
+  Remove and return the top element from the stack.
+
+HOW IT WORKS — STEP BY STEP:
+
+  Given: STACK = [15, 22, 8, 45, _],  TOP = 4
+
+  POP
+
+  Step 1: Is the stack empty? (TOP = 0?)
+    TOP = 4 ≠ 0 → NOT empty. Proceed.
+
+  Step 2: Read the top element
+    ITEM := STACK[TOP] = STACK[4] = 45
+
+  Step 3: Move TOP down by 1
+    TOP := TOP - 1 = 3
+
+  RESULT: STACK = [15, 22, 8, 45, _],  TOP = 3,  ITEM = 45
+                                ↑
+                              [3]=TOP
+
+  NOTE: The value 45 is still physically at position 4! But since
+  TOP = 3, we'll never access it again. It's effectively "deleted."
+  The next PUSH will overwrite it.
+
+  VISUAL:
+    BEFORE:           AFTER:
+    ┌────┐            ┌────┐
+    │    │ [5]        │    │ [5]
+    ├────┤            ├────┤
+    │ 45 │ [4] ← TOP │(45)│ [4]  (still there, but ignored)
+    ├────┤            ├────┤
+    │  8 │ [3]        │  8 │ [3] ← TOP
+    ├────┤            ├────┤
+    │ 22 │ [2]        │ 22 │ [2]
+    ├────┤            ├────┤
+    │ 15 │ [1]        │ 15 │ [1]
+    └────┘            └────┘
+
+WHY READ FIRST, THEN DECREMENT?
+  If we decrement first (TOP := TOP - 1 = 3), then STACK[TOP] would
+  give us STACK[3] = 8, which is the WRONG element! We wanted 45.
+  We must read STACK[TOP] while TOP still points to the top element.
+
+  PUSH:  increment first, then write     (make space → fill it)
+  POP:   read first, then decrement      (grab item → remove it)
+  These are MIRROR operations.
+
+WHAT IF THE STACK IS EMPTY? (TOP = 0)
+  There's nothing to pop! If we try to read STACK[0], we'd get garbage
+  data. That's why Step 1 checks for UNDERFLOW.
+
+
+================================================================================
+OPERATION 3: PUSH (Using Linked List)
+================================================================================
+
+WHAT IT DOES:
+  Same as array push, but using a linked list instead of an array.
+
+THE KEY INSIGHT:
+  ╔═══════════════════════════════════════════════════════════════╗
+  ║  PUSH on a linked-list stack = INSERT AT BEGINNING           ║
+  ║  The "top" of the stack is the FIRST node of the list.      ║
+  ╚═══════════════════════════════════════════════════════════════╝
+
+HOW IT WORKS — STEP BY STEP:
+
+  BEFORE: TOP → [8] → [22] → [15] → NULL
+  PUSH ITEM = 45
+
+  Step 1: Check overflow (AVAIL = NULL? No → proceed)
+
+  Step 2: Get a free node
+    Set NEW := AVAIL
+    Set AVAIL := LINK[AVAIL]
+
+  Step 3: Store data
+    Set INFO[NEW] := 45
+
+  Step 4: NEW points to current top, then becomes new top
+    Set LINK[NEW] := TOP       ← 45 points to 8
+    Set TOP := NEW             ← TOP now points to 45
+
+  AFTER: TOP → [45] → [8] → [22] → [15] → NULL
+
+  VISUAL:
+    BEFORE:                AFTER:
+    TOP                    TOP
+     ↓                      ↓
+    [8] → [22] → [15]     [45] → [8] → [22] → [15]
+
+WHY LINKED LIST STACKS NEVER HAVE A "MAXS" LIMIT:
+  An array stack is limited by MAXS (fixed size). A linked list stack
+  is limited only by available memory (AVAIL pool). As long as there
+  are free nodes, you can push. This makes LL stacks more flexible.
+
+
+================================================================================
+OPERATION 4: POP (Using Linked List)
+================================================================================
+
+WHAT IT DOES:
+  Remove the first node (which represents the top of the stack).
+
+THE KEY INSIGHT:
+  ╔═══════════════════════════════════════════════════════════════╗
+  ║  POP from a linked-list stack = DELETE FIRST NODE            ║
+  ╚═══════════════════════════════════════════════════════════════╝
+
+HOW IT WORKS — STEP BY STEP:
+
+  BEFORE: TOP → [45] → [8] → [22] → [15] → NULL
+  POP
+
+  Step 1: Check underflow (TOP = NULL? No → proceed)
+
+  Step 2: Save the top element's data
+    Set ITEM := INFO[TOP] = 45
+
+  Step 3: Remember the top node, advance TOP
+    Set PTR := TOP
+    Set TOP := LINK[TOP]        ← TOP now points to [8]
+
+  Step 4: Return old top to free pool
+    Set LINK[PTR] := AVAIL
+    Set AVAIL := PTR
+
+  AFTER: TOP → [8] → [22] → [15] → NULL,  ITEM = 45
+
+WHY WE NEED PTR:
+  After TOP := LINK[TOP], we've lost our reference to the old top node.
+  PTR saves it so we can return it to the free pool. Without this,
+  the node would be leaked (unusable but not free).
+
+
+================================================================================
+OPERATION 5: INFIX TO POSTFIX CONVERSION
+================================================================================
+
+WHAT IT DOES:
+  Convert an expression like "A + B * C" (infix — operator between operands)
+  to "A B C * +" (postfix — operator after operands).
+
+WHY POSTFIX EXISTS:
+  Computers can't easily handle precedence and parentheses in infix.
+  Postfix eliminates BOTH — no parentheses needed, and the order of
+  operators IS the order of evaluation.
+
+  Infix:    (A + B) * C        needs parentheses to override precedence
+  Postfix:  A B + C *          no parentheses, evaluated left to right
+
+THE OPERATOR PRECEDENCE TABLE:
+  ┌──────────┬────────────┐
+  │ Operator │ Precedence │
+  ├──────────┼────────────┤
+  │  ^       │  3 (highest)│
+  │  * /     │  2          │
+  │  + -     │  1 (lowest) │
+  │  (       │  0 (on stack)│
+  └──────────┴────────────┘
+
+HOW IT WORKS — FULL TRACED EXAMPLE:
+
+  Convert: A + B * C - D
+
+  Preparation: Add ')' at end →  A + B * C - D )
+               Push '(' to stack
+
+  ┌──────┬────────────────┬───────────┬──────────────────────────────┐
+  │ Scan │ Stack          │ Postfix   │ Why                          │
+  ├──────┼────────────────┼───────────┼──────────────────────────────┤
+  │  A   │ (              │ A         │ Operand → output directly    │
+  │  +   │ ( +            │ A         │ Stack empty (just (), push + │
+  │  B   │ ( +            │ A B       │ Operand → output directly    │
+  │  *   │ ( + *          │ A B       │ * > + in precedence, push *  │
+  │  C   │ ( + *          │ A B C     │ Operand → output directly    │
+  │  -   │ ( -            │ A B C * + │ - has lower prec than *,     │
+  │      │                │           │ so POP * to output.          │
+  │      │                │           │ - has SAME prec as +,        │
+  │      │                │           │ so POP + to output.          │
+  │      │                │           │ Then PUSH -.                 │
+  │  D   │ ( -            │ A B C * + D│ Operand → output directly   │
+  │  )   │  (empty)       │A B C * + D -│ POP everything until (     │
+  │      │                │           │ POP -, discard (             │
+  └──────┴────────────────┴───────────┴──────────────────────────────┘
+
+  RESULT: A B C * + D -
+
+THE RULES EXPLAINED:
+
+  RULE 1: Operand → goes directly to output.
+    WHY: Operands don't change position, only operators do.
+
+  RULE 2: Operator → pop all operators with HIGHER or EQUAL precedence
+          from the stack to output, THEN push the new operator.
+    WHY: Higher precedence operators should be evaluated FIRST, so they
+    go to the output before the lower-precedence operator. Same-precedence
+    operators follow LEFT-TO-RIGHT rule, so the older one goes first.
+
+  RULE 3: '(' → push onto stack.
+    WHY: It acts as a barrier. No operator should be popped past it.
+
+  RULE 4: ')' → pop everything to output until '(' is found, discard '('.
+    WHY: Everything inside the parentheses has higher effective precedence.
+
+  VISUAL METAPHOR:
+    Think of the stack as a waiting room for operators.
+    - Operands walk straight through to the output (no waiting).
+    - Operators must wait in the stack until someone with LOWER
+      precedence arrives. Then they get pushed out.
+    - Parentheses are like VIP barriers — '(' blocks everyone,
+      ')' flushes everyone out of the VIP section.
+
+
+================================================================================
+OPERATION 6: POSTFIX EXPRESSION EVALUATION
+================================================================================
+
+WHAT IT DOES:
+  Calculate the actual VALUE of a postfix expression.
+
+HOW IT WORKS:
+
+  Evaluate: 6 2 3 + - 3 8 2 / + * 
+
+  THE RULE: Scan left to right.
+    - Number? PUSH it onto the stack.
+    - Operator? POP two numbers, apply operator, PUSH result.
+
+  ┌──────┬──────────────────┬────────────────────────────────────┐
+  │ Scan │ Stack            │ Action                             │
+  ├──────┼──────────────────┼────────────────────────────────────┤
+  │  6   │ [6]              │ Push 6                             │
+  │  2   │ [6, 2]           │ Push 2                             │
+  │  3   │ [6, 2, 3]        │ Push 3                             │
+  │  +   │ [6, 5]           │ Pop 3,2 → 2+3=5 → Push 5          │
+  │  -   │ [1]              │ Pop 5,6 → 6-5=1 → Push 1          │
+  │  3   │ [1, 3]           │ Push 3                             │
+  │  8   │ [1, 3, 8]        │ Push 8                             │
+  │  2   │ [1, 3, 8, 2]     │ Push 2                             │
+  │  /   │ [1, 3, 4]        │ Pop 2,8 → 8/2=4 → Push 4          │
+  │  +   │ [1, 7]           │ Pop 4,3 → 3+4=7 → Push 7          │
+  │  *   │ [7]              │ Pop 7,1 → 1*7=7 → Push 7          │
+  └──────┴──────────────────┴────────────────────────────────────┘
+
+  RESULT: 7
+
+  IMPORTANT — ORDER OF OPERANDS:
+  When you pop two values for an operator:
+    SECOND popped = LEFT operand
+    FIRST popped  = RIGHT operand
+
+  For + and *, order doesn't matter (commutative).
+  For - and /, ORDER MATTERS!
+    Pop A, Pop B → compute B ○ A (not A ○ B!)
+
+  Example: Stack has [6, 2], operator is -
+    Pop 2 (first), Pop 6 (second) → 6 - 2 = 4 ✓
+    NOT 2 - 6 = -4 ✗
+
+
+================================================================================
+OPERATION 7: TOWER OF HANOI
+================================================================================
+
+WHAT IT DOES:
+  Move N disks from source peg to destination peg using an auxiliary peg,
+  with the rule that you can NEVER place a larger disk on a smaller one.
+
+WHY IT'S A STACK PROBLEM:
+  Each peg IS a stack! Disks can only be added/removed from the top.
+  The constraint "larger below smaller" is like maintaining a sorted stack.
+
+THE RECURSIVE INSIGHT:
+  To move N disks from A to C using B:
+
+  1. Move top (N-1) disks from A to B (using C as helper)
+  2. Move the Nth (largest) disk from A to C
+  3. Move (N-1) disks from B to C (using A as helper)
+
+  It's recursive because step 1 and 3 are the same problem, just smaller!
+
+TRACED FOR 3 DISKS (A→C using B):
+
+  ┌──────┬────────────────────────────────────────────────┐
+  │ Move │ Action                                        │
+  ├──────┼────────────────────────────────────────────────┤
+  │  1   │ Move disk 1 from A to C                       │
+  │  2   │ Move disk 2 from A to B                       │
+  │  3   │ Move disk 1 from C to B                       │
+  │  4   │ Move disk 3 from A to C  ← the big move!     │
+  │  5   │ Move disk 1 from B to A                       │
+  │  6   │ Move disk 2 from B to C                       │
+  │  7   │ Move disk 1 from A to C                       │
+  └──────┴────────────────────────────────────────────────┘
+
+  Total moves = 2^N - 1 = 2³ - 1 = 7 moves for 3 disks.
+
+
+================================================================================
+OPERATION 8: QUICK SORT (Using Stack)
+================================================================================
+
+WHAT IT DOES:
+  Sort an array by repeatedly PARTITIONING it around a pivot element.
+
+THE IDEA:
+  1. Pick a pivot (usually the first element)
+  2. PARTITION: rearrange so all elements < pivot are LEFT,
+     all elements > pivot are RIGHT. Pivot is in its FINAL position.
+  3. Repeat for the left and right sub-arrays.
+
+WHY A STACK IS NEEDED:
+  Instead of using recursion (which implicitly uses the call stack),
+  we explicitly maintain a stack of "sub-array boundaries" that still
+  need to be sorted.
+
+HOW PARTITION WORKS — STEP BY STEP:
+
+  Array: [50, 30, 70, 10, 40, 60, 20]
+  Pivot = 50 (first element)
+
+  Use two pointers: LEFT starts at position 2, RIGHT starts at position 7
+
+  LEFT moves RIGHT → looking for element > pivot
+  RIGHT moves LEFT ← looking for element < pivot
+
+  ┌──────┬───────┬────────┬──────────────────────────────────────┐
+  │ Step │ LEFT  │ RIGHT  │ Action                               │
+  ├──────┼───────┼────────┼──────────────────────────────────────┤
+  │  1   │ 2(30) │ 7(20)  │ LEFT: 30<50, move right              │
+  │  2   │ 3(70) │ 7(20)  │ LEFT: 70>50 STOP. RIGHT: 20<50 STOP│
+  │      │       │        │ SWAP 70 and 20                       │
+  │      │       │        │ Array: [50,30,20,10,40,60,70]        │
+  │  3   │ 4(10) │ 6(60)  │ LEFT: 10<50, move right              │
+  │  4   │ 5(40) │ 6(60)  │ LEFT: 40<50, move right              │
+  │  5   │ 6(60) │ 6(60)  │ LEFT: 60>50 STOP. RIGHT: 60>50 move │
+  │  6   │ 6(60) │ 5(40)  │ RIGHT: 40<50 STOP.                  │
+  │      │       │        │ LEFT > RIGHT → STOP scanning         │
+  │      │       │        │ SWAP pivot(50) with RIGHT(40)         │
+  │      │       │        │ Array: [40,30,20,10,50,60,70]        │
+  └──────┴───────┴────────┴──────────────────────────────────────┘
+
+  Now 50 is at position 5 — its FINAL sorted position!
+  Left sub-array [40,30,20,10] — all < 50 ✓
+  Right sub-array [60,70] — all > 50 ✓
+
+  Push boundaries of both sub-arrays onto the stack and repeat.
+
+
+================================================================================
+THE BIG PICTURE: HOW STACK OPERATIONS CONNECT
+================================================================================
+
+  ┌──────────────────────────────────────┐
+  │  PUSH and POP                       │
+  │  The two fundamental operations.    │
+  │  Everything else is built on these. │
+  └──────────┬───────────────────────────┘
+             │
+     ┌───────┴───────────────────────┐
+     │                               │
+     ▼                               ▼
+  ┌───────────────────┐    ┌────────────────────────┐
+  │ Expression Ops    │    │ Recursive Simulation   │
+  │                   │    │                        │
+  │ Infix → Postfix   │    │ Tower of Hanoi         │
+  │ Postfix eval      │    │ Quick Sort             │
+  │ Infix → Prefix    │    │ Tree Traversals        │
+  │                   │    │ DFS on Graphs          │
+  │ Stack holds       │    │ Stack holds "what to   │
+  │ OPERATORS         │    │ do next" (pending work)│
+  └───────────────────┘    └────────────────────────┘
+
+  KEY TAKEAWAY:
+  PUSH and POP are the only operations. Everything else is a
+  creative APPLICATION of push and pop:
+    - Expression problems → stack holds operators
+    - Recursive problems → stack holds pending sub-problems
+    - Backtracking problems → stack holds choices to undo
+
+================================================================================

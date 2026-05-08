@@ -1,0 +1,624 @@
+================================================================================
+     TREE OPERATIONS — DEEP DIVE (How & Why Each One Works)
+================================================================================
+  After reading this, you will understand Binary Trees, BSTs, Traversals,
+  Heaps, and AVL Trees so deeply you'll never forget them.
+================================================================================
+
+
+================================================================================
+FIRST: WHAT IS A TREE AND WHY IS IT NON-LINEAR?
+================================================================================
+
+Arrays, stacks, queues, linked lists are all LINEAR — data flows in a
+single line. A tree is NON-LINEAR — data BRANCHES.
+
+  Linear:     [A] → [B] → [C] → [D]
+  Tree:           [A]
+                 /   \
+              [B]     [C]
+             /   \       \
+           [D]   [E]     [F]
+
+KEY TERMINOLOGY:
+  ┌────────────────┬──────────────────────────────────────────────┐
+  │ Root           │ The topmost node (A). Has no parent.         │
+  │ Parent         │ Node directly above. B is parent of D and E. │
+  │ Child          │ Node directly below. D and E are children of B│
+  │ Leaf           │ Node with NO children. D, E, F are leaves.   │
+  │ Subtree        │ Any node + all its descendants. B-D-E is a subtree│
+  │ Height/Depth   │ Number of edges from root to deepest leaf.   │
+  │ Level          │ Root is level 0 (or 1). Each step down = +1. │
+  └────────────────┴──────────────────────────────────────────────┘
+
+BINARY TREE = each node has AT MOST 2 children (left and right).
+BINARY SEARCH TREE (BST) = binary tree WHERE:
+  Left child < Parent < Right child (for ALL nodes).
+
+
+================================================================================
+OPERATION 1: BST SEARCH
+================================================================================
+
+WHAT IT DOES:
+  Find whether a specific ITEM exists in the BST.
+
+WHY BST SEARCH IS FAST:
+  Unlike linear search (check EVERY element, O(N)), BST search
+  ELIMINATES HALF the remaining tree at each step — O(log N)!
+
+HOW IT WORKS — STEP BY STEP:
+
+  BST:        50
+            /    \
+          30      70
+         /  \    /  \
+       20   40  60   80
+
+  Search for ITEM = 40
+
+  ┌──────┬───────────┬──────────────┬──────────────────────────────┐
+  │ Step │ PTR       │ Compare      │ Decision                     │
+  ├──────┼───────────┼──────────────┼──────────────────────────────┤
+  │  1   │ PTR = 50  │ 40 = 50? NO  │ 40 < 50 → go LEFT           │
+  │  2   │ PTR = 30  │ 40 = 30? NO  │ 40 > 30 → go RIGHT          │
+  │  3   │ PTR = 40  │ 40 = 40? YES │ FOUND!  LOC = this node     │
+  └──────┴───────────┴──────────────┴──────────────────────────────┘
+
+  Only 3 comparisons for 7 elements! In a linear search, it could take 7.
+
+  Search for ITEM = 35 (not in tree):
+
+  ┌──────┬───────────┬──────────────┬──────────────────────────────┐
+  │ Step │ PTR       │ Compare      │ Decision                     │
+  ├──────┼───────────┼──────────────┼──────────────────────────────┤
+  │  1   │ PTR = 50  │ 35 < 50      │ Go LEFT                      │
+  │  2   │ PTR = 30  │ 35 > 30      │ Go RIGHT                     │
+  │  3   │ PTR = 40  │ 35 < 40      │ Go LEFT                      │
+  │  4   │ PTR = NULL│ —            │ LEFT[40] = NULL → NOT FOUND   │
+  └──────┴───────────┴──────────────┴──────────────────────────────┘
+
+WHY IT WORKS:
+  The BST property guarantees that if ITEM < current node, it can
+  ONLY be in the left subtree. If ITEM > current node, it can ONLY
+  be in the right subtree. So each comparison eliminates an entire
+  subtree from consideration.
+
+WHY WE TRACK PAR (PARENT):
+  The search algorithm also returns PAR (the parent of the found node).
+  This is needed for INSERTION and DELETION — to know WHERE to attach
+  a new node or WHERE to rewire after removing a node.
+
+
+================================================================================
+OPERATION 2: BST INSERTION
+================================================================================
+
+WHAT IT DOES:
+  Add a new node containing ITEM to the BST in the correct position.
+
+THE KEY INSIGHT:
+  ╔═══════════════════════════════════════════════════════════════╗
+  ║  BST Insertion = BST Search that ends at NULL               ║
+  ║  You search for where ITEM would be. When you hit NULL,     ║
+  ║  THAT'S where the new node goes.                            ║
+  ╚═══════════════════════════════════════════════════════════════╝
+
+HOW IT WORKS — STEP BY STEP:
+
+  BST:        50
+            /    \
+          30      70
+
+  Insert ITEM = 40
+
+  Step 1: Search for 40
+    PTR=50: 40 < 50 → go LEFT, PAR=50
+    PTR=30: 40 > 30 → go RIGHT, PAR=30
+    PTR=NULL → 40 should go HERE, as the RIGHT child of 30
+
+  Step 2: Create new node
+    NEW := AVAIL, INFO[NEW] := 40, LEFT[NEW] := NULL, RIGHT[NEW] := NULL
+
+  Step 3: Attach to parent
+    40 > INFO[PAR=30] → Set RIGHT[PAR] := NEW
+
+  AFTER:      50
+            /    \
+          30      70
+            \
+            40
+
+  Insert ITEM = 20:
+
+  Step 1: Search for 20
+    PTR=50: 20 < 50 → go LEFT, PAR=50
+    PTR=30: 20 < 30 → go LEFT, PAR=30
+    PTR=NULL → 20 should be LEFT child of 30
+
+  Step 3: 20 < INFO[PAR=30] → Set LEFT[PAR] := NEW
+
+  AFTER:      50
+            /    \
+          30      70
+         /  \
+       20   40
+
+  Insert ITEM = 60:
+
+  PTR=50: 60 > 50 → go RIGHT, PAR=50
+  PTR=70: 60 < 70 → go LEFT, PAR=70
+  PTR=NULL → LEFT child of 70
+
+  AFTER:      50
+            /    \
+          30      70
+         /  \    /
+       20   40  60
+
+WHAT IF ITEM ALREADY EXISTS?
+  If during the search we find ITEM = INFO[PTR], the item already
+  exists. BSTs typically don't allow duplicates → print error and exit.
+
+SPECIAL CASE — EMPTY TREE:
+  If ROOT = NULL, the new node becomes the root: ROOT := NEW
+
+
+================================================================================
+OPERATION 3: THE THREE TRAVERSALS (In-depth)
+================================================================================
+
+Traversal = visiting every node exactly once, in a specific order.
+
+THE THREE ORDERS — WHAT THEY REALLY MEAN:
+
+  At every node, you have three things to do:
+    (L) Process the LEFT subtree
+    (R) Process the RIGHT subtree
+    (N) Process the NODE itself (print its data)
+
+  The three traversals differ in WHEN you process the node:
+
+  PRE-ORDER:   Process Node FIRST, then Left, then Right    (N-L-R)
+  IN-ORDER:    Process Left FIRST, then Node, then Right    (L-N-R)
+  POST-ORDER:  Process Left FIRST, then Right, then Node    (L-R-N)
+
+DEEP TRACE — IN-ORDER TRAVERSAL:
+
+  Tree:        50
+             /    \
+           30      70
+          /  \    /  \
+        20   40  60   80
+
+  In-order: Left, Node, Right
+
+  Let's trace EXACTLY what happens:
+
+  Start at 50:
+    → Go LEFT first (to 30)
+      → Go LEFT first (to 20)
+        → Go LEFT (NULL, nothing) ← back to 20
+        → Process 20: PRINT 20   ★
+        → Go RIGHT (NULL, nothing) ← back to 20
+      ← Back to 30
+      → Process 30: PRINT 30      ★
+      → Go RIGHT (to 40)
+        → Go LEFT (NULL) ← back to 40
+        → Process 40: PRINT 40    ★
+        → Go RIGHT (NULL) ← back to 40
+      ← Back to 30
+    ← Back to 50
+    → Process 50: PRINT 50        ★
+    → Go RIGHT (to 70)
+      → Go LEFT (to 60)
+        → Go LEFT (NULL) ← back to 60
+        → Process 60: PRINT 60    ★
+        → Go RIGHT (NULL) ← back to 60
+      ← Back to 70
+      → Process 70: PRINT 70      ★
+      → Go RIGHT (to 80)
+        → Go LEFT (NULL) ← back to 80
+        → Process 80: PRINT 80    ★
+        → Go RIGHT (NULL) ← back to 80
+      ← Back to 70
+    ← Back to 50
+
+  OUTPUT: 20, 30, 40, 50, 60, 70, 80
+
+  ╔═══════════════════════════════════════════════════════════════╗
+  ║  NOTICE: The in-order traversal of a BST always gives       ║
+  ║  elements in SORTED (ascending) order!                      ║
+  ║  This is a FUNDAMENTAL property of BSTs.                    ║
+  ╚═══════════════════════════════════════════════════════════════╝
+
+PRE-ORDER OUTPUT: 50, 30, 20, 40, 70, 60, 80
+  (Root first, then its children — useful for COPYING a tree)
+
+POST-ORDER OUTPUT: 20, 40, 30, 60, 80, 70, 50
+  (Children first, then root — useful for DELETING a tree)
+
+MEMORY TRICK:
+  ┌───────────┬──────────────────────────────────────────────────┐
+  │ Pre-order │ Node comes FIRST (PRE = before)                 │
+  │ In-order  │ Node comes in the MIDDLE (IN = inside)          │
+  │ Post-order│ Node comes LAST (POST = after)                  │
+  └───────────┴──────────────────────────────────────────────────┘
+
+
+HOW ITERATIVE TRAVERSAL WORKS (With Stack):
+
+  The recursive version uses the CALL STACK implicitly.
+  The iterative version uses an EXPLICIT stack to remember
+  "where to go back to."
+
+  IN-ORDER (iterative) — mental model:
+    1. Keep going LEFT and PUSHING each node onto the stack
+    2. When you can't go left anymore, POP a node → process it
+    3. Go to that node's RIGHT child
+    4. Repeat from step 1
+
+  It's like exploring a maze: always try LEFT first, leave breadcrumbs
+  (stack) for the path, and when stuck, backtrack using breadcrumbs.
+
+
+================================================================================
+OPERATION 4: BST DELETION (The Complex One)
+================================================================================
+
+WHAT IT DOES:
+  Remove a node containing ITEM from the BST while keeping it a valid BST.
+
+WHY IT'S THE HARDEST TREE OPERATION:
+  When you delete a node, you might leave its children orphaned.
+  You need to reconnect them without violating the BST property.
+
+THE THREE CASES:
+
+─── CASE 1: DELETING A LEAF (no children) ───
+
+  This is the EASIEST case. The node has no children, so just remove it.
+
+  Delete 20:
+  BEFORE:     50               AFTER:     50
+            /    \                       /    \
+          30      70                   30      70
+         /  \                           \
+       20   40                          40
+
+  Simply: Set parent's pointer to NULL.
+  If 20 is LEFT child of 30 → LEFT[30] := NULL
+
+
+─── CASE 2: DELETING A NODE WITH ONE CHILD ───
+
+  The node has exactly one child. Replace the node with its child.
+  The grandparent "adopts" the grandchild.
+
+  Delete 30 (which has only right child 40):
+  BEFORE:     50               AFTER:     50
+            /    \                       /    \
+          30      70                   40      70
+            \
+            40
+
+  Simply: Parent (50) now points to child (40) instead of deleted node (30).
+  LEFT[50] := RIGHT[30] (which is 40)
+
+  It works because 40 was in 30's right subtree, so 40 > 30.
+  But 40 < 50 (it was in 50's left subtree). So 40 is a valid
+  left child for 50. The BST property is preserved!
+
+
+─── CASE 3: DELETING A NODE WITH TWO CHILDREN ───
+
+  This is the TRICKY case. The node has both a left and right child.
+  You can't simply remove it — both subtrees would be orphaned.
+
+  THE SOLUTION: Use the INORDER SUCCESSOR
+
+  What is the inorder successor?
+  → The SMALLEST node in the RIGHT subtree.
+  → It's the node that would come JUST AFTER the deleted node
+    in a sorted (inorder) traversal.
+
+  HOW TO FIND IT:
+  → Go to the RIGHT child
+  → Then keep going LEFT until you can't anymore
+  → That leftmost node is the inorder successor
+
+  Delete 50:
+  BEFORE:     50
+            /    \
+          30      70
+         /  \    /  \
+       20   40  60   80
+
+  Step 1: Find inorder successor of 50
+    Go RIGHT → 70
+    Go LEFT → 60
+    Go LEFT → NULL. STOP. Inorder successor = 60.
+
+  Step 2: COPY successor's data into the node being deleted
+    INFO[50's node] := 60    (replace 50 with 60)
+
+  Step 3: DELETE the successor node (60) from its original position
+    60 is a leaf → Case 1 (just remove it)
+
+  AFTER:      60
+            /    \
+          30      70
+         /  \       \
+       20   40      80
+
+  Is this still a valid BST?
+    30 < 60 ✓ (left subtree)     70 > 60 ✓ (right subtree)
+    20 < 30 ✓  40 > 30 ✓        80 > 70 ✓
+
+  YES! The BST property is perfectly preserved!
+
+  WHY THE INORDER SUCCESSOR WORKS:
+  The inorder successor is the SMALLEST value larger than the deleted node.
+  It's bigger than everything in the left subtree (because it was in the
+  right subtree) and smaller than everything else in the right subtree
+  (because it's the leftmost/smallest there). So it's the PERFECT
+  replacement — it satisfies the BST property from both sides.
+
+
+================================================================================
+OPERATION 5: HEAP — HOW IT WORKS
+================================================================================
+
+WHAT IS A HEAP?
+  A COMPLETE binary tree where each parent is GREATER (max-heap) or
+  LESSER (min-heap) than both its children.
+
+  MAX-HEAP: Parent >= Children (root is the maximum)
+  MIN-HEAP: Parent <= Children (root is the minimum)
+
+  Example MAX-HEAP:
+           90
+          /  \
+        70    80
+       / \   /
+     50  60 40
+
+  CRITICAL: It's stored in an ARRAY, not with pointers!
+
+  Array: [90, 70, 80, 50, 60, 40]
+  Index:  [1] [2] [3] [4] [5] [6]
+
+  PARENT-CHILD FORMULAS:
+    Parent of node I       = I / 2  (integer division)
+    Left child of node I   = 2 * I
+    Right child of node I  = 2 * I + 1
+
+  Example: Node at index 2 (value 70)
+    Parent = 2/2 = 1 (value 90) ✓
+    Left child = 2*2 = 4 (value 50) ✓
+    Right child = 2*2+1 = 5 (value 60) ✓
+
+
+─── HEAP INSERTION (Bubble Up) ───
+
+WHAT IT DOES:
+  Add a new element to the heap while maintaining the heap property.
+
+HOW IT WORKS — STEP BY STEP:
+
+  Heap: [90, 70, 80, 50, 60, 40]    Insert ITEM = 85
+
+  Step 1: Place at the END (next available position)
+    TREE[7] := 85
+
+    Array: [90, 70, 80, 50, 60, 40, 85]
+
+    Tree view:
+             90
+           /    \
+         70      80
+        / \     / \
+      50  60  40  85  ← new element, wrong position!
+
+    85 > its parent 80. HEAP VIOLATED!
+
+  Step 2: BUBBLE UP — swap with parent until heap property is restored
+
+    I = 7, Parent = 7/2 = 3
+    TREE[7]=85 > TREE[3]=80 → SWAP!
+
+    Array: [90, 70, 85, 50, 60, 40, 80]
+
+    Tree view:
+             90
+           /    \
+         70      85  ← 85 moved up
+        / \     / \
+      50  60  40  80
+
+    I = 3, Parent = 3/2 = 1
+    TREE[3]=85 > TREE[1]=90? 85 > 90? NO → STOP. Heap is valid.
+
+  FINAL: [90, 70, 85, 50, 60, 40, 80]
+
+WHY BUBBLE UP WORKS:
+  We put the new element at the bottom (to maintain completeness)
+  and then let it "rise" to its correct position by swapping with
+  its parent whenever it's bigger. It stops when:
+  - It finds a parent bigger than itself, OR
+  - It reaches the root (I = 1)
+
+
+─── HEAP DELETION (Bubble Down) ───
+
+WHAT IT DOES:
+  Remove the ROOT (maximum element in max-heap).
+
+HOW IT WORKS — STEP BY STEP:
+
+  Heap: [90, 70, 85, 50, 60, 40, 80]    Delete root (90)
+
+  Step 1: Save root value: ITEM = 90
+
+  Step 2: Move the LAST element to the ROOT
+    TREE[1] := TREE[7] = 80
+    N := N - 1 = 6
+
+    Array: [80, 70, 85, 50, 60, 40]
+
+    Tree view:
+             80  ← wrong! 80 < 85
+           /    \
+         70      85
+        / \     /
+      50  60  40
+
+  Step 3: BUBBLE DOWN — swap with the LARGER child until heap is valid
+
+    I = 1
+    Left child = 2*1 = 2 (value 70)
+    Right child = 2*1+1 = 3 (value 85)
+    Larger child = 85 (right, index 3)
+    80 < 85 → SWAP!
+
+    Array: [85, 70, 80, 50, 60, 40]
+
+    Tree view:
+             85  ← correct now
+           /    \
+         70      80
+        / \     /
+      50  60  40
+
+    I = 3
+    Left child = 2*3 = 6 (value 40)
+    Right child = 2*3+1 = 7 (doesn't exist, 7 > N=6)
+    Larger child = 40 (only option)
+    80 > 40 → STOP. Heap is valid.
+
+  FINAL: [85, 70, 80, 50, 60, 40],  Deleted ITEM = 90
+
+WHY WE SWAP WITH THE LARGER CHILD:
+  If we swapped with the smaller child, the larger child would be
+  the sibling of its parent's replacement, and it might be larger than
+  the replacement. That would violate the heap property.
+
+  By choosing the larger child, we guarantee the new parent is bigger
+  than BOTH children.
+
+
+================================================================================
+OPERATION 6: AVL TREE (Self-Balancing BST) — CONCEPTUAL
+================================================================================
+
+THE PROBLEM WITH BSTs:
+  If you insert elements in sorted order (1, 2, 3, 4, 5), you get:
+    1
+     \
+      2
+       \
+        3
+         \
+          4
+           \
+            5
+
+  This is a SKEWED tree — it's basically a linked list! Search is O(N).
+
+THE AVL SOLUTION:
+  An AVL tree is a BST that AUTOMATICALLY rebalances itself after
+  every insertion or deletion.
+
+BALANCE FACTOR:
+  BF(node) = Height(left subtree) - Height(right subtree)
+
+  A node is BALANCED if BF = -1, 0, or +1.
+  If BF = +2 or -2, the tree is UNBALANCED and needs ROTATION.
+
+THE FOUR ROTATION CASES:
+
+  ┌─────────────────┬──────────────────────────────────────────────┐
+  │ Case            │ When it happens               │ Fix         │
+  ├─────────────────┼──────────────────────────────────────────────┤
+  │ LL (Left-Left)  │ BF=+2, left child BF=+1      │ Right rotate │
+  │ RR (Right-Right)│ BF=-2, right child BF=-1     │ Left rotate  │
+  │ LR (Left-Right) │ BF=+2, left child BF=-1      │ Left-Right   │
+  │ RL (Right-Left) │ BF=-2, right child BF=+1     │ Right-Left   │
+  └─────────────────┴──────────────────────────────────────────────┘
+
+EXAMPLE — RIGHT ROTATION (LL case):
+
+  BEFORE (unbalanced):        AFTER (balanced):
+        30  (BF=+2)              20
+       /                        /  \
+     20   (BF=+1)             10    30
+    /
+  10
+
+  How right rotation works:
+  - 20 becomes the new root
+  - 30 becomes the right child of 20
+  - 20's old right child (if any) becomes 30's left child
+
+  Think of it as: 30 "falls" to the right, and 20 "rises" to take its place.
+
+EXAMPLE — LEFT ROTATION (RR case):
+
+  BEFORE (unbalanced):        AFTER (balanced):
+  10  (BF=-2)                    20
+    \                           /  \
+    20  (BF=-1)               10    30
+      \
+      30
+
+  How left rotation works:
+  - 20 becomes the new root
+  - 10 becomes the left child of 20
+  - 20's old left child (if any) becomes 10's right child
+
+
+================================================================================
+THE BIG PICTURE: HOW ALL TREE OPERATIONS CONNECT
+================================================================================
+
+  ┌──────────────────┐
+  │  BST SEARCH      │──→ Foundation. Used BY insertion and deletion.
+  └──────┬───────────┘
+         │
+    ┌────┴────────────────┐
+    │                     │
+    ▼                     ▼
+┌──────────┐      ┌──────────────────┐
+│ BST      │      │ BST DELETION     │
+│ INSERT   │      │ (3 cases)        │
+│          │      │ Uses inorder     │
+│ Search → │      │ successor for    │
+│ find NULL│      │ 2-children case  │
+│ → attach │      │                  │
+└──────────┘      └──────────────────┘
+
+  ┌──────────────────────────────────────────────────┐
+  │  TRAVERSALS (Pre/In/Post)                        │
+  │  Visit every node. In-order gives sorted output. │
+  │  Iterative versions use a STACK.                 │
+  └──────────────────────────────────────────────────┘
+
+  ┌──────────────────────────────────────────────────┐
+  │  HEAP (Max/Min)                                  │
+  │  Stored in ARRAY. Parent-child by index formula. │
+  │  Insert = Bubble UP.  Delete root = Bubble DOWN. │
+  └──────────────────────────────────────────────────┘
+
+  ┌──────────────────────────────────────────────────┐
+  │  AVL TREE                                        │
+  │  BST + self-balancing via rotations.             │
+  │  Guarantees O(log N) search even in worst case.  │
+  └──────────────────────────────────────────────────┘
+
+  KEY TAKEAWAY:
+  Trees are about making LEFT-RIGHT decisions. BST Search is the
+  foundation — Insertion and Deletion both BUILD on Search.
+  Heaps trade the BST ordering for a different property (parent >
+  children) to make finding the MAX/MIN instant (O(1)).
+
+================================================================================

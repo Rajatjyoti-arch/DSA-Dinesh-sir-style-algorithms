@@ -1,0 +1,504 @@
+================================================================================
+     QUEUE OPERATIONS — DEEP DIVE (How & Why Each One Works)
+================================================================================
+  After reading this, you will understand every queue operation —
+  Linear, Circular, Deque, and Priority — so deeply you'll never forget.
+================================================================================
+
+
+================================================================================
+FIRST: WHAT MAKES A QUEUE SPECIAL?
+================================================================================
+
+A queue has ONE RULE:
+
+  ╔═══════════════════════════════════════════════════════════════╗
+  ║  Elements enter from the REAR and leave from the FRONT.     ║
+  ║  No cutting in line. No backing up.                         ║
+  ╚═══════════════════════════════════════════════════════════════╝
+
+This is FIFO: First In, First Out.
+
+REAL-WORLD ANALOGY:
+  A queue at a movie ticket counter:
+  - New people join at the BACK of the line (REAR)
+  - People are served from the FRONT of the line (FRONT)
+  - The first person who joined is the first to get a ticket
+
+STACK vs QUEUE:
+  Stack = pile of plates.  LIFO. One end (TOP).
+  Queue = line of people.  FIFO. Two ends (FRONT and REAR).
+
+  The TWO-POINTER nature is what makes queues trickier than stacks.
+  You must ALWAYS keep track of BOTH ends.
+
+
+================================================================================
+OPERATION 1: INSERT INTO LINEAR QUEUE (Enqueue)
+================================================================================
+
+WHAT IT DOES:
+  Add a new element at the REAR of the queue.
+
+HOW IT WORKS — STEP BY STEP:
+
+  Given: QUEUE = [_, _, _, _, _],  N = 5, FRONT = NULL, REAR = NULL
+  (Empty queue)
+
+  INSERT 10:
+    Queue is empty (FRONT = NULL) → Set FRONT := 1, REAR := 1
+    QUEUE[REAR] = QUEUE[1] := 10
+
+    QUEUE = [10, _, _, _, _]   FRONT=1, REAR=1
+
+  INSERT 20:
+    Queue not empty → REAR := REAR + 1 = 2
+    QUEUE[2] := 20
+
+    QUEUE = [10, 20, _, _, _]   FRONT=1, REAR=2
+
+  INSERT 30:
+    REAR := 3,  QUEUE[3] := 30
+
+    QUEUE = [10, 20, 30, _, _]   FRONT=1, REAR=3
+
+  VISUAL:
+    ┌────┬────┬────┬────┬────┐
+    │ 10 │ 20 │ 30 │    │    │
+    └────┴────┴────┴────┴────┘
+      ↑              ↑
+    FRONT=1       REAR=3
+
+WHY THE "EMPTY QUEUE" SPECIAL CASE?
+  When the queue is empty, FRONT and REAR are NULL. The first element
+  needs to be both the FRONT (first in line) and the REAR (last in line).
+  So we set BOTH to 1.
+
+  After that, only REAR moves forward for each new insertion.
+  FRONT stays at 1 until we start deleting.
+
+OVERFLOW CONDITION:
+  When REAR = N, we've filled the last position. No room for more.
+  QUEUE = [10, 20, 30, 40, 50]   FRONT=1, REAR=5=N → OVERFLOW!
+
+
+================================================================================
+OPERATION 2: DELETE FROM LINEAR QUEUE (Dequeue)
+================================================================================
+
+WHAT IT DOES:
+  Remove the element at the FRONT of the queue.
+
+HOW IT WORKS — STEP BY STEP:
+
+  Given: QUEUE = [10, 20, 30, _, _]   FRONT=1, REAR=3
+
+  DELETE:
+    Step 1: Check underflow (FRONT = NULL? No → proceed)
+    Step 2: Save ITEM := QUEUE[FRONT] = QUEUE[1] = 10
+    Step 3: Is this the LAST element? (FRONT = REAR? 1 ≠ 3? No)
+    Step 4: Move FRONT forward: FRONT := FRONT + 1 = 2
+
+    QUEUE = [_, 20, 30, _, _]   FRONT=2, REAR=3
+            ↑
+          this 10 is still physically here but we'll never see it
+
+  DELETE again:
+    ITEM := QUEUE[2] = 20
+    FRONT = REAR? 2 ≠ 3? No
+    FRONT := 3
+
+    QUEUE = [_, _, 30, _, _]   FRONT=3, REAR=3
+
+  DELETE again:
+    ITEM := QUEUE[3] = 30
+    FRONT = REAR? 3 = 3? YES! → This is the LAST element.
+    Set FRONT := NULL, REAR := NULL    (queue is now empty)
+
+    QUEUE = [_, _, _, _, _]   FRONT=NULL, REAR=NULL
+
+WHY RESET BOTH TO NULL WHEN DELETING THE LAST ELEMENT?
+  If we just moved FRONT forward (FRONT = 4), we'd have FRONT > REAR.
+  That's a nonsensical state — the front is past the rear. Instead,
+  we reset both to NULL to properly signal "empty queue."
+
+  ╔═══════════════════════════════════════════════════════════════╗
+  ║  THIS IS THE MOST COMMONLY FORGOTTEN SPECIAL CASE!          ║
+  ║                                                              ║
+  ║  When FRONT = REAR and you delete:                          ║
+  ║    → Set FRONT := NULL, REAR := NULL                        ║
+  ║                                                              ║
+  ║  If you forget this, your queue will be permanently broken. ║
+  ╚═══════════════════════════════════════════════════════════════╝
+
+
+================================================================================
+THE PROBLEM WITH LINEAR QUEUES: WASTED SPACE
+================================================================================
+
+This is crucial to understand WHY circular queues exist.
+
+  After several inserts and deletes:
+  QUEUE = [_, _, _, 40, 50]   FRONT=4, REAR=5
+
+  Now REAR = 5 = N. The algorithm says OVERFLOW!
+  But positions 1, 2, 3 are EMPTY! We're wasting 60% of the array!
+
+  ┌────┬────┬────┬────┬────┐
+  │ __ │ __ │ __ │ 40 │ 50 │
+  └────┴────┴────┴────┴────┘
+   wasted!  wasted!  ↑    ↑
+                    FR   REAR=N → "OVERFLOW"?!
+
+  This is the fundamental flaw of linear queues. Once FRONT moves
+  forward, the space behind it is NEVER reused.
+
+  SOLUTION: Circular Queue.
+
+
+================================================================================
+OPERATION 3: INSERT INTO CIRCULAR QUEUE
+================================================================================
+
+WHAT IT DOES:
+  Same as linear queue insert, but when REAR reaches the end,
+  it WRAPS AROUND to position 1.
+
+THE CORE IDEA:
+  Instead of thinking of the array as a line:
+    [1] [2] [3] [4] [5]
+
+  Think of it as a CIRCLE:
+         [1]
+       /     \
+     [5]     [2]
+       \     /
+     [4]─[3]
+
+  When REAR is at position 5 and you insert, it goes to position 1
+  (if position 1 is free).
+
+HOW IT WORKS — STEP BY STEP:
+
+  Given: N = 5, FRONT = 4, REAR = 5
+  QUEUE = [_, _, _, 40, 50]
+
+  INSERT 60:
+    Step 1: Is it full?
+      FRONT=4, REAR=5. Is FRONT=1 and REAR=N? No (FRONT≠1).
+      Is FRONT = REAR+1? Is 4 = 6? No. → NOT full. Proceed.
+
+    Step 2: REAR = N? 5 = 5? YES → WRAP AROUND: REAR := 1
+    
+    Step 3: QUEUE[1] := 60
+
+    QUEUE = [60, _, _, 40, 50]   FRONT=4, REAR=1
+
+    Circular view:
+           [60] ← REAR
+          /     \
+        [50]   [__]
+          \     /
+        [40]─[__]
+          ↑
+        FRONT
+
+  INSERT 70:
+    Full? FRONT = REAR+1? 4 = 2? No. Proceed.
+    REAR = N? 1 ≠ 5? No → normal: REAR := REAR + 1 = 2
+    QUEUE[2] := 70
+
+    QUEUE = [60, 70, _, 40, 50]   FRONT=4, REAR=2
+
+  INSERT 80:
+    Full? FRONT = REAR+1? 4 = 3? No. Proceed.
+    REAR := 3,  QUEUE[3] := 80
+
+    QUEUE = [60, 70, 80, 40, 50]   FRONT=4, REAR=3
+
+  INSERT 90:
+    Full? FRONT = REAR+1? 4 = 4? YES! → OVERFLOW
+
+THE TWO OVERFLOW CONDITIONS:
+  1. FRONT = 1 and REAR = N
+     → Queue filled in normal order, no wrapping happened.
+
+  2. FRONT = REAR + 1
+     → Queue wrapped around and caught up to FRONT.
+
+  Both mean: the next position after REAR is where FRONT is.
+  There's no gap left to insert into.
+
+
+================================================================================
+OPERATION 4: DELETE FROM CIRCULAR QUEUE
+================================================================================
+
+WHAT IT DOES:
+  Remove from FRONT, with wrap-around support.
+
+HOW IT WORKS — STEP BY STEP:
+
+  Given: QUEUE = [60, 70, _, 40, 50]   FRONT=4, REAR=2, N=5
+
+  DELETE:
+    ITEM := QUEUE[4] = 40
+    FRONT = REAR? 4 ≠ 2 → not the last element
+    FRONT = N? 4 ≠ 5 → no wrap needed
+    FRONT := FRONT + 1 = 5
+
+    QUEUE = [60, 70, _, _, 50]   FRONT=5, REAR=2
+
+  DELETE:
+    ITEM := QUEUE[5] = 50
+    FRONT = REAR? 5 ≠ 2 → not the last element
+    FRONT = N? 5 = 5? YES → WRAP AROUND: FRONT := 1
+
+    QUEUE = [60, 70, _, _, _]   FRONT=1, REAR=2
+
+  DELETE:
+    ITEM := QUEUE[1] = 60
+    FRONT = REAR? 1 ≠ 2 → not last
+    FRONT := 2
+
+    QUEUE = [_, 70, _, _, _]   FRONT=2, REAR=2
+
+  DELETE:
+    ITEM := QUEUE[2] = 70
+    FRONT = REAR? 2 = 2? YES → LAST ELEMENT
+    Set FRONT := NULL, REAR := NULL
+
+    QUEUE = [_, _, _, _, _]   FRONT=NULL, REAR=NULL (empty)
+
+THE THREE SPECIAL CASES IN CIRCULAR QUEUE DELETE:
+  ┌──────────────────┬──────────────────────────────────────────┐
+  │  Case            │  What to do                              │
+  ├──────────────────┼──────────────────────────────────────────┤
+  │  FRONT = REAR    │  Last element. Reset FRONT=NULL, REAR=NULL│
+  │  FRONT = N       │  At the end. Wrap: FRONT := 1            │
+  │  Otherwise       │  Normal: FRONT := FRONT + 1              │
+  └──────────────────┴──────────────────────────────────────────┘
+
+
+================================================================================
+OPERATION 5: INSERT INTO QUEUE USING LINKED LIST
+================================================================================
+
+WHAT IT DOES:
+  Add a new node at the REAR of a linked list queue.
+
+THE KEY INSIGHT:
+  ╔═══════════════════════════════════════════════════════════════╗
+  ║  Linked List Queue INSERT = INSERT AT THE END                ║
+  ║  FRONT is the first node. REAR is the last node.            ║
+  ╚═══════════════════════════════════════════════════════════════╝
+
+HOW IT WORKS — STEP BY STEP:
+
+  BEFORE: FRONT → [10] → [20] → [30] → NULL
+                                   ↑
+                                  REAR
+
+  INSERT ITEM = 40
+
+  Step 1: Check overflow (AVAIL = NULL? No → proceed)
+
+  Step 2: Get new node, store data
+    NEW := AVAIL, AVAIL := LINK[AVAIL]
+    INFO[NEW] := 40
+    LINK[NEW] := NULL        ← New last node points to nothing
+
+  Step 3: Is queue empty? (FRONT = NULL?)
+    No → LINK[REAR] := NEW  ← Old last node points to new node
+         REAR := NEW         ← New node becomes the last
+
+  AFTER: FRONT → [10] → [20] → [30] → [40] → NULL
+                                          ↑
+                                         REAR
+
+WHY WE NEED TO CHECK FOR EMPTY QUEUE:
+  If the queue is empty (FRONT = NULL), the new node is BOTH the
+  FRONT and REAR: Set FRONT := NEW, REAR := NEW.
+  We can't do LINK[REAR] := NEW because REAR is NULL!
+
+
+================================================================================
+OPERATION 6: DELETE FROM QUEUE USING LINKED LIST
+================================================================================
+
+WHAT IT DOES:
+  Remove the node at the FRONT of a linked list queue.
+
+THE KEY INSIGHT:
+  ╔═══════════════════════════════════════════════════════════════╗
+  ║  Linked List Queue DELETE = DELETE THE FIRST NODE            ║
+  ╚═══════════════════════════════════════════════════════════════╝
+
+HOW IT WORKS — STEP BY STEP:
+
+  BEFORE: FRONT → [10] → [20] → [30] → NULL
+                                   ↑
+                                  REAR
+
+  DELETE:
+    Step 1: Check underflow (FRONT = NULL? No)
+    Step 2: ITEM := INFO[FRONT] = 10
+    Step 3: PTR := FRONT
+            FRONT := LINK[FRONT]    ← FRONT moves to [20]
+    Step 4: If FRONT = NULL, then REAR := NULL  (queue became empty)
+    Step 5: Return PTR to free pool
+
+  AFTER: FRONT → [20] → [30] → NULL
+                           ↑
+                          REAR
+
+THE CRITICAL STEP 4:
+  After advancing FRONT, if FRONT becomes NULL, it means the queue
+  is now empty. We MUST also set REAR to NULL. Otherwise REAR still
+  points to a freed node — a dangling pointer!
+
+
+================================================================================
+OPERATION 7: DEQUE (Double-Ended Queue)
+================================================================================
+
+WHAT IT DOES:
+  A deque allows insertion and deletion from BOTH ends.
+
+  ┌─────────────────────────────────────────────────────────┐
+  │  Regular Queue:  Insert at REAR only, Delete at FRONT  │
+  │  Deque:         Insert/Delete at BOTH ends             │
+  └─────────────────────────────────────────────────────────┘
+
+THE FOUR OPERATIONS:
+  1. Insert at FRONT (push the front back)
+  2. Insert at REAR  (same as regular queue insert)
+  3. Delete from FRONT (same as regular queue delete)
+  4. Delete from REAR  (pop from the back)
+
+INSERT AT FRONT — HOW IT WORKS:
+
+  QUEUE = [_, 20, 30, 40, _]   FRONT=2, REAR=4, N=5
+
+  Insert 10 at FRONT:
+    FRONT := FRONT - 1 = 1      ← Move front BACKWARD
+    QUEUE[1] := 10
+
+    QUEUE = [10, 20, 30, 40, _]   FRONT=1, REAR=4
+
+  What if FRONT = 1? Wrap around!
+    FRONT := N = 5               ← Wrap to the end (circular)
+
+DELETE FROM REAR — HOW IT WORKS:
+
+  QUEUE = [10, 20, 30, 40, _]   FRONT=1, REAR=4, N=5
+
+  Delete from REAR:
+    ITEM := QUEUE[4] = 40
+    REAR := REAR - 1 = 3        ← Move rear BACKWARD
+
+    QUEUE = [10, 20, 30, _, _]   FRONT=1, REAR=3
+
+TWO TYPES OF DEQUES:
+  1. INPUT-RESTRICTED DEQUE: Insert at one end only, delete from both.
+  2. OUTPUT-RESTRICTED DEQUE: Delete from one end only, insert at both.
+
+
+================================================================================
+OPERATION 8: PRIORITY QUEUE
+================================================================================
+
+WHAT IT DOES:
+  A queue where each element has a PRIORITY. Elements with higher
+  priority are served FIRST, regardless of arrival order.
+
+REAL-WORLD ANALOGY:
+  Hospital emergency room:
+  - A person with a heart attack (priority 1) gets seen before
+    someone with a sprained ankle (priority 5), even if the ankle
+    person arrived first.
+
+HOW IT'S DIFFERENT:
+  Regular Queue:   First come, first served.
+  Priority Queue:  Highest priority served first. Among same priority,
+                   FIFO order is maintained.
+
+IMPLEMENTATION — TWO APPROACHES:
+
+  APPROACH 1: Multiple Queues (One per priority level)
+    ┌─────────────────────────────────────────────────┐
+    │  Priority 1 (highest): [A] → [D]               │
+    │  Priority 2:           [B] → [E] → [G]         │
+    │  Priority 3 (lowest):  [C] → [F]               │
+    └─────────────────────────────────────────────────┘
+    
+    Dequeue: Check Priority 1 first. If empty, check Priority 2.
+    If empty, check Priority 3. Take from the first non-empty queue.
+    
+    This is the method from your course notes.
+
+  APPROACH 2: Single sorted array/list
+    Insert each element in sorted position based on priority.
+    Dequeue always takes from the front (highest priority).
+
+HOW INSERTION WORKS (Multiple Queues):
+
+  Insert ITEM with Priority P:
+    → Go to the queue for priority P
+    → Insert at the REAR of that queue (normal queue insert)
+
+  Insert ITEM = "X" with Priority 2:
+    Before: Priority 2 queue: [B] → [E] → [G]
+    After:  Priority 2 queue: [B] → [E] → [G] → [X]
+
+HOW DELETION WORKS (Multiple Queues):
+
+  → Start from the HIGHEST priority queue (Priority 1)
+  → If not empty, delete from its FRONT
+  → If empty, move to the next priority level
+  → Repeat until you find a non-empty queue or all are empty (UNDERFLOW)
+
+  Example: Priority 1 is empty, Priority 2 has [B, E, G]
+  → Skip Priority 1
+  → Delete B from Priority 2 (FIFO within same priority)
+
+
+================================================================================
+THE BIG PICTURE: HOW ALL QUEUE TYPES CONNECT
+================================================================================
+
+  ┌──────────────────────────────────────────────────────────────┐
+  │  LINEAR QUEUE (Basic FIFO)                                  │
+  │  Insert at REAR, Delete from FRONT                          │
+  │  Problem: Wasted space when FRONT moves forward             │
+  └──────────┬───────────────────────────────────────────────────┘
+             │ Solved by
+             ▼
+  ┌──────────────────────────────────────────────────────────────┐
+  │  CIRCULAR QUEUE (Wrapping FIFO)                             │
+  │  Same as linear, but REAR wraps to position 1 when it      │
+  │  reaches N. No wasted space!                                │
+  └──────────┬───────────────────────────────────────────────────┘
+             │ Extended by
+             ▼
+  ┌──────────────────────────────────────────────────────────────┐
+  │  DEQUE (Double-Ended Queue)                                 │
+  │  Insert/Delete at BOTH ends. Generalizes both stack & queue.│
+  │  (If you only use one end → it's a stack!)                  │
+  │  (If you use front for delete and rear for insert → queue!) │
+  └──────────────────────────────────────────────────────────────┘
+
+  ┌──────────────────────────────────────────────────────────────┐
+  │  PRIORITY QUEUE (Priority-based FIFO)                       │
+  │  Not really a single queue — it's MULTIPLE queues, one per  │
+  │  priority level. Dequeue checks highest priority first.     │
+  └──────────────────────────────────────────────────────────────┘
+
+  KEY TAKEAWAY:
+  All queues are about FRONT and REAR. The variants just change:
+    - Linear: FRONT and REAR only move forward
+    - Circular: They wrap around
+    - Deque: Both can move in both directions
+    - Priority: Multiple FRONT/REAR pairs, one per priority
+
+================================================================================

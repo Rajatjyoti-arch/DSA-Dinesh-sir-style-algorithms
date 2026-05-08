@@ -1,0 +1,516 @@
+================================================================================
+     GRAPH OPERATIONS — DEEP DIVE (How & Why Each One Works)
+================================================================================
+  After reading this, you will understand graph representation,
+  BFS, DFS, vertex/edge operations, and graph traversal so deeply
+  you'll be able to trace through any graph problem on your exam.
+================================================================================
+
+
+================================================================================
+FIRST: WHAT MAKES A GRAPH DIFFERENT FROM EVERYTHING ELSE?
+================================================================================
+
+Every data structure you've learned so far has RESTRICTIONS:
+  Array:       Linear. Fixed size. Contiguous.
+  Linked List: Linear. Each node has ONE next.
+  Stack:       Linear. Access only from TOP.
+  Queue:       Linear. Access only from FRONT/REAR.
+  Tree:        Non-linear, but HIERARCHICAL (parent-child, no cycles).
+
+A GRAPH has NO RESTRICTIONS:
+  - Any node can connect to ANY other node
+  - A node can have 0, 1, 5, or 100 connections
+  - Connections can be one-way or two-way
+  - You CAN have cycles (A→B→C→A)
+  - There's NO "root" or "top" — all nodes are equal
+
+REAL-WORLD EXAMPLES:
+  Road map:      Cities (nodes), Roads (edges)
+  Social media:  People (nodes), Friendships (edges)
+  Internet:      Websites (nodes), Links (edges)
+  Flight routes: Airports (nodes), Flights (edges)
+
+TYPES OF GRAPHS:
+  ┌──────────────┬────────────────────────────────────────────────┐
+  │ Undirected   │ Edges go BOTH ways. A—B means you can go     │
+  │              │ from A to B AND from B to A.                  │
+  ├──────────────┼────────────────────────────────────────────────┤
+  │ Directed     │ Edges have direction. A→B means you can go   │
+  │ (Digraph)    │ from A to B, but NOT from B to A.             │
+  ├──────────────┼────────────────────────────────────────────────┤
+  │ Weighted     │ Each edge has a cost/weight. Road = 50km.     │
+  ├──────────────┼────────────────────────────────────────────────┤
+  │ Connected    │ You can reach every vertex from any vertex.   │
+  │ Disconnected │ Some vertices are unreachable from others.    │
+  └──────────────┴────────────────────────────────────────────────┘
+
+
+================================================================================
+OPERATION 1: GRAPH REPRESENTATION
+================================================================================
+
+Before doing ANY operation, you need to know HOW the graph is stored.
+There are TWO main methods:
+
+
+─── METHOD 1: ADJACENCY MATRIX ───
+
+WHAT IT IS:
+  A 2D array ADJ[N][N] where N = number of vertices.
+  ADJ[I][J] = 1 if there's an edge from I to J, 0 otherwise.
+
+EXAMPLE:
+  Graph:  A — B
+          |   |
+          D — C
+
+  Adjacency Matrix:
+          A  B  C  D
+    A  [  0  1  0  1  ]
+    B  [  1  0  1  0  ]
+    C  [  0  1  0  1  ]
+    D  [  1  0  1  0  ]
+
+  Reading the matrix:
+    Row A: A connects to B(1) and D(1), not to C(0) or itself(0).
+    Row B: B connects to A(1) and C(1).
+
+  For UNDIRECTED graphs: the matrix is SYMMETRIC (ADJ[I][J] = ADJ[J][I]).
+  For DIRECTED graphs: it may NOT be symmetric.
+
+PROS:
+  + Checking if edge exists = O(1)  (just look up ADJ[I][J])
+  + Simple to implement
+
+CONS:
+  - Uses O(N²) space even if graph has few edges
+  - Finding all neighbours of a vertex = O(N) (scan entire row)
+
+
+─── METHOD 2: ADJACENCY LIST (Linked List Representation) ───
+
+WHAT IT IS:
+  Each vertex has a LINKED LIST of its neighbours.
+  Uses TWO parallel lists:
+
+  NODE LIST: [NODE | NEXT | ADJ]
+    NODE = data of the vertex
+    NEXT = pointer to next vertex in the list
+    ADJ  = pointer to first edge (head of adjacency list)
+
+  EDGE LIST: [DEST | LINK]
+    DEST = destination vertex of this edge
+    LINK = pointer to next edge from the same vertex
+
+EXAMPLE:
+  Graph:  A — B
+          |   |
+          D — C
+
+  Node List:
+    A → ADJ points to edge list: B → D → NULL
+    B → ADJ points to edge list: A → C → NULL
+    C → ADJ points to edge list: B → D → NULL
+    D → ADJ points to edge list: A → C → NULL
+
+  Visually:
+    NODE LIST          EDGE LIST
+    ┌───┐
+    │ A │──ADJ──→ [B] → [D] → NULL
+    │   │──NEXT──↓
+    ├───┤
+    │ B │──ADJ──→ [A] → [C] → NULL
+    │   │──NEXT──↓
+    ├───┤
+    │ C │──ADJ──→ [B] → [D] → NULL
+    │   │──NEXT──↓
+    ├───┤
+    │ D │──ADJ──→ [A] → [C] → NULL
+    └───┘
+
+PROS:
+  + Space efficient for sparse graphs (few edges)
+  + Finding all neighbours = easy (just traverse the edge list)
+
+CONS:
+  - Checking if specific edge exists requires traversing the list
+
+
+================================================================================
+OPERATION 2: INSERTING A VERTEX
+================================================================================
+
+WHAT IT DOES:
+  Add a new vertex (with no edges yet) to the graph.
+
+HOW IT WORKS — STEP BY STEP:
+
+  Current graph: A — B — C    (3 vertices)
+
+  Insert vertex D:
+
+  Step 1: Get a free node from AVAILN (node free pool)
+    NEW := AVAILN, AVAILN := NEXT[AVAILN]
+
+  Step 2: Store the vertex data
+    NODE[NEW] := "D"
+
+  Step 3: Initialize its adjacency list to empty
+    ADJ[NEW] := NULL    (D has no edges yet)
+
+  Step 4: Insert into the NODE list (at beginning, like linked list)
+    NEXT[NEW] := START
+    START := NEW
+
+  AFTER: D — (no edges), A — B — C
+
+  The new vertex exists but is ISOLATED (not connected to anyone).
+  You need to INSERT EDGES separately to connect it.
+
+
+================================================================================
+OPERATION 3: INSERTING AN EDGE
+================================================================================
+
+WHAT IT DOES:
+  Add a connection between two existing vertices.
+
+HOW IT WORKS — STEP BY STEP:
+
+  Current graph: A — B — C — D (all exist, no edge between A and D)
+
+  Insert edge A—D:
+
+  Step 1: FIND vertex A in the NODE list
+    Traverse NODE list until NODE[PTR] = "A"
+    Save LOC = position of A
+
+  Step 2: Get a free node from AVAILE (edge free pool)
+    NEW := AVAILE, AVAILE := LINK[AVAILE]
+
+  Step 3: Set the destination
+    DEST[NEW] := D    (this edge goes TO D)
+
+  Step 4: Insert at the BEGINNING of A's adjacency list
+    LINK[NEW] := ADJ[LOC]    (new edge points to A's old first edge)
+    ADJ[LOC] := NEW           (A's adj list now starts with this edge)
+
+  BEFORE:  A's adj list: → [B] → NULL
+  AFTER:   A's adj list: → [D] → [B] → NULL
+
+  FOR UNDIRECTED GRAPHS: Repeat the process to add A to D's adj list too!
+    D's adj list: → [A] → ... 
+
+WHY WE INSERT AT THE BEGINNING:
+  Same reason as linked list insertion at beginning — it's O(1).
+  We don't need to traverse to the end. Just point the new edge to
+  the old first edge, then update ADJ to point to the new edge.
+
+
+================================================================================
+OPERATION 4: DELETING AN EDGE
+================================================================================
+
+WHAT IT DOES:
+  Remove a connection between two vertices.
+
+HOW IT WORKS:
+  Delete edge A—D:
+
+  Step 1: Find vertex A in the NODE list
+
+  Step 2: Traverse A's adjacency list (EDGE list) to find the edge to D
+    Use TWO pointers: PTR (current edge) and SAVE (previous edge)
+
+  Step 3: When DEST[PTR] = "D":
+    If SAVE = NULL → this is the first edge: ADJ[A] := LINK[PTR]
+    Else → skip over it: LINK[SAVE] := LINK[PTR]
+
+  Step 4: Return the deleted edge node to AVAILE
+
+  FOR UNDIRECTED: Also delete A from D's adjacency list.
+
+  This is identical to DELETING A NODE FROM A LINKED LIST.
+  A's adjacency list IS a linked list, and we're deleting a node from it.
+
+
+================================================================================
+OPERATION 5: DELETING A VERTEX
+================================================================================
+
+WHAT IT DOES:
+  Remove a vertex AND all its edges from the graph.
+
+WHY IT'S THE MOST COMPLEX GRAPH OPERATION:
+  You can't just delete the vertex node. You must:
+  1. Delete ALL edges FROM this vertex (its entire adj list)
+  2. Delete ALL edges TO this vertex (from other vertices' adj lists)
+  3. Then delete the vertex itself from the NODE list
+
+HOW IT WORKS — STEP BY STEP:
+
+  Delete vertex B from: A — B — C
+
+  Step 1: Delete B's adjacency list
+    B's adj list: → [A] → [C] → NULL
+    Return each edge node to AVAILE.
+
+  Step 2: Delete B from EVERY other vertex's adj list
+    Go through A's adj list → find and delete the edge to B
+    Go through C's adj list → find and delete the edge to B
+
+  Step 3: Delete B from the NODE list
+    Find B's predecessor in NODE list → skip over B
+    Return B's node to AVAILN.
+
+  AFTER: A    C    (B is gone, edges to B are gone)
+
+
+================================================================================
+OPERATION 6: BFS (Breadth First Search) — In-depth
+================================================================================
+
+WHAT IT DOES:
+  Visit ALL vertices in the graph, level by level (nearest first).
+
+THE ANALOGY:
+  Imagine dropping a stone in a pond. Ripples spread outward in circles.
+  BFS works the same way — it visits all vertices at distance 1 first,
+  then distance 2, then distance 3, and so on.
+
+THE STATUS SYSTEM:
+  We need to track which vertices have been visited to avoid infinite
+  loops (graphs can have cycles!).
+
+  STATUS = 1 (READY):     Not yet discovered
+  STATUS = 2 (WAITING):   Discovered, sitting in queue, not yet processed
+  STATUS = 3 (PROCESSED): Fully visited and done
+
+  Why THREE states instead of just visited/unvisited?
+  → STATUS=2 prevents adding the same vertex to the queue TWICE.
+  → Without it, you'd waste time processing duplicates.
+
+HOW IT WORKS — COMPLETE TRACED EXAMPLE:
+
+  Graph:
+       A ─── B
+       |     |
+       |     |
+       D ─── C ─── E
+
+  Start from vertex A.
+
+  INITIALIZATION:
+    STATUS: A=1, B=1, C=1, D=1, E=1 (all READY)
+    Set STATUS[A] := 2, Insert A into QUEUE
+    QUEUE: [A]
+
+  ┌──────┬──────────────┬──────────┬───────┬──────────────────────────┐
+  │ Step │ Remove from Q│ Process  │Queue  │ Action on neighbours     │
+  ├──────┼──────────────┼──────────┼───────┼──────────────────────────┤
+  │  1   │ A            │ Print A  │ []    │ Neighbours: B(1), D(1)   │
+  │      │ STATUS[A]=3  │          │       │ B is READY → STATUS[B]=2 │
+  │      │              │          │       │ Insert B. D is READY →   │
+  │      │              │          │       │ STATUS[D]=2, Insert D.   │
+  │      │              │          │[B, D] │                          │
+  ├──────┼──────────────┼──────────┼───────┼──────────────────────────┤
+  │  2   │ B            │ Print B  │ [D]   │ Neighbours: A(3), C(1)   │
+  │      │ STATUS[B]=3  │          │       │ A is PROCESSED → skip.   │
+  │      │              │          │       │ C is READY → STATUS[C]=2 │
+  │      │              │          │[D, C] │ Insert C.                │
+  ├──────┼──────────────┼──────────┼───────┼──────────────────────────┤
+  │  3   │ D            │ Print D  │ [C]   │ Neighbours: A(3), C(2)   │
+  │      │ STATUS[D]=3  │          │       │ A is PROCESSED → skip.   │
+  │      │              │          │       │ C is WAITING → skip.     │
+  │      │              │          │ [C]   │ No new additions.        │
+  ├──────┼──────────────┼──────────┼───────┼──────────────────────────┤
+  │  4   │ C            │ Print C  │ []    │ Neighbours: B(3), D(3),  │
+  │      │ STATUS[C]=3  │          │       │ E(1)                     │
+  │      │              │          │       │ B, D PROCESSED → skip.   │
+  │      │              │          │       │ E is READY → STATUS[E]=2 │
+  │      │              │          │ [E]   │ Insert E.                │
+  ├──────┼──────────────┼──────────┼───────┼──────────────────────────┤
+  │  5   │ E            │ Print E  │ []    │ Neighbours: C(3)         │
+  │      │ STATUS[E]=3  │          │       │ C is PROCESSED → skip.   │
+  │      │              │          │ []    │ Queue EMPTY → STOP.      │
+  └──────┴──────────────┴──────────┴───────┴──────────────────────────┘
+
+  BFS OUTPUT: A, B, D, C, E
+
+  LEVEL-BY-LEVEL:
+    Level 0: A
+    Level 1: B, D         (distance 1 from A)
+    Level 2: C            (distance 2 from A)
+    Level 3: E            (distance 3 from A)
+
+WHY BFS FINDS SHORTEST PATH (Unweighted):
+  Because it processes vertices in ORDER of their distance from the start.
+  It visits ALL vertices at distance 1 before ANY vertex at distance 2.
+  So the first time you reach a vertex, it's via the SHORTEST path.
+
+
+================================================================================
+OPERATION 7: DFS (Depth First Search) — In-depth
+================================================================================
+
+WHAT IT DOES:
+  Visit ALL vertices by going as DEEP as possible before backtracking.
+
+THE ANALOGY:
+  Imagine exploring a maze. At each intersection, you always take the
+  FIRST path you see. You go as far as possible. When you hit a dead
+  end, you BACKTRACK to the last intersection and try the next path.
+
+  BFS = explore the entire floor before going deeper
+  DFS = go to the deepest room first, then backtrack
+
+HOW IT WORKS — COMPLETE TRACED EXAMPLE:
+
+  Same graph:
+       A ─── B
+       |     |
+       |     |
+       D ─── C ─── E
+
+  Start from vertex A.
+
+  INITIALIZATION:
+    STATUS: A=1, B=1, C=1, D=1, E=1 (all READY)
+    Set STATUS[A] := 2, Push A onto STACK
+    STACK: [A]
+
+  ┌──────┬──────────────┬──────────┬──────────┬────────────────────────┐
+  │ Step │ Pop from Stk │ Process  │ Stack    │ Action on neighbours   │
+  ├──────┼──────────────┼──────────┼──────────┼────────────────────────┤
+  │  1   │ A            │ Print A  │ []       │ Neighbours: B(1), D(1) │
+  │      │ STATUS[A]=3  │          │          │ B→STATUS=2, Push B     │
+  │      │              │          │          │ D→STATUS=2, Push D     │
+  │      │              │          │ [B, D]   │                        │
+  ├──────┼──────────────┼──────────┼──────────┼────────────────────────┤
+  │  2   │ D (top!)     │ Print D  │ [B]     │ Neighbours: A(3), C(1) │
+  │      │ STATUS[D]=3  │          │          │ A→PROCESSED, skip.     │
+  │      │              │          │          │ C→STATUS=2, Push C     │
+  │      │              │          │ [B, C]   │                        │
+  ├──────┼──────────────┼──────────┼──────────┼────────────────────────┤
+  │  3   │ C (top!)     │ Print C  │ [B]     │ Neighbours: B(2),D(3), │
+  │      │ STATUS[C]=3  │          │          │ E(1)                   │
+  │      │              │          │          │ B→WAITING, skip.       │
+  │      │              │          │          │ D→PROCESSED, skip.     │
+  │      │              │          │          │ E→STATUS=2, Push E     │
+  │      │              │          │ [B, E]   │                        │
+  ├──────┼──────────────┼──────────┼──────────┼────────────────────────┤
+  │  4   │ E (top!)     │ Print E  │ [B]     │ Neighbours: C(3)       │
+  │      │ STATUS[E]=3  │          │          │ C→PROCESSED, skip.     │
+  │      │              │          │ [B]      │                        │
+  ├──────┼──────────────┼──────────┼──────────┼────────────────────────┤
+  │  5   │ B (top!)     │ Print B  │ []      │ Neighbours: A(3), C(3) │
+  │      │ STATUS[B]=3  │          │          │ All PROCESSED → skip.  │
+  │      │              │          │ []       │ Stack EMPTY → STOP.    │
+  └──────┴──────────────┴──────────┴──────────┴────────────────────────┘
+
+  DFS OUTPUT: A, D, C, E, B
+
+  Notice how DFS went DEEP: A → D → C → E (as deep as possible)
+  before backtracking to B.
+
+BFS vs DFS — COMPARISON:
+  BFS Output: A, B, D, C, E  (level by level)
+  DFS Output: A, D, C, E, B  (deep first, backtrack)
+
+  ┌─────────────────────────────────────────────────────────────┐
+  │              BFS                      DFS                   │
+  │  Uses:       QUEUE                   STACK                  │
+  │  Explores:   Wide first              Deep first             │
+  │  Good for:   Shortest path           Cycle detection        │
+  │              Connected components    Topological sort       │
+  │              Level-order traversal   Maze solving           │
+  │                                                             │
+  │  THE ONLY DIFFERENCE IN THE ALGORITHM:                      │
+  │  Replace QUEUE with STACK. Everything else is identical.    │
+  └─────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+OPERATION 8: SEARCHING IN A GRAPH
+================================================================================
+
+WHAT IT DOES:
+  Find a specific vertex or check if a path exists between two vertices.
+
+HOW IT WORKS:
+  Graph searching IS just BFS or DFS with a condition.
+
+  To find vertex X:
+    Run BFS/DFS. When you process a vertex, check if it's X.
+    If yes → FOUND.
+    If BFS/DFS completes without finding X → NOT FOUND.
+
+  To check if path exists from A to B:
+    Run BFS/DFS starting from A.
+    If B gets processed (STATUS[B] = 3) → PATH EXISTS.
+    If BFS/DFS ends and STATUS[B] ≠ 3 → NO PATH.
+
+
+================================================================================
+HANDLING DISCONNECTED GRAPHS
+================================================================================
+
+THE PROBLEM:
+  If the graph is disconnected, BFS/DFS from one vertex won't reach
+  ALL vertices. Some will remain with STATUS = 1.
+
+  Example:
+    Component 1: A — B — C
+    Component 2: D — E       (no connection between components)
+
+  BFS from A: Visits A, B, C. D and E remain READY (STATUS=1).
+
+THE SOLUTION:
+  After BFS/DFS finishes, scan all vertices.
+  If any vertex still has STATUS = 1:
+    → Start a NEW BFS/DFS from that vertex.
+  Repeat until all vertices are visited.
+
+  This also tells you the number of CONNECTED COMPONENTS:
+    Each new BFS/DFS run = one more component.
+
+
+================================================================================
+THE BIG PICTURE: HOW ALL GRAPH OPERATIONS CONNECT
+================================================================================
+
+  ┌─────────────────────────────────────────────────────────────┐
+  │  REPRESENTATION (how the graph is stored)                   │
+  │  Adjacency Matrix OR Adjacency List                        │
+  │  This determines HOW you implement everything else.        │
+  └──────────┬──────────────────────────────────────────────────┘
+             │
+     ┌───────┴──────────────────┐
+     │                          │
+     ▼                          ▼
+  ┌───────────────────┐   ┌───────────────────────────┐
+  │ Vertex/Edge Ops   │   │ TRAVERSAL (BFS / DFS)     │
+  │                   │   │                           │
+  │ Insert Vertex     │   │ Visit every vertex once.  │
+  │ Insert Edge       │   │ BFS = Queue (wide first)  │
+  │ Delete Vertex     │   │ DFS = Stack (deep first)  │
+  │ Delete Edge       │   │                           │
+  │                   │   │ Uses STATUS to prevent    │
+  │ These are linked  │   │ revisiting (1→2→3).       │
+  │ list operations   │   │                           │
+  │ on adjacency lists│   │ Foundation for:           │
+  └───────────────────┘   │ - Shortest path           │
+                          │ - Connected components    │
+                          │ - Cycle detection         │
+                          │ - Topological sort        │
+                          └───────────────────────────┘
+
+  KEY TAKEAWAY:
+  Graphs = vertices + edges. Representation determines efficiency.
+  BFS and DFS are the SAME algorithm with Queue vs Stack swapped.
+  STATUS prevents infinite loops in cycles.
+  Vertex/edge operations are just linked list operations on
+  adjacency lists.
+
+================================================================================
