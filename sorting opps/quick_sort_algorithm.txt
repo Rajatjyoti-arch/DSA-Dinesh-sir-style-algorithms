@@ -1,0 +1,120 @@
+ALGORITHM: QUICK_SORT (A, BEG, END)
+[This algorithm sorts the elements of a linear array 'A' from index 'BEG' to
+index 'END' in ascending order using the Quick Sort (Partition Exchange) technique]
+
+Step 1 : IF BEG < END, then:
+Step 2 :     Call PARTITION (A, BEG, END, LOC)
+Step 3 :     Call QUICK_SORT (A, BEG, LOC - 1)   [Sort left sub-array]
+Step 4 :     Call QUICK_SORT (A, LOC + 1, END)    [Sort right sub-array]
+Step 5 : [End of IF]
+Step 6 : Exit
+
+
+ALGORITHM: PARTITION (A, BEG, END, LOC)
+[This sub-algorithm partitions the array A[BEG..END] around a pivot element.
+The pivot (A[BEG]) is placed at its correct sorted position LOC such that
+all elements to the left of LOC are smaller and all to the right are larger.]
+
+Step 1  : Set LEFT := BEG, RIGHT := END, LOC := BEG
+Step 2  : Set PIVOT := A[BEG]
+Step 3  : [Scan from RIGHT]
+          Repeat while A[RIGHT] > PIVOT AND LOC != RIGHT:
+              Set RIGHT := RIGHT - 1
+          [End of while loop]
+Step 4  : IF LOC = RIGHT, then: Return
+          IF A[RIGHT] <= PIVOT, then:
+              Set A[LOC] := A[RIGHT]
+              Set LOC := RIGHT
+              Go to Step 5
+Step 5  : [Scan from LEFT]
+          Repeat while A[LEFT] <= PIVOT AND LOC != LEFT:
+              Set LEFT := LEFT + 1
+          [End of while loop]
+Step 6  : IF LOC = LEFT, then:
+              Set A[LOC] := PIVOT
+              Return
+          IF A[LEFT] > PIVOT, then:
+              Set A[LOC] := A[LEFT]
+              Set LOC := LEFT
+              Go to Step 3
+Step 7  : Set A[LOC] := PIVOT
+Step 8  : Return
+
+
+================================================================================
+                          HOW QUICK SORT WORKS
+================================================================================
+
+CONCEPT:
+--------
+Quick Sort also uses DIVIDE AND CONQUER, but differently from Merge Sort:
+
+  1. PARTITION — Choose a PIVOT element and rearrange the array so that:
+       - All elements SMALLER than pivot are on the LEFT
+       - All elements LARGER than pivot are on the RIGHT
+       - Pivot is at its FINAL sorted position
+  2. RECURSIVELY sort the left and right sub-arrays
+
+Unlike Merge Sort, the work is done BEFORE the recursion (partitioning),
+not after (merging).
+
+STEP-BY-STEP TRACE:
+--------------------
+Given Array: A = [25, 57, 48, 37, 12, 92, 86, 33],  N = 8
+
+--- First Call: QUICK_SORT(A, 1, 8) ---
+PARTITION(A, 1, 8):  PIVOT = 25
+
+  Scan RIGHT from 8: A[8]=33>25, A[7]=86>25, A[6]=92>25,
+                      A[5]=12<=25 → swap with LOC
+  A = [12, 57, 48, 37, _, 92, 86, 33],  LOC=5
+
+  Scan LEFT from 2:  A[2]=57>25 → swap with LOC
+  A = [12, _, 48, 37, 57, 92, 86, 33],  LOC=2
+
+  Scan RIGHT from 4: A[4]=37>25, A[3]=48>25, LOC=RIGHT=2
+  Place PIVOT: A[2] = 25
+  A = [12, 25, 48, 37, 57, 92, 86, 33],  LOC = 2
+
+  Result: 25 is at its final position (index 2)
+  Left sub-array:  [12]          (already sorted)
+  Right sub-array: [48, 37, 57, 92, 86, 33]
+
+--- QUICK_SORT(A, 3, 8) ---
+PARTITION(A, 3, 8):  PIVOT = 48
+
+  Scan RIGHT: A[8]=33<=48 → move to LOC=3
+  A = [12, 25, 33, 37, 57, 92, 86, 48*]
+
+  Scan LEFT: A[4]=37<=48, A[5]=57>48 → move to LOC=8
+  Continue scanning...
+  Final: A = [12, 25, 33, 37, 48, 92, 86, 57],  LOC = 5
+
+  Left sub-array:  [33, 37]
+  Right sub-array: [92, 86, 57]
+
+(Recursion continues until all sub-arrays have size <= 1)
+
+FINAL SORTED: [12, 25, 33, 37, 48, 57, 86, 92]
+
+WHY CHOOSE A[BEG] AS PIVOT:
+-----------------------------
+The first element is chosen as pivot for simplicity. Other strategies
+include: last element, middle element, or MEDIAN-OF-THREE (better for
+avoiding worst case).
+
+TIME COMPLEXITY:
+----------------
+Best Case   : O(N log N) — pivot always divides array in half
+Worst Case  : O(N^2)     — array already sorted (pivot is always min/max)
+Average Case: O(N log N)
+
+SPACE COMPLEXITY: O(log N) for recursion stack (average case)
+
+KEY PROPERTIES:
+- NOT STABLE     — equal elements may NOT maintain relative order
+- IN-PLACE       — no extra array needed (unlike Merge Sort)
+- ADAPTIVE       — average case is very fast in practice
+- DIVIDE AND CONQUER — recursive approach
+- Fastest general-purpose sort in practice (on average)
+- Preferred over Merge Sort when space is a concern

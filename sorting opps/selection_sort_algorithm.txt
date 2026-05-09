@@ -1,0 +1,85 @@
+ALGORITHM: SELECTION_SORT (A, N)
+[This algorithm sorts the elements of a linear array 'A' containing 'N' elements
+in ascending order using the Selection Sort technique]
+
+Step 1 : Repeat Steps 2 to 5 for K = 1 to N - 1:
+Step 2 :     Set MIN := K
+Step 3 :     Repeat For J = K + 1 to N:
+             (a) IF A[J] < A[MIN], then:
+                     Set MIN := J
+             [End of For loop]
+Step 4 :     [Swap A[K] with A[MIN]]
+             (a) Set TEMP := A[K]
+             (b) Set A[K] := A[MIN]
+             (c) Set A[MIN] := TEMP
+Step 5 : [End of Step 1 loop]
+Step 6 : Exit
+
+
+================================================================================
+                        HOW SELECTION SORT WORKS
+================================================================================
+
+CONCEPT:
+--------
+Selection Sort works by repeatedly SELECTING the smallest (minimum) element
+from the unsorted portion of the array and placing it at the beginning.
+
+The array is divided into two parts:
+  - SORTED part   (left side, grows by one element each pass)
+  - UNSORTED part (right side, shrinks by one element each pass)
+
+In each pass:
+  1. Find the MINIMUM element in the unsorted part
+  2. SWAP it with the first element of the unsorted part
+  3. The sorted part grows by one element
+
+STEP-BY-STEP TRACE:
+--------------------
+Given Array: A = [29, 10, 14, 37, 13],  N = 5
+
+Pass K=1: Find minimum in A[1..5]
+          MIN index = 2 (value 10)
+          Swap A[1] and A[2]  → A = [10, 29, 14, 37, 13]
+          Sorted: [10] | Unsorted: [29, 14, 37, 13]
+
+Pass K=2: Find minimum in A[2..5]
+          MIN index = 5 (value 13)
+          Swap A[2] and A[5]  → A = [10, 13, 14, 37, 29]
+          Sorted: [10, 13] | Unsorted: [14, 37, 29]
+
+Pass K=3: Find minimum in A[3..5]
+          MIN index = 3 (value 14)
+          Swap A[3] and A[3]  → A = [10, 13, 14, 37, 29]  (no change)
+          Sorted: [10, 13, 14] | Unsorted: [37, 29]
+
+Pass K=4: Find minimum in A[4..5]
+          MIN index = 5 (value 29)
+          Swap A[4] and A[5]  → A = [10, 13, 14, 29, 37]
+          Sorted: [10, 13, 14, 29] | Unsorted: [37]
+
+SORTED: [10, 13, 14, 29, 37] ✓
+
+WHY K GOES FROM 1 TO N-1:
+--------------------------
+After N-1 passes, N-1 elements are in their correct positions.
+The last element is automatically in the correct position, so we
+don't need an Nth pass.
+
+TIME COMPLEXITY:
+----------------
+Best Case   : O(N²)  — always scans the entire unsorted portion
+Worst Case  : O(N²)  — same scanning regardless of order
+Average Case: O(N²)
+
+Number of comparisons = N(N-1)/2 (always the same)
+Number of swaps = N-1 at most (one swap per pass)
+
+SPACE COMPLEXITY: O(1) — In-place sorting, only one extra variable TEMP
+
+KEY PROPERTIES:
+---------------
+• NOT STABLE   — equal elements may NOT maintain their relative order
+• IN-PLACE     — no extra array needed
+• NOT ADAPTIVE — takes O(N²) even if array is already sorted
+• Minimizes the number of swaps (useful when writing to memory is expensive)

@@ -1,0 +1,71 @@
+ALGORITHM: RADIX_SORT (A, N, D)
+[This algorithm sorts the elements of a linear array 'A' containing 'N'
+non-negative integer elements in ascending order using Radix Sort.
+'D' is the number of digits in the largest element.]
+
+Step 1 : Repeat Steps 2 to 6 for PASS = 1 to D:
+Step 2 :     Set BUCKET[0] to BUCKET[9] := empty
+Step 3 :     Repeat For I = 1 to N:
+                 Set DIGIT := (A[I] / 10^(PASS-1)) MOD 10
+                 Place A[I] at the end of BUCKET[DIGIT]
+             [End of For loop]
+Step 4 :     Set I := 1
+Step 5 :     Repeat For K = 0 to 9:
+                 Repeat while BUCKET[K] is not empty:
+                     Remove front element from BUCKET[K] into A[I]
+                     Set I := I + 1
+                 [End of while loop]
+             [End of For loop]
+Step 6 : [End of Step 1 loop]
+Step 7 : Exit
+
+
+================================================================================
+                          HOW RADIX SORT WORKS
+================================================================================
+
+CONCEPT:
+--------
+Radix Sort is a NON-COMPARATIVE sorting algorithm. It sorts by processing
+individual DIGITS, starting from the LEAST SIGNIFICANT DIGIT (ones) to the
+MOST SIGNIFICANT DIGIT.
+
+Each pass distributes elements into 10 BUCKETS (0-9) based on the current
+digit, then collects them back. The digit-sort must be STABLE so order from
+previous passes is preserved.
+
+STEP-BY-STEP TRACE:
+--------------------
+Given Array: A = [170, 45, 75, 90, 802, 24, 2, 66],  N = 8, D = 3
+
+PASS 1 - Sort by ONES digit:
+    170->0, 45->5, 75->5, 90->0, 802->2, 24->4, 2->2, 66->6
+    BUCKET[0]: 170, 90    BUCKET[2]: 802, 2
+    BUCKET[4]: 24         BUCKET[5]: 45, 75     BUCKET[6]: 66
+    Collect: A = [170, 90, 802, 2, 24, 45, 75, 66]
+
+PASS 2 - Sort by TENS digit:
+    170->7, 90->9, 802->0, 2->0, 24->2, 45->4, 75->7, 66->6
+    BUCKET[0]: 802, 2     BUCKET[2]: 24
+    BUCKET[4]: 45         BUCKET[6]: 66
+    BUCKET[7]: 170, 75    BUCKET[9]: 90
+    Collect: A = [802, 2, 24, 45, 66, 170, 75, 90]
+
+PASS 3 - Sort by HUNDREDS digit:
+    802->8, 2->0, 24->0, 45->0, 66->0, 170->1, 75->0, 90->0
+    BUCKET[0]: 2, 24, 45, 66, 75, 90
+    BUCKET[1]: 170        BUCKET[8]: 802
+    Collect: A = [2, 24, 45, 66, 75, 90, 170, 802]
+
+SORTED: [2, 24, 45, 66, 75, 90, 170, 802]
+
+DIGIT EXTRACTION FORMULA:
+    DIGIT = (NUMBER / 10^(K-1)) MOD 10
+
+TIME COMPLEXITY:  O(D x N) - linear when D is small
+SPACE COMPLEXITY: O(N)
+
+KEY PROPERTIES:
+- STABLE sort, NOT IN-PLACE, NOT COMPARATIVE
+- Faster than O(N log N) for suitable data
+- Works only with non-negative integers

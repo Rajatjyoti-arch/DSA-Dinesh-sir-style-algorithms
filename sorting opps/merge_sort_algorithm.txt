@@ -1,0 +1,121 @@
+ALGORITHM: MERGE_SORT (A, BEG, END)
+[This algorithm sorts the elements of a linear array 'A' from index 'BEG' to
+index 'END' in ascending order using the Merge Sort (Divide and Conquer) technique]
+
+Step 1 : IF BEG < END, then:
+Step 2 :     Set MID := (BEG + END) / 2   [Integer division]
+Step 3 :     Call MERGE_SORT (A, BEG, MID)       [Sort left half]
+Step 4 :     Call MERGE_SORT (A, MID + 1, END)   [Sort right half]
+Step 5 :     Call MERGE (A, BEG, MID, END)        [Merge two sorted halves]
+Step 6 : [End of IF]
+Step 7 : Exit
+
+
+ALGORITHM: MERGE (A, BEG, MID, END)
+[This sub-algorithm merges two sorted sub-arrays A[BEG..MID] and A[MID+1..END]
+into a single sorted sub-array. It uses a temporary array 'B'.]
+
+Step 1  : Set I := BEG, J := MID + 1, K := BEG
+Step 2  : Repeat while I <= MID AND J <= END:
+          (a) IF A[I] <= A[J], then:
+                  Set B[K] := A[I]
+                  Set I := I + 1
+              ELSE:
+                  Set B[K] := A[J]
+                  Set J := J + 1
+          (b) Set K := K + 1
+          [End of while loop]
+Step 3  : [Copy remaining elements from left sub-array, if any]
+          Repeat while I <= MID:
+              Set B[K] := A[I]
+              Set I := I + 1
+              Set K := K + 1
+          [End of while loop]
+Step 4  : [Copy remaining elements from right sub-array, if any]
+          Repeat while J <= END:
+              Set B[K] := A[J]
+              Set J := J + 1
+              Set K := K + 1
+          [End of while loop]
+Step 5  : [Copy merged elements back to original array A]
+          Repeat For I = BEG to END:
+              Set A[I] := B[I]
+          [End of For loop]
+Step 6  : Exit
+
+
+================================================================================
+                          HOW MERGE SORT WORKS
+================================================================================
+
+CONCEPT:
+--------
+Merge Sort uses the DIVIDE AND CONQUER strategy:
+
+  1. DIVIDE  — Split the array into two halves
+  2. CONQUER — Recursively sort each half
+  3. COMBINE — Merge the two sorted halves into one sorted array
+
+The key insight: Merging two SORTED arrays into one sorted array is very
+efficient (linear time). So we keep dividing until we have arrays of size 1
+(which are trivially sorted), then merge them back up.
+
+STEP-BY-STEP TRACE:
+--------------------
+Given Array: A = [38, 27, 43, 3, 9, 82, 10],  N = 7
+
+                     [38, 27, 43, 3, 9, 82, 10]
+                    /                            \
+           DIVIDE  /                              \  DIVIDE
+                  /                                \
+        [38, 27, 43, 3]                    [9, 82, 10]
+        /              \                   /           \
+   [38, 27]        [43, 3]            [9, 82]        [10]
+   /      \        /      \           /      \          |
+ [38]    [27]    [43]     [3]       [9]     [82]      [10]
+   \      /        \      /           \      /          |
+   [27, 38]        [3, 43]            [9, 82]        [10]
+        \              /                   \           /
+      [3, 27, 38, 43]                    [9, 10, 82]
+                    \                      /
+                 [3, 9, 10, 27, 38, 43, 82]
+
+SORTED: [3, 9, 10, 27, 38, 43, 82] ✓
+
+DETAILED MERGE EXAMPLE:
+------------------------
+Merging [3, 27, 38, 43] and [9, 10, 82]:
+
+  I=1, J=1: Compare 3 vs 9  → Pick 3   → B = [3]
+  I=2, J=1: Compare 27 vs 9 → Pick 9   → B = [3, 9]
+  I=2, J=2: Compare 27 vs 10→ Pick 10  → B = [3, 9, 10]
+  I=2, J=3: Compare 27 vs 82→ Pick 27  → B = [3, 9, 10, 27]
+  I=3, J=3: Compare 38 vs 82→ Pick 38  → B = [3, 9, 10, 27, 38]
+  I=4, J=3: Compare 43 vs 82→ Pick 43  → B = [3, 9, 10, 27, 38, 43]
+  Left exhausted, copy remaining right:  → B = [3, 9, 10, 27, 38, 43, 82]
+
+WHY BEG < END IS THE BASE CONDITION:
+--------------------------------------
+When BEG = END, the sub-array has only one element, which is already sorted.
+When BEG > END, the sub-array is empty. In both cases, no sorting is needed.
+
+TIME COMPLEXITY:
+----------------
+Best Case   : O(N log N)
+Worst Case  : O(N log N)
+Average Case: O(N log N)
+
+At each level of recursion, we do O(N) work for merging.
+There are log₂(N) levels of recursion.
+Total = O(N) × O(log N) = O(N log N)
+
+SPACE COMPLEXITY: O(N) — Requires a temporary array B of size N for merging
+
+KEY PROPERTIES:
+---------------
+• STABLE sort         — equal elements maintain their relative order
+• NOT IN-PLACE        — requires extra space for merging
+• NOT ADAPTIVE        — always O(N log N) regardless of input order
+• DIVIDE AND CONQUER  — recursive approach
+• Preferred for large datasets and linked lists
+• Guaranteed O(N log N) — unlike Quick Sort which can degrade to O(N²)
