@@ -1,0 +1,286 @@
+================================================================================
+    GRAPH REPRESENTATIONS — SEQUENTIAL, LINKED LIST & NUMERICAL
+================================================================================
+
+This file covers:
+  1. Adjacency Matrix (Sequential/Numerical Representation)
+  2. Adjacency List (Linked List Representation)
+  3. Incidence Matrix
+  4. Comparison Table
+  5. Algorithms for each representation
+  6. Solved Examples with Traces
+
+================================================================================
+        1. ADJACENCY MATRIX (Sequential/Numerical Representation)
+================================================================================
+
+DEFINITION:
+-----------
+  An Adjacency Matrix is a 2-D array A[N][N] where:
+    A[I][J] = 1  if there is an edge from vertex I to vertex J
+    A[I][J] = 0  if there is no edge from vertex I to vertex J
+
+  For WEIGHTED graphs:
+    A[I][J] = weight of edge from I to J
+    A[I][J] = ∞ (or 0) if no edge exists
+
+PROPERTIES:
+-----------
+  • For UNDIRECTED graphs: Matrix is SYMMETRIC (A[I][J] = A[J][I])
+  • For DIRECTED graphs: Matrix may NOT be symmetric
+  • Diagonal elements: A[I][I] = 0 (no self-loops, usually)
+  • Space required: O(N²) regardless of number of edges
+
+
+EXAMPLE — Undirected Graph:
+────────────────────────────
+  Vertices: 1, 2, 3, 4
+  Edges: (1,2), (1,3), (2,3), (3,4)
+
+  Graph:
+    1 ─── 2
+    │   /
+    │  /
+    3 ─── 4
+
+  Adjacency Matrix:
+      │  1   2   3   4
+  ────┼────────────────
+   1  │  0   1   1   0
+   2  │  1   0   1   0
+   3  │  1   1   0   1
+   4  │  0   0   1   0
+
+  Observations:
+    - Symmetric across the diagonal ✓
+    - Degree of vertex 3 = Sum of row 3 = 1+1+0+1 = 3 ✓
+
+
+EXAMPLE — Directed Graph (Digraph):
+──────────────────────────────────
+  Edges: 1→2, 1→3, 2→3, 3→4, 4→1
+
+  Adjacency Matrix:
+      │  1   2   3   4
+  ────┼────────────────
+   1  │  0   1   1   0
+   2  │  0   0   1   0
+   3  │  0   0   0   1
+   4  │  1   0   0   0
+
+  NOT symmetric (1→2 exists but 2→1 does not)
+  Out-degree of vertex 1 = Sum of row 1 = 2
+  In-degree of vertex 1 = Sum of column 1 = 1
+
+
+EXAMPLE — Weighted Graph:
+─────────────────────────
+  Edges: 1→2(5), 1→3(3), 2→3(2), 3→4(7)
+
+  Weighted Adjacency Matrix:
+      │  1    2    3    4
+  ────┼────────────────────
+   1  │  0    5    3    ∞
+   2  │  ∞    0    2    ∞
+   3  │  ∞    ∞    0    7
+   4  │  ∞    ∞    ∞    0
+
+
+ADVANTAGES:
+  • Simple to implement
+  • O(1) time to check if edge exists: just check A[I][J]
+  • Easy to find degree (sum of row/column)
+
+DISADVANTAGES:
+  • Always O(N²) space — wasteful for SPARSE graphs (few edges)
+  • Adding/removing vertices requires resizing the matrix
+  • Finding all neighbours of a vertex: O(N) — must scan entire row
+
+
+================================================================================
+        2. ADJACENCY LIST (Linked List Representation)
+================================================================================
+
+DEFINITION:
+-----------
+  For each vertex, maintain a LINKED LIST of all vertices it is
+  connected to (its neighbours/adjacent vertices).
+
+  The graph is stored using TWO lists:
+
+  NODE LIST (Vertex List):
+    ┌──────┬──────┬─────┐
+    │ NODE │ NEXT │ ADJ │
+    └──────┴──────┴─────┘
+    NODE = vertex data
+    NEXT = pointer to next vertex in the node list
+    ADJ  = pointer to first edge in this vertex's adjacency list
+
+  EDGE LIST (Adjacency List):
+    ┌──────┬──────┐
+    │ DEST │ LINK │
+    └──────┴──────┘
+    DEST = destination vertex (points to location in NODE list)
+    LINK = pointer to next edge with the same source vertex
+
+  Additional Variables:
+    START  = pointer to first vertex in NODE list
+    AVAILN = first available location in NODE list
+    AVAILE = first available location in EDGE list
+
+
+EXAMPLE — Undirected Graph:
+────────────────────────────
+  Vertices: A, B, C, D
+  Edges: (A,B), (A,C), (B,C), (C,D)
+
+  NODE LIST:          EDGE LIST:
+  A → [B] → [C] → NULL
+  B → [A] → [C] → NULL
+  C → [A] → [B] → [D] → NULL
+  D → [C] → NULL
+
+
+MEMORY REPRESENTATION WITH ARRAYS:
+────────────────────────────────────
+  NODE LIST:
+  ┌─────┬──────┬──────┬─────┐
+  │ Loc │ NODE │ NEXT │ ADJ │
+  ├─────┼──────┼──────┼─────┤
+  │  1  │  A   │  2   │  1  │ → ADJ points to edge list location 1
+  │  2  │  B   │  3   │  3  │
+  │  3  │  C   │  4   │  5  │
+  │  4  │  D   │ NULL │  8  │
+  └─────┴──────┴──────┴─────┘
+
+  EDGE LIST:
+  ┌─────┬──────┬──────┐
+  │ Loc │ DEST │ LINK │
+  ├─────┼──────┼──────┤
+  │  1  │  2   │  2   │ ← A→B (DEST=2 means vertex at loc 2 = B)
+  │  2  │  3   │ NULL │ ← A→C
+  │  3  │  1   │  4   │ ← B→A
+  │  4  │  3   │ NULL │ ← B→C
+  │  5  │  1   │  6   │ ← C→A
+  │  6  │  2   │  7   │ ← C→B
+  │  7  │  4   │ NULL │ ← C→D
+  │  8  │  3   │ NULL │ ← D→C
+  └─────┴──────┴──────┘
+
+  Reading adjacency list of vertex C (NODE list loc 3):
+    ADJ[3] = 5 → EDGE[5]: DEST=1(A), LINK=6
+              → EDGE[6]: DEST=2(B), LINK=7
+              → EDGE[7]: DEST=4(D), LINK=NULL
+    Neighbours of C: A, B, D ✓
+
+
+ADVANTAGES:
+  • Space efficient for sparse graphs: O(V + E)
+  • Easy to iterate over all neighbours of a vertex
+  • Dynamic — easy to add/remove vertices and edges
+
+DISADVANTAGES:
+  • Checking if edge (I,J) exists: O(degree of I) — not O(1)
+  • More complex implementation than matrix
+
+
+================================================================================
+            3. INCIDENCE MATRIX
+================================================================================
+
+DEFINITION:
+-----------
+  An Incidence Matrix is an N×E matrix (N vertices, E edges) where:
+
+  For UNDIRECTED graphs:
+    A[I][K] = 1 if vertex I is incident on edge K
+    A[I][K] = 0 otherwise
+
+  For DIRECTED graphs:
+    A[I][K] = +1 if edge K LEAVES vertex I (source)
+    A[I][K] = -1 if edge K ENTERS vertex I (destination)
+    A[I][K] = 0  if vertex I is not part of edge K
+
+
+EXAMPLE:
+--------
+  Vertices: 1, 2, 3
+  Edges: e1=(1,2), e2=(1,3), e3=(2,3)
+
+  Incidence Matrix (Undirected):
+      │  e1  e2  e3
+  ────┼──────────────
+   1  │  1   1   0
+   2  │  1   0   1
+   3  │  0   1   1
+
+  Degree of vertex = Sum of its row = number of 1s
+
+
+================================================================================
+            4. COMPARISON TABLE
+================================================================================
+
+  ┌──────────────────────┬──────────────────┬───────────────────────┐
+  │  Feature             │  Adjacency Matrix│  Adjacency List       │
+  ├──────────────────────┼──────────────────┼───────────────────────┤
+  │  Space               │  O(V²)           │  O(V + E)             │
+  │  Check edge (I,J)    │  O(1)  ✓ FAST    │  O(degree of I)       │
+  │  Find all neighbours │  O(V) scan row   │  O(degree) ✓ FAST     │
+  │  Add vertex          │  O(V²) resize    │  O(1)                 │
+  │  Add edge            │  O(1)            │  O(1)                 │
+  │  Delete edge         │  O(1)            │  O(degree)            │
+  │  Best for            │  Dense graphs    │  Sparse graphs        │
+  │  Memory for sparse   │  Wasteful ✗      │  Efficient ✓          │
+  │  BFS/DFS complexity  │  O(V²)           │  O(V + E) ✓           │
+  └──────────────────────┴──────────────────┴───────────────────────┘
+
+  RULE OF THUMB:
+    E close to V² (dense) → use Adjacency Matrix
+    E much less than V² (sparse) → use Adjacency List
+
+
+================================================================================
+        5. ALGORITHMS FOR GRAPH REPRESENTATION
+================================================================================
+
+ALGORITHM: CHECK_EDGE_MATRIX (A, I, J)
+[Check if edge exists from I to J using adjacency matrix]
+
+Step 1 : IF A[I][J] ≠ 0, then:
+             Write: "Edge exists with weight", A[I][J]
+         ELSE:
+             Write: "No edge from I to J"
+Step 2 : Exit
+
+
+ALGORITHM: FIND_DEGREE_MATRIX (A, N, V)
+[Find degree of vertex V in undirected graph using adjacency matrix]
+
+Step 1 : Set DEGREE := 0
+Step 2 : Repeat for J = 1 to N:
+             IF A[V][J] ≠ 0, then:
+                 Set DEGREE := DEGREE + 1
+Step 3 : Write: "Degree of vertex V =", DEGREE
+Step 4 : Exit
+
+
+ALGORITHM: FIND_NEIGHBOURS_LIST (NODE, NEXT, ADJ, DEST, LINK, V)
+[Find all neighbours of vertex V using adjacency list]
+
+Step 1 : Set PTR := ADJ[V]
+         [PTR points to first edge in V's adjacency list]
+
+Step 2 : IF PTR = NULL, then:
+             Write: "No neighbours" & Exit
+
+Step 3 : Repeat while PTR ≠ NULL:
+             Write: NODE[DEST[PTR]]
+             Set PTR := LINK[PTR]
+
+Step 4 : Exit
+
+
+================================================================================
+                          END OF FILE
+================================================================================

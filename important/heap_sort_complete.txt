@@ -1,0 +1,304 @@
+================================================================================
+                    HEAP SORT — COMPLETE EXAM NOTES
+================================================================================
+
+This file covers:
+  1. What is a Heap? (Max-Heap and Min-Heap)
+  2. Heap as an Array (Memory Representation)
+  3. INSERT_HEAP Algorithm with Trace
+  4. DELROOT (Delete Root) Algorithm with Trace
+  5. HEAPSORT Algorithm — Full Worked Example
+  6. Time Complexity Analysis
+
+================================================================================
+                    1. WHAT IS A HEAP?
+================================================================================
+
+DEFINITION:
+-----------
+  A HEAP is a COMPLETE BINARY TREE that satisfies the HEAP PROPERTY:
+
+  MAX-HEAP: Every parent node >= both its children.
+            → Root contains the MAXIMUM element.
+
+  MIN-HEAP: Every parent node <= both its children.
+            → Root contains the MINIMUM element.
+
+  (For Heap Sort, we typically use a MAX-HEAP.)
+
+COMPLETE BINARY TREE:
+---------------------
+  All levels are fully filled EXCEPT possibly the last level,
+  which is filled from LEFT to RIGHT.
+
+      ✓ Complete:           ✗ Not Complete:
+         50                     50
+        / \                    / \
+      30   40                30   40
+     / \                    /       \
+    10  20                10        20  ← gap on left
+
+
+================================================================================
+        2. HEAP AS AN ARRAY (Memory Representation)
+================================================================================
+
+  A heap is stored in a 1-D ARRAY (no pointers needed!).
+
+  For a node at index I (1-indexed):
+    LEFT CHILD  = 2 × I
+    RIGHT CHILD = 2 × I + 1
+    PARENT      = floor(I / 2)
+
+  Example: Max-Heap
+                50
+               / \
+             30    40
+            / \   /
+          10  20 15
+
+  Array: [50, 30, 40, 10, 20, 15]
+  Index:   1   2   3   4   5   6
+
+  Verify: Node at index 2 (value 30):
+    Parent = floor(2/2) = 1 → A[1] = 50 ✓ (50 ≥ 30)
+    Left child = 2×2 = 4 → A[4] = 10 ✓ (30 ≥ 10)
+    Right child = 2×2+1 = 5 → A[5] = 20 ✓ (30 ≥ 20)
+
+
+================================================================================
+        3. INSERT_HEAP — Algorithm & Trace
+================================================================================
+
+ALGORITHM: INSERT_HEAP (TREE, N, ITEM)
+[Inserts ITEM into a Max-Heap TREE with N elements]
+
+Step 1 : Set N := N + 1, PTR := N
+         [Increase size, PTR starts at the new last position]
+
+Step 2 : Repeat Steps 3 to 6 while PTR > 1:
+Step 3 :     Set PAR := floor(PTR / 2)     [Find parent]
+Step 4 :     IF ITEM <= TREE[PAR], then:
+                 Set TREE[PTR] := ITEM & Return
+                 [Correct position found — place ITEM here]
+Step 5 :     Set TREE[PTR] := TREE[PAR]    [Move parent DOWN]
+Step 6 :     Set PTR := PAR                [Move pointer UP]
+
+Step 7 : Set TREE[1] := ITEM               [ITEM is the new root]
+Step 8 : Return
+
+LOGIC: Insert at the end, then "BUBBLE UP" (sift up) by comparing
+with parent. Keep swapping up until heap property is restored.
+
+
+TRACE EXAMPLE:
+──────────────
+  Current Heap: TREE = [50, 30, 40, 10, 20], N = 5
+  INSERT ITEM = 45
+
+  Step 1: N = 6, PTR = 6
+  Step 3: PAR = floor(6/2) = 3, TREE[3] = 40
+  Step 4: 45 > 40? YES → don't place here
+  Step 5: TREE[6] = TREE[3] = 40  [Move 40 down to position 6]
+  Step 6: PTR = 3
+
+  Step 3: PAR = floor(3/2) = 1, TREE[1] = 50
+  Step 4: 45 <= 50? YES → Set TREE[3] = 45 & Return
+
+  Result: TREE = [50, 30, 45, 10, 20, 40]
+
+  Visual:
+          50                      50
+         / \                     / \
+       30   40       →         30   45
+      / \   /                 / \   /
+    10  20 45(new)           10  20 40
+
+
+================================================================================
+        4. DELROOT — Delete Root Algorithm & Trace
+================================================================================
+
+ALGORITHM: DELROOT (TREE, N, ITEM)
+[Deletes the root (maximum element) from a Max-Heap and reheapifies]
+
+Step 1  : Set ITEM := TREE[1]              [Save the root value]
+Step 2  : Set LAST := TREE[N], N := N - 1   [Remove last node]
+Step 3  : Set PTR := 1, LEFT := 2, RIGHT := 3
+
+Step 4  : Repeat Steps 5 to 7 while RIGHT <= N:
+Step 5  :     IF LAST >= TREE[LEFT] AND LAST >= TREE[RIGHT], then:
+                  Set TREE[PTR] := LAST & Return
+                  [LAST can sit here — heap property satisfied]
+
+Step 6  :     IF TREE[LEFT] >= TREE[RIGHT], then:
+                  Set TREE[PTR] := TREE[LEFT], PTR := LEFT
+              ELSE:
+                  Set TREE[PTR] := TREE[RIGHT], PTR := RIGHT
+              [Move the larger child UP]
+
+Step 7  :     Set LEFT := 2 × PTR, RIGHT := LEFT + 1
+
+Step 8  : IF LEFT = N AND LAST < TREE[LEFT], then:
+              Set TREE[PTR] := TREE[LEFT], PTR := LEFT
+          [Handle edge case: only left child exists]
+
+Step 9  : Set TREE[PTR] := LAST
+Step 10 : Return
+
+LOGIC: Remove root, place LAST element at root, then "SIFT DOWN"
+(trickle down) by comparing with children. Swap with the LARGER child.
+
+
+TRACE EXAMPLE:
+──────────────
+  Heap: TREE = [50, 30, 45, 10, 20, 40], N = 6
+  DELETE ROOT:
+
+  Step 1: ITEM = 50 (this is what we extract)
+  Step 2: LAST = TREE[6] = 40, N = 5
+  Step 3: PTR = 1, LEFT = 2, RIGHT = 3
+
+  Now we need to place LAST=40 in the correct position:
+
+  Iteration 1: RIGHT=3 <= N=5 ✓
+    Step 5: 40 >= TREE[2]=30? YES, 40 >= TREE[3]=45? NO → don't place
+    Step 6: TREE[2]=30 >= TREE[3]=45? NO → TREE[1] = 45, PTR = 3
+    Step 7: LEFT = 6, RIGHT = 7
+
+  Iteration 2: RIGHT=7 > N=5 → EXIT loop
+
+  Step 8: LEFT=6 > N=5 → skip
+  Step 9: TREE[3] = 40
+
+  Result: TREE = [45, 30, 40, 10, 20], N = 5, ITEM = 50
+
+  Visual:
+          50                      45
+         / \                     / \
+       30   45       →         30   40
+      / \   /                 / \
+    10  20 40                10  20
+
+
+================================================================================
+            5. HEAPSORT — Complete Algorithm & Trace
+================================================================================
+
+ALGORITHM: HEAPSORT (A, N)
+[Sorts array A with N elements using Heap Sort]
+
+Phase 1 — BUILD THE HEAP:
+  Step 1 : Repeat for J = 1 to N - 1:
+               Call INSERT_HEAP(A, J, A[J + 1])
+           [Insert elements one by one into the heap]
+
+Phase 2 — EXTRACT ELEMENTS IN SORTED ORDER:
+  Step 2 : Repeat while N > 1:
+               (a) Call DELROOT(A, N, ITEM)
+               (b) Set A[N + 1] := ITEM
+           [Delete root (max), place it at the end → sorted!]
+
+  Step 3 : Exit
+
+
+COMPLETE TRACE:
+────────────────
+  Given: A = [25, 57, 48, 37, 12, 92, 86, 33]
+  N = 8
+
+  ═══════════════════════════════════════
+  PHASE 1: BUILD THE HEAP
+  ═══════════════════════════════════════
+
+  Start: A[1] = 25 (heap of 1 element)
+
+  Insert A[2]=57: 57 > 25 → swap
+    A = [57, 25, ...]
+
+  Insert A[3]=48: 48 < 57 → stay
+    A = [57, 25, 48, ...]
+
+  Insert A[4]=37: 37 > 25 → swap with parent
+    A = [57, 37, 48, 25, ...]
+
+  Insert A[5]=12: 12 < 37 → stay
+    A = [57, 37, 48, 25, 12, ...]
+
+  Insert A[6]=92: 92 > 48 → swap, 92 > 57 → swap
+    A = [92, 37, 57, 25, 12, 48, ...]
+
+  Insert A[7]=86: 86 > 57 → swap, 86 < 92 → stay
+    A = [92, 37, 86, 25, 12, 48, 57]
+    Wait — recheck. After insert 86 at position 7:
+    Parent = floor(7/2) = 3 → A[3] = 57, 86 > 57 → swap
+    Now at position 3, Parent = floor(3/2) = 1 → A[1] = 92, 86 < 92 → stay
+    A = [92, 37, 86, 25, 12, 48, 57]
+
+  Insert A[8]=33: 33 > 25 → swap with parent
+    Parent of 8 = 4 → A[4] = 25, 33 > 25 → swap
+    Parent of 4 = 2 → A[2] = 37, 33 < 37 → stay
+    A = [92, 37, 86, 33, 12, 48, 57, 25]
+
+  HEAP BUILT:
+            92
+           / \
+         37    86
+        / \   / \
+      33  12 48  57
+     /
+    25
+
+  ═══════════════════════════════════════
+  PHASE 2: EXTRACT (Delete Root, Place at End)
+  ═══════════════════════════════════════
+
+  Pass 1: DELROOT → ITEM = 92, place at A[8]
+    Heap: [86, 37, 57, 33, 12, 48, 25]  A[8] = 92
+
+  Pass 2: DELROOT → ITEM = 86, place at A[7]
+    Heap: [57, 37, 48, 33, 12, 25]  A[7] = 86, A[8] = 92
+
+  Pass 3: DELROOT → ITEM = 57, place at A[6]
+    Heap: [48, 37, 25, 33, 12]  A[6]=57, A[7]=86, A[8]=92
+
+  Pass 4: DELROOT → ITEM = 48, place at A[5]
+    Heap: [37, 33, 25, 12]  A[5]=48, ...
+
+  Pass 5: DELROOT → ITEM = 37, place at A[4]
+    Heap: [33, 12, 25]  A[4]=37, ...
+
+  Pass 6: DELROOT → ITEM = 33, place at A[3]
+    Heap: [25, 12]  A[3]=33, ...
+
+  Pass 7: DELROOT → ITEM = 25, place at A[2]
+    Heap: [12]  A[2]=25, ...
+
+  FINAL SORTED ARRAY:
+    A = [12, 25, 33, 37, 48, 57, 86, 92]  ✓
+
+
+================================================================================
+                    6. TIME COMPLEXITY
+================================================================================
+
+  ┌──────────────────────┬────────────────────────────────────────────┐
+  │  Phase               │  Time Complexity                          │
+  ├──────────────────────┼────────────────────────────────────────────┤
+  │  Build Heap          │  O(N log N) — N insertions, each O(log N)  │
+  │  Extract all roots   │  O(N log N) — N deletions, each O(log N)   │
+  │  TOTAL               │  O(N log N) — all cases                    │
+  ├──────────────────────┼────────────────────────────────────────────┤
+  │  Space Complexity    │  O(1) — In-place (sorted into same array)  │
+  └──────────────────────┴────────────────────────────────────────────┘
+
+  KEY PROPERTIES:
+  • NOT STABLE — equal elements may change relative order
+  • IN-PLACE — no extra array needed (elements sorted into end of array)
+  • GUARANTEED O(N log N) — unlike Quick Sort's worst case O(N²)
+  • Best for: Large datasets where guaranteed performance matters
+
+
+================================================================================
+                          END OF FILE
+================================================================================

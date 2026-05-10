@@ -1,0 +1,231 @@
+================================================================================
+            HASHING — COMPLETE STUDY MATERIAL (PART 3)
+          QUICK REVISION, EXAM-STYLE QUESTIONS & FORMULA SHEET
+================================================================================
+
+This file covers:
+  1. Complete Formula Sheet (1 page revision)
+  2. Common Exam Question Types with Solutions
+  3. Key Points to Remember
+  4. Frequently Asked Theory Questions with Answers
+
+================================================================================
+                1. COMPLETE FORMULA SHEET
+================================================================================
+
+  ┌══════════════════════════════════════════════════════════════════════┐
+  │                    HASH FUNCTIONS                                  │
+  ├──────────────────────────────────────────────────────────────────────┤
+  │  Division Method:     h(k) = k MOD M          (M = prime)         │
+  │  Mid-Square Method:   h(k) = middle digits of k²                  │
+  │  Folding Method:      h(k) = sum of parts of k (ignore carry)     │
+  ├══════════════════════════════════════════════════════════════════════┤
+  │                COLLISION RESOLUTION                                │
+  ├──────────────────────────────────────────────────────────────────────┤
+  │  Linear Probing:      h(k,i) = (h(k) + i) MOD M                   │
+  │  Quadratic Probing:   h(k,i) = (h(k) + i²) MOD M                  │
+  │  Double Hashing:      h(k,i) = (h₁(k) + i×h₂(k)) MOD M           │
+  │     where h₂(k) = 1 + (k MOD (M-1))                               │
+  │  Separate Chaining:   Linked list at each slot                     │
+  ├══════════════════════════════════════════════════════════════════════┤
+  │                KEY FORMULAS                                        │
+  ├──────────────────────────────────────────────────────────────────────┤
+  │  Load Factor:  α = N / M    (N = items, M = table size)           │
+  │                                                                    │
+  │  Avg probes (Linear, successful):     ½(1 + 1/(1-α))              │
+  │  Avg probes (Linear, unsuccessful):   ½(1 + 1/(1-α)²)             │
+  │  Avg probes (Chaining, successful):   1 + α/2                     │
+  │  Avg probes (Chaining, unsuccessful): α                            │
+  └══════════════════════════════════════════════════════════════════════┘
+
+
+================================================================================
+        2. COMMON EXAM QUESTION TYPES WITH SOLUTIONS
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+QUESTION TYPE 1: "Insert the following keys using [method]. Show the
+                 final hash table."
+────────────────────────────────────────────────────────────────────────────────
+
+EXAMPLE:
+  Q: Insert keys {37, 90, 55, 22, 17, 49, 87} into a hash table of
+     size M = 10 using Division Method and Linear Probing.
+
+  h(k) = k MOD 10
+
+  h(37) = 7 → HT[7] = 37
+  h(90) = 0 → HT[0] = 90
+  h(55) = 5 → HT[5] = 55
+  h(22) = 2 → HT[2] = 22
+  h(17) = 7 → COLLISION! Try 8 → EMPTY → HT[8] = 17
+  h(49) = 9 → HT[9] = 49
+  h(87) = 7 → COLLISION! Try 8 → full, Try 9 → full, Try 0 → full
+              Try 1 → EMPTY → HT[1] = 87
+
+  Final Table:
+  Index:  0    1    2    3    4    5    6    7    8    9
+        ┌────┬────┬────┬────┬────┬────┬────┬────┬────┬────┐
+        │ 90 │ 87 │ 22 │    │    │ 55 │    │ 37 │ 17 │ 49 │
+        └────┴────┴────┴────┴────┴────┴────┴────┴────┴────┘
+
+
+────────────────────────────────────────────────────────────────────────────────
+QUESTION TYPE 2: "Find the number of comparisons to search for key X"
+────────────────────────────────────────────────────────────────────────────────
+
+EXAMPLE:
+  Using the table above, find comparisons to search for:
+  (a) Key = 55
+  (b) Key = 87
+  (c) Key = 35 (not in table)
+
+  (a) h(55) = 5 → HT[5] = 55 ✓ FOUND → Comparisons = 1
+
+  (b) h(87) = 7 → HT[7] = 37 ≠ 87
+      Probe 8: HT[8] = 17 ≠ 87
+      Probe 9: HT[9] = 49 ≠ 87
+      Probe 0: HT[0] = 90 ≠ 87
+      Probe 1: HT[1] = 87 ✓ FOUND → Comparisons = 5
+
+  (c) h(35) = 5 → HT[5] = 55 ≠ 35
+      Probe 6: HT[6] = EMPTY → NOT FOUND → Comparisons = 2
+
+
+────────────────────────────────────────────────────────────────────────────────
+QUESTION TYPE 3: "Apply Separate Chaining and show the hash table"
+────────────────────────────────────────────────────────────────────────────────
+
+EXAMPLE:
+  Q: Insert {15, 2, 29, 8, 22, 4, 31, 10} using Separate Chaining,
+     M = 7, h(k) = k MOD 7.
+
+  h(15) = 1,  h(2) = 2,   h(29) = 1,  h(8) = 1
+  h(22) = 1,  h(4) = 4,   h(31) = 3,  h(10) = 3
+
+  Index 0: → NULL
+  Index 1: → [22] → [8] → [29] → [15] → NULL    (4 elements!)
+  Index 2: → [2] → NULL
+  Index 3: → [10] → [31] → NULL
+  Index 4: → [4] → NULL
+  Index 5: → NULL
+  Index 6: → NULL
+
+
+────────────────────────────────────────────────────────────────────────────────
+QUESTION TYPE 4: "Apply Double Hashing"
+────────────────────────────────────────────────────────────────────────────────
+
+EXAMPLE:
+  Q: Insert {27, 43, 65, 71, 92} into hash table of size M = 11
+     using Double Hashing. h₁(k)=k MOD 11, h₂(k)=1+(k MOD 10)
+
+  h₁(27)=5, h₂(27)=8:  probe=5 → EMPTY → HT[5]=27
+  h₁(43)=10, h₂(43)=4: probe=10 → EMPTY → HT[10]=43
+  h₁(65)=10, h₂(65)=6: probe=10 → COLLISION!
+      i=1: (10+1×6)%11 = 5 → COLLISION (27)!
+      i=2: (10+2×6)%11 = 0 → EMPTY → HT[0]=65
+  h₁(71)=5, h₂(71)=2:  probe=5 → COLLISION!
+      i=1: (5+1×2)%11 = 7 → EMPTY → HT[7]=71
+  h₁(92)=4, h₂(92)=3:  probe=4 → EMPTY → HT[4]=92
+
+  Final Table:
+  Index:  0    1    2    3    4    5    6    7    8    9   10
+        ┌────┬────┬────┬────┬────┬────┬────┬────┬────┬────┬────┐
+        │ 65 │    │    │    │ 92 │ 27 │    │ 71 │    │    │ 43 │
+        └────┴────┴────┴────┴────┴────┴────┴────┴────┴────┴────┘
+
+
+────────────────────────────────────────────────────────────────────────────────
+QUESTION TYPE 5: "Calculate average search time"
+────────────────────────────────────────────────────────────────────────────────
+
+EXAMPLE:
+  Using the Linear Probing table from Question Type 1:
+  Keys: {37, 90, 55, 22, 17, 49, 87}
+
+  Comparisons for each key:
+    37: h=7 → found at 7 → 1 comparison
+    90: h=0 → found at 0 → 1 comparison
+    55: h=5 → found at 5 → 1 comparison
+    22: h=2 → found at 2 → 1 comparison
+    17: h=7 → not at 7, found at 8 → 2 comparisons
+    49: h=9 → found at 9 → 1 comparison
+    87: h=7 → not at 7,8,9,0, found at 1 → 5 comparisons
+
+  Total comparisons = 1+1+1+1+2+1+5 = 12
+  Average = 12 / 7 = 1.71 comparisons per search
+
+
+================================================================================
+                3. KEY POINTS TO REMEMBER
+================================================================================
+
+  1. ALWAYS use MOD operator for Division Method.
+
+  2. Table size M should be PRIME for better distribution.
+
+  3. In Linear Probing, watch for PRIMARY CLUSTERING.
+
+  4. In Double Hashing, h₂(key) must NEVER be 0.
+     → Use h₂(k) = 1 + (k MOD (M-1)) to guarantee this.
+
+  5. Separate Chaining NEVER overflows (linked lists grow dynamically).
+
+  6. Load Factor α > 0.7 → performance degrades significantly in
+     open addressing. Consider resizing (rehashing).
+
+  7. For DELETION in open addressing → use LAZY DELETION (tombstones).
+     Simply emptying a slot will BREAK search.
+
+  8. Separate Chaining is simpler to implement and handles deletion
+     naturally using linked list deletion.
+
+  9. The BEST hash function distributes keys UNIFORMLY across all slots.
+
+  10. REHASHING: When load factor exceeds threshold:
+      → Create a new table of size ≈ 2M (next prime)
+      → Re-insert all existing elements using the new hash function
+
+
+================================================================================
+        4. FREQUENTLY ASKED THEORY QUESTIONS
+================================================================================
+
+Q1: What is hashing? What is its advantage?
+A1: Hashing is a technique to map keys to table positions using a hash
+    function, enabling O(1) average-case search, insert, and delete.
+
+Q2: What is a collision? Why does it occur?
+A2: When two different keys produce the same hash value.
+    It occurs because the key space is larger than the table size.
+
+Q3: What is the difference between Open Addressing and Chaining?
+A3: Open Addressing stores all data inside the table and probes for
+    empty slots on collision. Chaining uses linked lists at each slot
+    to store multiple keys that hash to the same index.
+
+Q4: What is primary clustering?
+A4: In Linear Probing, consecutive occupied slots form clusters.
+    New keys landing in a cluster must probe to the end of it,
+    making the cluster grow even larger. This degrades performance.
+
+Q5: Why is table size chosen as a prime number?
+A5: A prime M distributes keys more uniformly because it has no
+    common factors with most key values, reducing collision patterns.
+
+Q6: What is rehashing?
+A6: When the hash table becomes too full (high load factor), create
+    a new table with a larger size (usually next prime ≈ 2×old size)
+    and re-insert all existing elements using the new hash function.
+
+Q7: Compare Linear Probing, Quadratic Probing, and Double Hashing.
+A7: Linear Probing is simplest but suffers from primary clustering.
+    Quadratic Probing reduces primary clustering but has secondary
+    clustering. Double Hashing eliminates both types of clustering
+    but requires two hash functions.
+
+
+================================================================================
+                          END OF FILE
+================================================================================

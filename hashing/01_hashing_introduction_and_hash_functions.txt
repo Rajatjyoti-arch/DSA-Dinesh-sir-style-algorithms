@@ -1,0 +1,250 @@
+================================================================================
+            HASHING — COMPLETE STUDY MATERIAL (PART 1)
+                INTRODUCTION, HASH FUNCTIONS & ADDRESS METHODS
+================================================================================
+
+This file covers:
+  1. What is Hashing? Why do we need it?
+  2. Key Terminology
+  3. Hash Table Structure
+  4. THREE Methods to Find the Address (Hash Functions)
+     - Division Method (Modulo)
+     - Mid-Square Method
+     - Folding Method
+  5. Solved Examples for each method
+
+================================================================================
+                    1. WHAT IS HASHING?
+================================================================================
+
+DEFINITION:
+-----------
+  HASHING is a technique that maps data (keys) to specific positions
+  in a table (called a HASH TABLE) using a mathematical function
+  (called a HASH FUNCTION).
+
+  The hash function converts a KEY into an INDEX (address) where the
+  data will be stored.
+
+  Goal: Store and retrieve data in O(1) CONSTANT TIME.
+
+WHY IS HASHING NEEDED?
+──────────────────────
+  ┌────────────────────┬──────────────┬──────────────────────────────┐
+  │  Data Structure    │  Search Time │  Problem                     │
+  ├────────────────────┼──────────────┼──────────────────────────────┤
+  │  Unsorted Array    │  O(N)        │  Too slow for large data     │
+  │  Sorted Array      │  O(log N)    │  Insertion is O(N)           │
+  │  BST               │  O(log N)    │  Can degenerate to O(N)      │
+  │  HASH TABLE        │  O(1) avg    │  ✓ Best average performance  │
+  └────────────────────┴──────────────┴──────────────────────────────┘
+
+  Hashing gives us DIRECT ACCESS — like an array, but for arbitrary keys.
+
+
+================================================================================
+                    2. KEY TERMINOLOGY
+================================================================================
+
+  KEY:         The data value used to identify a record (e.g., employee ID)
+  HASH FUNCTION: h(key) → index. Maps key to a table position.
+  HASH TABLE:  The array where data is stored.
+  HASH ADDRESS: The index returned by the hash function.
+  BUCKET:      A position (slot) in the hash table.
+  TABLE SIZE:  Number of buckets, usually denoted as M.
+  COLLISION:   When two different keys produce the SAME hash address.
+               h(key1) = h(key2), but key1 ≠ key2.
+  LOAD FACTOR: α = N / M (number of elements / table size).
+               Measures how full the table is.
+  SYNONYM:     Two keys that hash to the same address.
+
+
+================================================================================
+                    3. HASH TABLE STRUCTURE
+================================================================================
+
+  Hash Table of size M = 10:
+
+  Index:  0    1    2    3    4    5    6    7    8    9
+        ┌────┬────┬────┬────┬────┬────┬────┬────┬────┬────┐
+        │    │    │    │    │    │    │    │    │    │    │
+        └────┴────┴────┴────┴────┴────┴────┴────┴────┴────┘
+
+  To store key K:
+    1. Compute h(K) = index
+    2. Store K at HashTable[index]
+
+  To search for key K:
+    1. Compute h(K) = index
+    2. Check HashTable[index]
+    3. If found → O(1)!
+
+
+================================================================================
+        4. THREE METHODS TO FIND THE ADDRESS (HASH FUNCTIONS)
+================================================================================
+
+════════════════════════════════════════════════════════════════════════════════
+METHOD 1: DIVISION METHOD (Modulo Method) — Most Common
+════════════════════════════════════════════════════════════════════════════════
+
+FORMULA:
+  h(key) = key MOD M
+
+  Where M = size of the hash table.
+
+RULES FOR CHOOSING M:
+  • M should be a PRIME NUMBER (reduces collisions)
+  • M should NOT be a power of 2 (causes poor distribution)
+  • M should not be close to powers of 2 or 10
+
+EXAMPLE:
+────────
+  Hash table size M = 10
+  Keys: 54, 26, 93, 17, 77, 31
+
+  h(54) = 54 MOD 10 = 4
+  h(26) = 26 MOD 10 = 6
+  h(93) = 93 MOD 10 = 3
+  h(17) = 17 MOD 10 = 7
+  h(77) = 77 MOD 10 = 7  ← COLLISION with 17!
+  h(31) = 31 MOD 10 = 1
+
+  Index:  0    1    2    3    4    5    6    7    8    9
+        ┌────┬────┬────┬────┬────┬────┬────┬────┬────┬────┐
+        │    │ 31 │    │ 93 │ 54 │    │ 26 │17/77│   │    │
+        └────┴────┴────┴────┴────┴────┴────┴────┴────┴────┘
+                                              ↑
+                                         COLLISION!
+
+BETTER EXAMPLE with Prime M:
+  M = 11 (prime)
+  h(54) = 54 MOD 11 = 10
+  h(26) = 26 MOD 11 = 4
+  h(93) = 93 MOD 11 = 5
+  h(17) = 17 MOD 11 = 6
+  h(77) = 77 MOD 11 = 0
+  h(31) = 31 MOD 11 = 9
+
+  No collisions! ✓ (Prime M distributes better)
+
+
+════════════════════════════════════════════════════════════════════════════════
+METHOD 2: MID-SQUARE METHOD
+════════════════════════════════════════════════════════════════════════════════
+
+PROCEDURE:
+  Step 1: SQUARE the key → key²
+  Step 2: Extract the MIDDLE digits of the squared value
+  Step 3: The middle digits = hash address
+
+  Number of middle digits depends on the table size:
+    If M = 100 → extract 2 middle digits
+    If M = 1000 → extract 3 middle digits
+
+EXAMPLE:
+────────
+  Hash table size M = 100 (need 2-digit address: 00 to 99)
+  Keys: 3205, 7148, 2345
+
+  Key = 3205:
+    3205² = 10,272,025
+    Middle 2 digits: 10|27|20|25 → Take middle = 72
+    h(3205) = 72
+
+  Key = 7148:
+    7148² = 51,094,904
+    Middle 2 digits: 51|09|49|04 → Take middle = 09
+    h(7148) = 09
+
+  Key = 2345:
+    2345² = 5,499,025
+    Write as 05,499,025
+    Middle 2 digits: 05|49|90|25 → Take middle = 49
+    h(2345) = 49
+
+  Result:
+    h(3205) = 72
+    h(7148) = 09
+    h(2345) = 49
+
+ADVANTAGE: Uses ALL digits of the key (squaring mixes all digits).
+DISADVANTAGE: Squaring can produce very large numbers.
+
+
+════════════════════════════════════════════════════════════════════════════════
+METHOD 3: FOLDING METHOD
+════════════════════════════════════════════════════════════════════════════════
+
+PROCEDURE:
+  Step 1: Divide the key into parts of equal size (same as address size)
+  Step 2: ADD all the parts together
+  Step 3: Ignore the carry (take only last digits matching address size)
+  Step 4: The result = hash address
+
+TWO VARIANTS:
+  (a) FOLD-SHIFTING: Simply add all parts
+  (b) FOLD-BOUNDARY: Reverse alternate parts before adding
+
+EXAMPLE — Fold-Shifting:
+─────────────────────────
+  Key = 123456789, Table size M = 1000 (3-digit address)
+
+  Step 1: Divide into 3-digit parts: 123 | 456 | 789
+
+  Step 2: Add:  123
+              + 456
+              + 789
+              ─────
+              1368
+
+  Step 3: Ignore carry: 368
+
+  h(123456789) = 368
+
+
+EXAMPLE — Fold-Boundary:
+─────────────────────────
+  Key = 123456789, Table size M = 1000
+
+  Step 1: Divide: 123 | 456 | 789
+
+  Step 2: Reverse ALTERNATE parts:
+    Part 1: 123 (keep)
+    Part 2: 456 → reverse → 654
+    Part 3: 789 (keep)
+
+  Step 3: Add:  123
+              + 654
+              + 789
+              ─────
+              1566
+
+  Step 4: Ignore carry: 566
+
+  h(123456789) = 566
+
+
+================================================================================
+        QUICK REFERENCE — HASH FUNCTION COMPARISON
+================================================================================
+
+  ┌──────────────────┬─────────────────────────────────────────────────┐
+  │  Method          │  Key Points                                    │
+  ├──────────────────┼─────────────────────────────────────────────────┤
+  │  Division        │  h(k) = k MOD M                                │
+  │  (Modulo)        │  M should be prime, simplest method            │
+  │                  │  Most commonly used in practice                │
+  ├──────────────────┼─────────────────────────────────────────────────┤
+  │  Mid-Square      │  Square the key, extract middle digits         │
+  │                  │  Good distribution, uses all digits            │
+  │                  │  Can produce very large intermediate values    │
+  ├──────────────────┼─────────────────────────────────────────────────┤
+  │  Folding         │  Split key, add parts, ignore carry            │
+  │                  │  Two variants: Shift and Boundary              │
+  │                  │  Good for keys with many digits                │
+  └──────────────────┴─────────────────────────────────────────────────┘
+
+================================================================================
+                          END OF FILE
+================================================================================

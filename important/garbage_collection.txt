@@ -1,0 +1,151 @@
+================================================================================
+              GARBAGE COLLECTION IN LINKED LISTS — EXAM NOTES
+================================================================================
+
+This file covers:
+  1. What is Garbage Collection?
+  2. Why is it needed in Linked Lists?
+  3. How does it work?
+  4. Algorithms for Garbage Collection
+  5. Overflow & Underflow in context of AVAIL list
+
+================================================================================
+                    1. WHAT IS GARBAGE COLLECTION?
+================================================================================
+
+DEFINITION:
+-----------
+  Garbage Collection is the process of collecting all UNUSED (deleted)
+  memory nodes and returning them to the AVAIL list (free storage pool)
+  so that they can be reused for future allocations.
+
+  In simple terms: "Recycling deleted nodes back into the free pool."
+
+
+WHY IS IT NEEDED?
+-----------------
+  In a linked list system, when a node is deleted from a list, its memory
+  should ideally be returned to the AVAIL list immediately. But sometimes:
+
+  1. Nodes become ORPHANED — no pointer points to them, but they are not
+     returned to AVAIL. They are "lost" in memory.
+
+  2. Multiple lists share the SAME memory pool. Deleted nodes from different
+     lists may be scattered across memory.
+
+  3. Over time, the AVAIL list gets EXHAUSTED even though many nodes in
+     memory are no longer in use by any list.
+
+  When AVAIL = NULL (no free nodes) and a new node is requested:
+    → OVERFLOW condition occurs
+    → Before declaring overflow, the system runs GARBAGE COLLECTION
+    → It scans all memory to find unused nodes and adds them to AVAIL
+
+
+================================================================================
+                    2. HOW GARBAGE COLLECTION WORKS
+================================================================================
+
+OVERVIEW:
+---------
+  Garbage Collection typically happens in TWO PHASES:
+
+  Phase 1: MARKING
+  ────────────────
+    - Go through ALL active linked lists in the system.
+    - For each node that is currently IN USE, mark it (set a flag/bit = 1).
+    - Nodes that are NOT in any list remain unmarked (flag = 0).
+
+  Phase 2: COLLECTING (Sweeping)
+  ──────────────────────────────
+    - Scan through the ENTIRE memory pool (all possible node locations).
+    - Any node that is NOT MARKED (flag = 0) is a garbage node.
+    - Add all garbage nodes back to the AVAIL list.
+    - Reset all marks to 0 for the next garbage collection cycle.
+
+
+ALGORITHM: GARBAGE_COLLECTION (INFO, LINK, START_LIST[], NUM_LISTS, AVAIL, N)
+[This algorithm collects all unused nodes and returns them to AVAIL.
+ N = total nodes in memory pool. START_LIST[] = array of start pointers
+ of all active linked lists. NUM_LISTS = number of active lists.]
+
+Phase 1 — MARKING:
+  Step 1 : Repeat for I = 1 to N:
+               Set FLAG[I] := 0
+           [Initialize all flags to 0 (unmarked)]
+
+  Step 2 : Repeat for K = 1 to NUM_LISTS:
+               Set PTR := START_LIST[K]
+  Step 3 :     Repeat while PTR ≠ NULL:
+                   (a) Set FLAG[PTR] := 1   [Mark as in-use]
+                   (b) Set PTR := LINK[PTR]
+
+Phase 2 — COLLECTING:
+  Step 4 : Set AVAIL := NULL
+  Step 5 : Repeat for I = N downto 1:
+               IF FLAG[I] = 0, then:
+                   Set LINK[I] := AVAIL
+                   Set AVAIL := I
+           [Add all unmarked nodes to AVAIL]
+  Step 6 : Return
+
+
+VISUAL TRACE:
+--------------
+  Memory Pool (10 nodes total):
+  ┌────┬────────┬─────┬──────┐
+  │ Loc│ INFO   │LINK │ FLAG │
+  ├────┼────────┼─────┼──────┤
+  │  1 │  A     │  4  │  ?   │   ← In List 1
+  │  2 │  X     │  -  │  ?   │   ← Garbage (orphaned)
+  │  3 │  B     │  7  │  ?   │   ← In List 2
+  │  4 │  C     │ NULL│  ?   │   ← In List 1
+  │  5 │  Y     │  -  │  ?   │   ← Garbage
+  │  6 │  Z     │  -  │  ?   │   ← Garbage
+  │  7 │  D     │ NULL│  ?   │   ← In List 2
+  │  8 │  W     │  -  │  ?   │   ← Garbage
+  │  9 │  -     │  -  │  ?   │   ← AVAIL node
+  │ 10 │  -     │  -  │  ?   │   ← AVAIL node
+  └────┴────────┴─────┴──────┘
+
+  List 1: START = 1 → 1 → 4 → NULL
+  List 2: START = 3 → 3 → 7 → NULL
+
+  After MARKING Phase:
+    FLAG = [1, 0, 1, 1, 0, 0, 1, 0, 0, 0]
+            ↑     ↑  ↑        ↑
+           In-use nodes marked as 1
+
+  After COLLECTING Phase:
+    AVAIL → 2 → 5 → 6 → 8 → 9 → 10 → NULL
+    (All unmarked nodes returned to AVAIL)
+
+
+================================================================================
+                3. OVERFLOW AND AVAIL LIST CONNECTION
+================================================================================
+
+  AVAIL LIST:
+  -----------
+    - A special linked list that maintains all FREE (available) nodes.
+    - When we INSERT a new node → we take one from AVAIL.
+    - When we DELETE a node → we return it to AVAIL.
+
+  OVERFLOW:
+  ---------
+    - Occurs when AVAIL = NULL (no free nodes left).
+    - System tries GARBAGE COLLECTION first.
+    - If garbage collection finds nodes → they are added to AVAIL → proceed.
+    - If garbage collection finds NO nodes → true OVERFLOW → cannot allocate.
+
+  SEQUENCE:
+    Request New Node → Check AVAIL
+      ├── AVAIL ≠ NULL → Allocate from AVAIL ✓
+      └── AVAIL = NULL → Run Garbage Collection
+            ├── Found garbage nodes → Add to AVAIL → Allocate ✓
+            └── No garbage found → OVERFLOW ERROR ✗
+
+
+================================================================================
+                          END OF FILE
+================================================================================

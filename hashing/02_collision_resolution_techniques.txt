@@ -1,0 +1,436 @@
+================================================================================
+            HASHING — COMPLETE STUDY MATERIAL (PART 2)
+                    COLLISION RESOLUTION TECHNIQUES
+================================================================================
+
+This file covers:
+  1. What is a Collision?
+  2. Open Addressing (Closed Hashing)
+     - Linear Probing
+     - Quadratic Probing
+     - Double Hashing
+  3. Separate Chaining (Open Hashing / Linked List Method)
+  4. Complete Solved Examples for EACH method
+  5. Comparison Table
+
+================================================================================
+                    1. WHAT IS A COLLISION?
+================================================================================
+
+DEFINITION:
+-----------
+  A COLLISION occurs when TWO DIFFERENT keys produce the SAME hash address.
+
+    h(key1) = h(key2), but key1 ≠ key2
+
+  Example: With M = 10:
+    h(17) = 17 MOD 10 = 7
+    h(27) = 27 MOD 10 = 7  ← COLLISION! Both map to index 7
+
+  Collisions are INEVITABLE when the number of possible keys > table size.
+  (Pigeonhole Principle: if N items go into M slots and N > M, some
+  slots must hold more than one item.)
+
+  TWO MAJOR APPROACHES to handle collisions:
+    A. OPEN ADDRESSING — find another empty slot in the same table
+    B. SEPARATE CHAINING — use a linked list at each slot
+
+
+================================================================================
+        2. OPEN ADDRESSING (Closed Hashing)
+================================================================================
+
+IDEA: When a collision occurs, PROBE (search) for the next available
+empty slot in the hash table itself.
+
+All data is stored INSIDE the table. No external data structures.
+
+General Formula:
+  h(key, i) = (h(key) + f(i)) MOD M
+
+  Where:
+    h(key) = original hash
+    f(i)   = probe function (depends on method)
+    i      = probe attempt number (0, 1, 2, 3, ...)
+    M      = table size
+
+
+════════════════════════════════════════════════════════════════════════════════
+METHOD 1: LINEAR PROBING
+════════════════════════════════════════════════════════════════════════════════
+
+FORMULA:
+  h(key, i) = (h(key) + i) MOD M
+
+  f(i) = i → probe sequence: +0, +1, +2, +3, ...
+
+  If slot h(key) is full, try h(key)+1, then h(key)+2, etc.
+  Wraps around to the beginning if it reaches the end.
+
+
+ALGORITHM: LINEAR_PROBE_INSERT (HT, M, KEY)
+[Insert KEY into Hash Table HT of size M using Linear Probing]
+
+Step 1 : Set HASH := KEY MOD M
+Step 2 : Set I := HASH
+
+Step 3 : IF HT[I] = EMPTY, then:
+             Set HT[I] := KEY & Return
+         [Found empty slot — insert here]
+
+Step 4 : Set I := (I + 1) MOD M
+         [Try next slot]
+
+Step 5 : IF I = HASH, then:
+             Write: "TABLE FULL — OVERFLOW" & Exit
+         [We've gone all the way around]
+
+Step 6 : Go to Step 3
+
+
+ALGORITHM: LINEAR_PROBE_SEARCH (HT, M, KEY, LOC)
+[Search for KEY in Hash Table HT, return location in LOC]
+
+Step 1 : Set HASH := KEY MOD M
+Step 2 : Set I := HASH
+
+Step 3 : IF HT[I] = KEY, then:
+             Set LOC := I & Return
+         [Found!]
+
+Step 4 : IF HT[I] = EMPTY, then:
+             Write: "KEY not found" & Return
+         [Empty slot → key doesn't exist]
+
+Step 5 : Set I := (I + 1) MOD M
+
+Step 6 : IF I = HASH, then:
+             Write: "KEY not found — full table" & Return
+
+Step 7 : Go to Step 3
+
+
+─────────────────────────────────────────────────────────────────────
+COMPLETE TRACE — Linear Probing:
+─────────────────────────────────────────────────────────────────────
+  Table size M = 10
+  Hash function: h(key) = key MOD 10
+  Insert keys: 25, 36, 14, 23, 5, 42, 55, 65
+
+  Insert 25: h(25) = 5 → HT[5] = 25
+  Insert 36: h(36) = 6 → HT[6] = 36
+  Insert 14: h(14) = 4 → HT[4] = 14
+  Insert 23: h(23) = 3 → HT[3] = 23
+  Insert  5: h(5)  = 5 → COLLISION! HT[5] is full
+             Try 6 → full (36)
+             Try 7 → EMPTY → HT[7] = 5
+  Insert 42: h(42) = 2 → HT[2] = 42
+  Insert 55: h(55) = 5 → COLLISION!
+             Try 6 → full (36)
+             Try 7 → full (5)
+             Try 8 → EMPTY → HT[8] = 55
+  Insert 65: h(65) = 5 → COLLISION!
+             Try 6 → full
+             Try 7 → full
+             Try 8 → full
+             Try 9 → EMPTY → HT[9] = 65
+
+  Final Table:
+  Index:  0    1    2    3    4    5    6    7    8    9
+        ┌────┬────┬────┬────┬────┬────┬────┬────┬────┬────┐
+        │    │    │ 42 │ 23 │ 14 │ 25 │ 36 │  5 │ 55 │ 65 │
+        └────┴────┴────┴────┴────┴────┴────┴────┴────┴────┘
+
+PROBLEM — PRIMARY CLUSTERING:
+  Notice how keys 25, 36, 5, 55, 65 form a CLUSTER (consecutive filled
+  slots from index 5 to 9). This is called PRIMARY CLUSTERING.
+  As the cluster grows, new keys are MORE LIKELY to hit it → more probes.
+
+
+════════════════════════════════════════════════════════════════════════════════
+METHOD 2: QUADRATIC PROBING
+════════════════════════════════════════════════════════════════════════════════
+
+FORMULA:
+  h(key, i) = (h(key) + i²) MOD M
+
+  f(i) = i² → probe sequence: +0, +1, +4, +9, +16, +25, ...
+
+  Instead of checking consecutive slots (+1, +2, +3),
+  we check slots at quadratic distances (+1, +4, +9).
+  This REDUCES primary clustering.
+
+
+ALGORITHM: QUADRATIC_PROBE_INSERT (HT, M, KEY)
+[Insert KEY into Hash Table HT using Quadratic Probing]
+
+Step 1 : Set HASH := KEY MOD M
+Step 2 : Set I := 0
+
+Step 3 : Set PROBE := (HASH + I × I) MOD M
+
+Step 4 : IF HT[PROBE] = EMPTY, then:
+             Set HT[PROBE] := KEY & Return
+
+Step 5 : Set I := I + 1
+
+Step 6 : IF I = M, then:
+             Write: "TABLE FULL" & Exit
+
+Step 7 : Go to Step 3
+
+
+─────────────────────────────────────────────────────────────────────
+COMPLETE TRACE — Quadratic Probing:
+─────────────────────────────────────────────────────────────────────
+  Table size M = 10
+  Hash function: h(key) = key MOD 10
+  Insert keys: 25, 36, 14, 23, 5, 42, 55, 65
+
+  Insert 25: h=5, i=0, probe=(5+0)%10=5  → EMPTY → HT[5]=25
+  Insert 36: h=6, i=0, probe=(6+0)%10=6  → EMPTY → HT[6]=36
+  Insert 14: h=4, i=0, probe=4           → EMPTY → HT[4]=14
+  Insert 23: h=3, i=0, probe=3           → EMPTY → HT[3]=23
+  Insert  5: h=5, i=0, probe=5           → COLLISION (25)!
+             i=1, probe=(5+1)%10=6       → COLLISION (36)!
+             i=2, probe=(5+4)%10=9       → EMPTY → HT[9]=5
+  Insert 42: h=2, i=0, probe=2           → EMPTY → HT[2]=42
+  Insert 55: h=5, i=0, probe=5           → COLLISION!
+             i=1, probe=(5+1)%10=6       → COLLISION!
+             i=2, probe=(5+4)%10=9       → COLLISION (5)!
+             i=3, probe=(5+9)%10=4       → COLLISION (14)!
+             i=4, probe=(5+16)%10=1      → EMPTY → HT[1]=55
+  Insert 65: h=5, i=0, probe=5           → COLLISION!
+             i=1, probe=6                → COLLISION!
+             i=2, probe=9                → COLLISION!
+             i=3, probe=4                → COLLISION!
+             i=4, probe=1                → COLLISION (55)!
+             i=5, probe=(5+25)%10=0      → EMPTY → HT[0]=65
+
+  Final Table:
+  Index:  0    1    2    3    4    5    6    7    8    9
+        ┌────┬────┬────┬────┬────┬────┬────┬────┬────┬────┐
+        │ 65 │ 55 │ 42 │ 23 │ 14 │ 25 │ 36 │    │    │  5 │
+        └────┴────┴────┴────┴────┴────┴────┴────┴────┴────┘
+
+  Notice: NO primary clustering! Keys are spread out more evenly.
+
+NOTE: Quadratic probing may cause SECONDARY CLUSTERING —
+keys with the SAME initial hash follow the SAME probe sequence.
+
+
+════════════════════════════════════════════════════════════════════════════════
+METHOD 3: DOUBLE HASHING
+════════════════════════════════════════════════════════════════════════════════
+
+FORMULA:
+  h(key, i) = (h₁(key) + i × h₂(key)) MOD M
+
+  Uses TWO hash functions:
+    h₁(key) = key MOD M              (primary hash)
+    h₂(key) = 1 + (key MOD (M-1))    (secondary hash, common choice)
+
+  The step size depends on the KEY ITSELF, so different keys with
+  the same h₁ will have DIFFERENT probe sequences.
+  This eliminates BOTH primary and secondary clustering.
+
+IMPORTANT: h₂(key) must NEVER be 0 (otherwise probe doesn't move).
+           h₂(key) = 1 + (key MOD (M-1)) guarantees h₂ ≥ 1.
+
+
+ALGORITHM: DOUBLE_HASH_INSERT (HT, M, KEY)
+[Insert KEY using Double Hashing]
+
+Step 1 : Set H1 := KEY MOD M
+         Set H2 := 1 + (KEY MOD (M - 1))
+Step 2 : Set I := 0
+
+Step 3 : Set PROBE := (H1 + I × H2) MOD M
+
+Step 4 : IF HT[PROBE] = EMPTY, then:
+             Set HT[PROBE] := KEY & Return
+
+Step 5 : Set I := I + 1
+
+Step 6 : IF I = M, then:
+             Write: "TABLE FULL" & Exit
+
+Step 7 : Go to Step 3
+
+
+─────────────────────────────────────────────────────────────────────
+COMPLETE TRACE — Double Hashing:
+─────────────────────────────────────────────────────────────────────
+  Table size M = 11 (prime)
+  h₁(key) = key MOD 11
+  h₂(key) = 1 + (key MOD 10)
+
+  Insert keys: 20, 34, 45, 70, 56
+
+  Insert 20: h₁=20%11=9, h₂=1+20%10=1
+             i=0, probe=(9+0×1)%11=9 → EMPTY → HT[9]=20
+
+  Insert 34: h₁=34%11=1, h₂=1+34%10=5
+             i=0, probe=(1+0×5)%11=1 → EMPTY → HT[1]=34
+
+  Insert 45: h₁=45%11=1, h₂=1+45%10=6
+             i=0, probe=(1+0×6)%11=1 → COLLISION (34)!
+             i=1, probe=(1+1×6)%11=7 → EMPTY → HT[7]=45
+
+  Insert 70: h₁=70%11=4, h₂=1+70%10=1
+             i=0, probe=4 → EMPTY → HT[4]=70
+
+  Insert 56: h₁=56%11=1, h₂=1+56%10=7
+             i=0, probe=(1+0×7)%11=1 → COLLISION (34)!
+             i=1, probe=(1+1×7)%11=8 → EMPTY → HT[8]=56
+
+  Final Table:
+  Index:  0    1    2    3    4    5    6    7    8    9   10
+        ┌────┬────┬────┬────┬────┬────┬────┬────┬────┬────┬────┐
+        │    │ 34 │    │    │ 70 │    │    │ 45 │ 56 │ 20 │    │
+        └────┴────┴────┴────┴────┴────┴────┴────┴────┴────┴────┘
+
+  Notice: 34, 45, 56 all had h₁=1 but different h₂ values (5, 6, 7)
+  → different probe sequences → NO clustering at all! ✓
+
+
+================================================================================
+        3. SEPARATE CHAINING (Open Hashing / Linked List Method)
+================================================================================
+
+IDEA:
+-----
+  Each slot in the hash table contains a POINTER to a LINKED LIST.
+  All keys that hash to the same index are stored in that linked list.
+
+  The table itself never overflows — lists grow as needed.
+
+STRUCTURE:
+──────────
+  Index 0: → NULL
+  Index 1: → [34] → [45] → [56] → NULL
+  Index 2: → NULL
+  Index 3: → [23] → NULL
+  ...
+
+ALGORITHM: CHAIN_INSERT (HT, M, KEY)
+[Insert KEY into hash table using Separate Chaining]
+
+Step 1 : Set HASH := KEY MOD M
+Step 2 : Insert KEY at the beginning of the linked list at HT[HASH]
+         [Create new node, set its LINK to current head, update head]
+Step 3 : Return
+
+ALGORITHM: CHAIN_SEARCH (HT, M, KEY, LOC)
+[Search for KEY in hash table using Separate Chaining]
+
+Step 1 : Set HASH := KEY MOD M
+Step 2 : Set PTR := HT[HASH]      [Head of the linked list]
+Step 3 : Repeat while PTR ≠ NULL:
+             IF INFO[PTR] = KEY, then:
+                 Set LOC := PTR & Return
+             Set PTR := LINK[PTR]
+Step 4 : Write: "KEY not found"
+Step 5 : Return
+
+ALGORITHM: CHAIN_DELETE (HT, M, KEY)
+[Delete KEY from hash table using Separate Chaining]
+
+Step 1 : Set HASH := KEY MOD M
+Step 2 : Search for KEY in the linked list at HT[HASH]
+Step 3 : IF found, delete the node from the linked list
+         [Standard linked list deletion — update LINK pointers]
+Step 4 : IF not found, Write: "KEY not found"
+Step 5 : Return
+
+
+─────────────────────────────────────────────────────────────────────
+COMPLETE TRACE — Separate Chaining:
+─────────────────────────────────────────────────────────────────────
+  Table size M = 7
+  h(key) = key MOD 7
+  Insert keys: 50, 700, 76, 85, 92, 73, 101
+
+  h(50)  = 50 MOD 7  = 1
+  h(700) = 700 MOD 7 = 0
+  h(76)  = 76 MOD 7  = 6
+  h(85)  = 85 MOD 7  = 1  ← Collision with 50
+  h(92)  = 92 MOD 7  = 1  ← Collision with 50, 85
+  h(73)  = 73 MOD 7  = 3
+  h(101) = 101 MOD 7 = 3  ← Collision with 73
+
+  Final Hash Table:
+
+  Index 0: → [700] → NULL
+  Index 1: → [92] → [85] → [50] → NULL    ← Chain of 3 elements
+  Index 2: → NULL
+  Index 3: → [101] → [73] → NULL           ← Chain of 2 elements
+  Index 4: → NULL
+  Index 5: → NULL
+  Index 6: → [76] → NULL
+
+  Search for 85:
+    h(85) = 1 → go to list at index 1
+    → Check 92: ≠ 85
+    → Check 85: = 85 ✓ FOUND!
+    Comparisons needed: 2
+
+  Search for 99:
+    h(99) = 99 MOD 7 = 1 → go to list at index 1
+    → Check 92: ≠ 99
+    → Check 85: ≠ 99
+    → Check 50: ≠ 99
+    → NULL → NOT FOUND
+    Comparisons needed: 3
+
+
+================================================================================
+        4. COMPARISON OF ALL COLLISION RESOLUTION METHODS
+================================================================================
+
+  ┌────────────────────┬──────────────┬──────────────┬──────────────┬──────────────┐
+  │  Feature           │  Linear      │  Quadratic   │  Double      │  Separate    │
+  │                    │  Probing     │  Probing     │  Hashing     │  Chaining    │
+  ├────────────────────┼──────────────┼──────────────┼──────────────┼──────────────┤
+  │  Probe sequence    │  +1,+2,+3...│  +1,+4,+9...│  +h₂, +2h₂..│  N/A (list)  │
+  │  Primary Cluster   │  YES ✗      │  NO ✓        │  NO ✓        │  NO ✓        │
+  │  Secondary Cluster │  YES ✗      │  YES ✗       │  NO ✓        │  NO ✓        │
+  │  Extra memory      │  NO         │  NO          │  NO          │  YES (ptrs)  │
+  │  Can overflow?     │  YES        │  YES         │  YES         │  NO ✓        │
+  │  Implementation    │  Simplest   │  Moderate    │  Complex     │  Moderate    │
+  │  Performance       │  Degrades   │  Better      │  Best open   │  Best overall│
+  │  (high load)       │  quickly    │  than linear │  addressing  │              │
+  │  Deletion          │  Complex*   │  Complex*    │  Complex*    │  Easy ✓      │
+  └────────────────────┴──────────────┴──────────────┴──────────────┴──────────────┘
+
+  * In open addressing, deletion requires special "DELETED" markers
+    (lazy deletion), otherwise search will break.
+
+
+================================================================================
+        5. DELETION IN OPEN ADDRESSING — LAZY DELETION
+================================================================================
+
+  PROBLEM: If we simply empty a slot after deletion, the search probe
+  will stop at the empty slot and miss elements that were placed after
+  the deleted one due to collision.
+
+  SOLUTION: Mark deleted slots as "DELETED" (tombstone marker).
+    - During SEARCH: treat DELETED as occupied (continue probing)
+    - During INSERT: treat DELETED as empty (can insert here)
+
+  Example:
+    HT = [_, 34, _, _, 70, _, _, 45, 56, 20, _]
+
+    Delete 34 (at index 1):
+    HT = [_, DEL, _, _, 70, _, _, 45, 56, 20, _]
+                ↑ Not empty — marked as DELETED
+
+    Now if we search for 45 (h₁=1):
+    Probe 1: index 1 → DEL → continue (don't stop!)
+    Probe 2: index 7 → 45 → FOUND ✓
+
+
+================================================================================
+                          END OF FILE
+================================================================================

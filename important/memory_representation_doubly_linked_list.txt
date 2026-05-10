@@ -1,0 +1,256 @@
+================================================================================
+    MEMORY REPRESENTATION OF DOUBLY (2-WAY) LINKED LIST — EXAM NOTES
+================================================================================
+
+This file covers:
+  1. What is a Doubly Linked List (DLL)?
+  2. Node Structure
+  3. Memory Representation (Array-based / Sequential)
+  4. Visual Trace of DLL in Memory
+  5. Operations with Memory Representation
+  6. Comparison: Singly LL vs Doubly LL
+
+================================================================================
+                1. WHAT IS A DOUBLY LINKED LIST?
+================================================================================
+
+DEFINITION:
+-----------
+  A Doubly Linked List (also called 2-WAY Linked List) is a linked list
+  where each node has TWO pointers:
+    (a) FORW (Forward / Next)  — points to the NEXT node
+    (b) BACK (Backward / Prev) — points to the PREVIOUS node
+
+  This allows traversal in BOTH directions (forward and backward).
+
+
+NODE STRUCTURE:
+---------------
+    ┌──────┬──────┬──────┐
+    │ BACK │ INFO │ FORW │
+    └──────┴──────┴──────┘
+
+  BACK = pointer to previous node (NULL if first node)
+  INFO = data stored in the node
+  FORW = pointer to next node (NULL if last node)
+
+
+VISUAL REPRESENTATION:
+──────────────────────
+  NULL ← [BACK|A|FORW] ⇄ [BACK|B|FORW] ⇄ [BACK|C|FORW] → NULL
+          ↑ START                                ↑ END
+
+
+================================================================================
+        2. MEMORY REPRESENTATION USING PARALLEL ARRAYS
+================================================================================
+
+CONCEPT:
+--------
+  In textbook/exam representation, a DLL is stored using THREE parallel
+  arrays and a few pointer variables:
+
+    INFO[K] = Data stored at location K
+    FORW[K] = Location of the NEXT node (forward pointer)
+    BACK[K] = Location of the PREVIOUS node (backward pointer)
+
+  Special Variables:
+    START = Location of the FIRST node in the list
+    AVAIL = Location of the FIRST node in the free (available) pool
+
+
+EXAMPLE:
+--------
+  Let's represent DLL: 10 ⇄ 20 ⇄ 30 ⇄ 40
+
+  Using memory locations 1 through 8 (some used, some free):
+  START = 3, AVAIL = 5
+
+  ┌─────┬──────┬──────┬──────┐
+  │ Loc │ BACK │ INFO │ FORW │
+  ├─────┼──────┼──────┼──────┤
+  │  1  │  3   │  20  │  7   │   ← 2nd node (BACK→3=10, FORW→7=30)
+  │  2  │  --  │  --  │  8   │   ← Free (AVAIL chain)
+  │  3  │ NULL │  10  │  1   │   ← 1st node (START) (BACK=NULL, FORW→1=20)
+  │  4  │  --  │  --  │ NULL │   ← Free (last in AVAIL chain)
+  │  5  │  --  │  --  │  2   │   ← Free (AVAIL starts here)
+  │  6  │  7   │  40  │ NULL │   ← 4th node (BACK→7=30, FORW=NULL, this is END)
+  │  7  │  1   │  30  │  6   │   ← 3rd node (BACK→1=20, FORW→6=40)
+  │  8  │  --  │  --  │  4   │   ← Free
+  └─────┴──────┴──────┴──────┘
+
+  READING THE LIST (Forward Traversal):
+    Start at START = 3:
+      Loc 3 → INFO = 10, FORW = 1
+      Loc 1 → INFO = 20, FORW = 7
+      Loc 7 → INFO = 30, FORW = 6
+      Loc 6 → INFO = 40, FORW = NULL → STOP
+
+    List (forward):  10 → 20 → 30 → 40  ✓
+
+  READING THE LIST (Backward Traversal):
+    Start at END (find it: the node where FORW = NULL → Loc 6):
+      Loc 6 → INFO = 40, BACK = 7
+      Loc 7 → INFO = 30, BACK = 1
+      Loc 1 → INFO = 20, BACK = 3
+      Loc 3 → INFO = 10, BACK = NULL → STOP
+
+    List (backward): 40 → 30 → 20 → 10  ✓
+
+  AVAIL (Free Pool):
+    AVAIL = 5 → FORW = 2 → FORW = 8 → FORW = 4 → FORW = NULL
+    Free locations: 5, 2, 8, 4
+
+
+================================================================================
+            3. ALGORITHMS WITH MEMORY REPRESENTATION
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+ALGORITHM: TRAVERSE_FORWARD_DLL (INFO, FORW, BACK, START)
+[Forward traversal of a Doubly Linked List]
+────────────────────────────────────────────────────────────────────────────────
+
+Step 1 : Set PTR := START
+Step 2 : Repeat Steps 3 & 4 while PTR ≠ NULL:
+Step 3 :     Apply PROCESS to INFO[PTR]
+Step 4 :     Set PTR := FORW[PTR]
+Step 5 : Exit
+
+
+────────────────────────────────────────────────────────────────────────────────
+ALGORITHM: TRAVERSE_BACKWARD_DLL (INFO, FORW, BACK, END)
+[Backward traversal of a Doubly Linked List]
+────────────────────────────────────────────────────────────────────────────────
+
+Step 1 : Set PTR := END
+Step 2 : Repeat Steps 3 & 4 while PTR ≠ NULL:
+Step 3 :     Apply PROCESS to INFO[PTR]
+Step 4 :     Set PTR := BACK[PTR]
+Step 5 : Exit
+
+
+────────────────────────────────────────────────────────────────────────────────
+ALGORITHM: INSERT_DLL (INFO, FORW, BACK, START, AVAIL, LOCA, LOCB, ITEM)
+[Insert a node with ITEM between nodes at locations LOCA and LOCB.
+ LOCA is the predecessor, LOCB is the successor.
+ LOCA and LOCB are adjacent: FORW[LOCA] = LOCB, BACK[LOCB] = LOCA]
+────────────────────────────────────────────────────────────────────────────────
+
+Step 1 : IF AVAIL = NULL, then:
+             Write: OVERFLOW & Exit
+
+Step 2 : Set NEW := AVAIL
+         Set AVAIL := FORW[AVAIL]
+         [Remove first node from free pool]
+
+Step 3 : Set INFO[NEW] := ITEM
+         [Store the data]
+
+Step 4 : Set FORW[LOCA] := NEW
+         Set BACK[NEW]  := LOCA
+         [Connect LOCA → NEW]
+
+Step 5 : Set FORW[NEW]  := LOCB
+         Set BACK[LOCB] := NEW
+         [Connect NEW → LOCB]
+
+Step 6 : Exit
+
+
+TRACE — Insert 25 between 20 (Loc 1) and 30 (Loc 7):
+──────────────────────────────────────────────────────
+  LOCA = 1, LOCB = 7, ITEM = 25
+
+  Step 2: NEW = AVAIL = 5, AVAIL = FORW[5] = 2
+  Step 3: INFO[5] = 25
+  Step 4: FORW[1] = 5, BACK[5] = 1    (20 → 25)
+  Step 5: FORW[5] = 7, BACK[7] = 5    (25 → 30)
+
+  Before: ... → [Loc1: 20] → [Loc7: 30] → ...
+  After:  ... → [Loc1: 20] → [Loc5: 25] → [Loc7: 30] → ...
+
+  Updated Memory:
+  ┌─────┬──────┬──────┬──────┐
+  │ Loc │ BACK │ INFO │ FORW │
+  ├─────┼──────┼──────┼──────┤
+  │  1  │  3   │  20  │  5   │   ← FORW changed from 7 to 5
+  │  5  │  1   │  25  │  7   │   ← NEW node inserted
+  │  7  │  5   │  30  │  6   │   ← BACK changed from 1 to 5
+  └─────┴──────┴──────┴──────┘
+
+
+────────────────────────────────────────────────────────────────────────────────
+ALGORITHM: DELETE_DLL (INFO, FORW, BACK, START, AVAIL, LOC)
+[Delete the node at location LOC from a Doubly Linked List]
+────────────────────────────────────────────────────────────────────────────────
+
+Step 1 : IF START = NULL, then:
+             Write: UNDERFLOW & Exit
+
+Step 2 : IF LOC = START, then:
+             [Deleting the first node]
+             Set START := FORW[START]
+             IF START ≠ NULL, then:
+                 Set BACK[START] := NULL
+
+Step 3 : ELSE:
+             [Deleting a middle or last node]
+             Set FORW[BACK[LOC]] := FORW[LOC]
+                 [Previous node's FORW skips over LOC]
+             IF FORW[LOC] ≠ NULL, then:
+                 Set BACK[FORW[LOC]] := BACK[LOC]
+                 [Next node's BACK skips over LOC]
+
+Step 4 : [Return deleted node to AVAIL]
+         Set FORW[LOC] := AVAIL
+         Set AVAIL := LOC
+
+Step 5 : Exit
+
+
+TRACE — Delete node 30 (Loc 7) from: 10 ⇄ 20 ⇄ 30 ⇄ 40
+──────────────────────────────────────────────────────────
+  LOC = 7, BACK[7] = 1 (node 20), FORW[7] = 6 (node 40)
+
+  Step 3:
+    FORW[BACK[7]] = FORW[1] := FORW[7] = 6
+        → Node 20's FORW now points to node 40 (skip 30)
+    BACK[FORW[7]] = BACK[6] := BACK[7] = 1
+        → Node 40's BACK now points to node 20 (skip 30)
+
+  Step 4:
+    FORW[7] := AVAIL, AVAIL := 7
+        → Node 7 added to free pool
+
+  Before: 10 ⇄ 20 ⇄ 30 ⇄ 40
+  After:  10 ⇄ 20 ⇄ 40       (30 returned to AVAIL)
+
+
+================================================================================
+            4. COMPARISON: SINGLY LL VS DOUBLY LL
+================================================================================
+
+  ┌───────────────────────────┬──────────────────┬──────────────────────┐
+  │  Feature                  │  Singly LL       │  Doubly LL           │
+  ├───────────────────────────┼──────────────────┼──────────────────────┤
+  │  Pointers per node        │  1 (LINK)        │  2 (FORW + BACK)     │
+  │  Traversal                │  Forward only    │  Forward & Backward  │
+  │  Memory per node          │  Less            │  More (extra pointer)│
+  │  Delete node (given LOC)  │  Need LOCP also  │  Direct (BACK[LOC])  │
+  │  Insert before a node     │  O(N) traverse   │  O(1) using BACK     │
+  │  Complexity of operations │  Simpler code    │  More pointer updates│
+  │  Finding predecessor      │  O(N) traverse   │  O(1) via BACK       │
+  └───────────────────────────┴──────────────────┴──────────────────────┘
+
+  KEY INSIGHT:
+  In a SINGLY linked list, to delete a node at LOC, you MUST know LOCP
+  (the predecessor), which requires traversing from START.
+
+  In a DOUBLY linked list, the predecessor is simply BACK[LOC] — O(1)!
+  This is the biggest advantage of a DLL.
+
+
+================================================================================
+                          END OF FILE
+================================================================================

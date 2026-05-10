@@ -1,0 +1,206 @@
+================================================================================
+          APPLICATIONS OF ARRAYS & SPARSE ARRAYS — EXAM NOTES
+================================================================================
+
+This file covers:
+  1. Applications of Arrays
+  2. Sparse Matrix — Definition, Problem, and Solutions
+  3. Sparse Matrix Representations (Triplet / 3-Column & Linked List)
+  4. Algorithms for Sparse Matrix operations
+
+================================================================================
+                    1. APPLICATIONS OF ARRAYS
+================================================================================
+
+Arrays are used extensively in Computer Science. Key applications:
+
+  1. STORING & ACCESSING DATA:
+     - Student marks, employee records, sensor readings.
+     - Random access in O(1) time using index.
+
+  2. IMPLEMENTING OTHER DATA STRUCTURES:
+     - Stack  — using array with TOP pointer
+     - Queue  — using array with FRONT and REAR pointers
+     - Heap   — Binary heap stored as array
+     - Hash Table — array of buckets
+
+  3. MATRIX OPERATIONS:
+     - 2-D arrays used for matrices in mathematics.
+     - Matrix addition, multiplication, transpose.
+
+  4. STRING PROCESSING:
+     - Strings are arrays of characters.
+     - Used in text editors, compilers, search engines.
+
+  5. SORTING AND SEARCHING:
+     - All sorting algorithms operate on arrays.
+     - Binary search requires a sorted array.
+
+  6. IMAGE PROCESSING:
+     - Images stored as 2-D arrays of pixel values.
+     - Each pixel = A[row][column].
+
+  7. LOOKUP TABLES:
+     - Precomputed values stored in arrays for fast retrieval.
+     - Example: ASCII table, trigonometric values.
+
+  8. SPARSE MATRICES:
+     - Efficient representation of matrices with mostly zero elements.
+     - (Covered in detail below)
+
+
+================================================================================
+                    2. SPARSE MATRIX
+================================================================================
+
+DEFINITION:
+-----------
+  A SPARSE MATRIX is a matrix in which MOST of the elements are ZERO.
+
+  Example:
+    ┌                 ┐
+    │ 0  0  3  0  0   │
+    │ 0  0  0  0  0   │
+    │ 5  0  0  0  0   │
+    │ 0  7  0  0  0   │
+    │ 0  0  0  0  9   │
+    └                 ┘
+    Size: 5 × 5 = 25 elements
+    Non-zero elements: Only 4
+    Zero elements: 21 (84% are zeros!)
+
+
+THE PROBLEM:
+-------------
+  If we store this 5×5 matrix as a normal 2-D array:
+    → We use 25 memory locations.
+    → But only 4 locations have useful data.
+    → 21 locations are wasted storing zeros.
+
+  For large matrices (1000×1000 with 100 non-zero elements):
+    → Normal storage = 1,000,000 locations
+    → Useful data = only 100 locations
+    → 99.99% memory WASTED!
+
+
+SOLUTION: Store ONLY the non-zero elements.
+
+
+================================================================================
+        3. SPARSE MATRIX REPRESENTATION — TRIPLET FORMAT
+================================================================================
+
+Also called: 3-Column Representation or Coordinate List (COO)
+
+IDEA:
+-----
+  For each non-zero element, store THREE values:
+    (Row, Column, Value)
+
+  Plus a header row storing: (Total Rows, Total Columns, Total Non-Zero)
+
+
+EXAMPLE:
+--------
+  Original Matrix (5 × 5):
+    ┌                 ┐
+    │ 0  0  3  0  0   │
+    │ 0  0  0  0  0   │
+    │ 5  0  0  0  0   │
+    │ 0  7  0  0  0   │
+    │ 0  0  0  0  9   │
+    └                 ┘
+
+  TRIPLET Representation:
+    ┌─────┬─────┬───────┐
+    │ Row │ Col │ Value │
+    ├─────┼─────┼───────┤
+    │  5  │  5  │   4   │  ← Header: 5 rows, 5 cols, 4 non-zeros
+    ├─────┼─────┼───────┤
+    │  0  │  2  │   3   │
+    │  2  │  0  │   5   │
+    │  3  │  1  │   7   │
+    │  4  │  4  │   9   │
+    └─────┴─────┴───────┘
+
+  Storage: Header (3 values) + 4 entries × 3 values = 15 locations
+  vs. Normal: 25 locations
+  Savings increase dramatically with larger matrices!
+
+
+ALGORITHM: CREATE_SPARSE_TRIPLET (A, M, N, SPARSE, T)
+[This algorithm converts an M×N matrix A into its sparse triplet
+ representation SPARSE. T = number of non-zero elements found.]
+
+Step 1  : Set T := 0
+Step 2  : Repeat for I = 0 to M-1:
+Step 3  :     Repeat for J = 0 to N-1:
+Step 4  :         IF A[I][J] ≠ 0, then:
+                      (a) Set T := T + 1
+                      (b) Set SPARSE[T][0] := I
+                      (c) Set SPARSE[T][1] := J
+                      (d) Set SPARSE[T][2] := A[I][J]
+Step 5  : Set SPARSE[0][0] := M
+          Set SPARSE[0][1] := N
+          Set SPARSE[0][2] := T
+Step 6  : Exit
+
+
+ALGORITHM: TRANSPOSE_SPARSE (SPARSE, T, RESULT)
+[This algorithm finds the transpose of a sparse matrix stored in
+ triplet format. T = number of non-zero elements.]
+
+Step 1  : Set RESULT[0][0] := SPARSE[0][1]    [Rows ↔ Cols swapped]
+          Set RESULT[0][1] := SPARSE[0][0]
+          Set RESULT[0][2] := T
+Step 2  : Set POS := 1
+Step 3  : Repeat for COL = 0 to SPARSE[0][1] - 1:
+Step 4  :     Repeat for I = 1 to T:
+Step 5  :         IF SPARSE[I][1] = COL, then:
+                      (a) Set RESULT[POS][0] := SPARSE[I][1]
+                      (b) Set RESULT[POS][1] := SPARSE[I][0]
+                      (c) Set RESULT[POS][2] := SPARSE[I][2]
+                      (d) Set POS := POS + 1
+Step 6  : Exit
+
+
+================================================================================
+        4. SPARSE MATRIX REPRESENTATION — LINKED LIST FORMAT
+================================================================================
+
+IDEA:
+-----
+  Each non-zero element is stored as a NODE in a linked list.
+
+  NODE STRUCTURE:
+    ┌─────┬─────┬───────┬──────┐
+    │ ROW │ COL │ VALUE │ LINK │
+    └─────┴─────┴───────┴──────┘
+
+  The linked list is ordered by (Row, then Column).
+
+  HEAD → [0,2,3] → [2,0,5] → [3,1,7] → [4,4,9] → NULL
+
+  ADVANTAGE: Easy to insert/delete non-zero elements dynamically.
+  DISADVANTAGE: Extra memory for pointers. No random access.
+
+
+================================================================================
+            QUICK REFERENCE — SPARSE MATRIX SUMMARY
+================================================================================
+
+  ┌──────────────────────┬─────────────────────────────────────────────┐
+  │  Representation      │  Storage Required                          │
+  ├──────────────────────┼─────────────────────────────────────────────┤
+  │  Normal 2-D Array    │  M × N locations                           │
+  │  Triplet (3-Column)  │  3 × (T + 1) locations  (T = non-zeros)   │
+  │  Linked List         │  T nodes × (4 fields each)                 │
+  └──────────────────────┴─────────────────────────────────────────────┘
+
+  Use Sparse when: T << M × N (very few non-zero elements)
+  Use Normal when: Matrix is dense (most elements are non-zero)
+
+
+================================================================================
+                          END OF FILE
+================================================================================

@@ -1,0 +1,394 @@
+================================================================================
+            AVL TREE ROTATIONS — COMPLETE EXAM NOTES
+================================================================================
+
+This file covers:
+  1. What is an AVL Tree? Balance Factor
+  2. ALL 4 Rotation Types (LL, RR, LR, RL) with diagrams
+  3. Step-by-step traces for each rotation
+  4. Deletion Rotations (R0, R1, R-1, L0, L1, L-1)
+  5. Complete worked-out insertion and deletion examples
+
+================================================================================
+                    1. AVL TREE BASICS
+================================================================================
+
+DEFINITION:
+-----------
+  An AVL Tree (Adelson-Velsky and Landis) is a SELF-BALANCING Binary
+  Search Tree where the BALANCE FACTOR of every node is {-1, 0, +1}.
+
+BALANCE FACTOR (BF):
+--------------------
+  BF(node) = Height(Left Subtree) - Height(Right Subtree)
+
+  Valid values: -1, 0, +1  →  Tree is BALANCED
+  If |BF| > 1 for any node →  Tree is UNBALANCED → needs ROTATION
+
+  BF = +2 → LEFT-HEAVY (left subtree is taller)
+  BF = -2 → RIGHT-HEAVY (right subtree is taller)
+
+  Note: Height of an empty tree = -1, Height of a leaf node = 0
+
+
+================================================================================
+            2. INSERTION ROTATIONS (LL, RR, LR, RL)
+================================================================================
+
+When inserting a new node causes |BF| > 1, we identify the FIRST
+unbalanced ancestor node 'A' and apply ONE of 4 rotations:
+
+────────────────────────────────────────────────────────────────────────────────
+CASE 1: LL ROTATION (Left-Left Case) — Single Right Rotation
+────────────────────────────────────────────────────────────────────────────────
+
+WHEN: New node inserted in the LEFT subtree of the LEFT child of A.
+      BF(A) = +2, BF(Left child of A) = +1
+
+OPERATION: Single RIGHT ROTATION at node A.
+
+BEFORE:                    AFTER:
+        A (+2)                    B (0)
+       / \                       / \
+      B   T3                   T1    A (0)
+     / \                            / \
+    T1   T2                        T2   T3
+   /
+  NEW
+
+STEPS:
+  1. B becomes the new root of this subtree
+  2. A becomes the RIGHT child of B
+  3. T2 (right subtree of B) becomes the LEFT child of A
+
+ALGORITHM:
+  Set TEMP := LEFT[A]           [TEMP = B]
+  Set LEFT[A] := RIGHT[TEMP]    [A's left = T2]
+  Set RIGHT[TEMP] := A          [B's right = A]
+  [Update parent of A to point to TEMP instead]
+
+
+TRACE EXAMPLE:
+  Insert: 30, 20, 10
+
+  Step 1: Insert 30     Step 2: Insert 20     Step 3: Insert 10
+      30                    30 (+1)                30 (+2) ← UNBALANCED!
+                           /                      /
+                         20                     20 (+1)
+                                               /
+                                             10
+
+  A = 30, B = 20 → LL case → Right Rotation at 30:
+
+      20 (0)
+     /  \
+   10    30
+          (0)    (0)    ✓ Balanced!
+
+
+────────────────────────────────────────────────────────────────────────────────
+CASE 2: RR ROTATION (Right-Right Case) — Single Left Rotation
+────────────────────────────────────────────────────────────────────────────────
+
+WHEN: New node inserted in the RIGHT subtree of the RIGHT child of A.
+      BF(A) = -2, BF(Right child of A) = -1
+
+OPERATION: Single LEFT ROTATION at node A.
+
+BEFORE:                    AFTER:
+    A (-2)                       B (0)
+   / \                          / \
+  T1   B                      A    T3
+      / \                    / \
+     T2   T3                T1   T2
+            \
+            NEW
+
+STEPS:
+  1. B becomes the new root of this subtree
+  2. A becomes the LEFT child of B
+  3. T2 (left subtree of B) becomes the RIGHT child of A
+
+ALGORITHM:
+  Set TEMP := RIGHT[A]          [TEMP = B]
+  Set RIGHT[A] := LEFT[TEMP]    [A's right = T2]
+  Set LEFT[TEMP] := A           [B's left = A]
+
+
+TRACE EXAMPLE:
+  Insert: 10, 20, 30
+
+  Step 3: Insert 30
+    10 (-2) ← UNBALANCED!
+      \
+      20 (-1)
+        \
+        30
+
+  A = 10, B = 20 → RR case → Left Rotation at 10:
+
+      20 (0)
+     /  \
+   10    30      ✓ Balanced!
+
+
+────────────────────────────────────────────────────────────────────────────────
+CASE 3: LR ROTATION (Left-Right Case) — Double Rotation
+────────────────────────────────────────────────────────────────────────────────
+
+WHEN: New node inserted in the RIGHT subtree of the LEFT child of A.
+      BF(A) = +2, BF(Left child of A) = -1
+
+OPERATION: First LEFT ROTATION at B, then RIGHT ROTATION at A.
+
+BEFORE:                    STEP 1 (Left at B):      STEP 2 (Right at A):
+      A (+2)                    A (+2)                     C (0)
+     / \                       / \                        / \
+    B   T4                    C   T4                     B    A
+   / \                       / \                        / \  / \
+  T1   C                    B   T3                    T1 T2 T3 T4
+      / \                  / \
+     T2   T3              T1   T2
+
+STEPS:
+  1. Left Rotation at B: C becomes parent of B
+  2. Right Rotation at A: C becomes root, A becomes right child
+
+
+TRACE EXAMPLE:
+  Insert: 30, 10, 20
+
+  After inserting 20:
+      30 (+2) ← UNBALANCED!
+     /
+    10 (-1)
+      \
+      20
+
+  A = 30, B = 10, C = 20 → LR case
+
+  Step 1: Left Rotation at 10:        Step 2: Right Rotation at 30:
+      30                                  20 (0)
+     /                                   /  \
+    20                                 10    30    ✓ Balanced!
+   /
+  10
+
+────────────────────────────────────────────────────────────────────────────────
+CASE 4: RL ROTATION (Right-Left Case) — Double Rotation
+────────────────────────────────────────────────────────────────────────────────
+
+WHEN: New node inserted in the LEFT subtree of the RIGHT child of A.
+      BF(A) = -2, BF(Right child of A) = +1
+
+OPERATION: First RIGHT ROTATION at B, then LEFT ROTATION at A.
+
+BEFORE:                    STEP 1 (Right at B):     STEP 2 (Left at A):
+    A (-2)                    A (-2)                      C (0)
+   / \                       / \                         / \
+  T1   B                    T1   C                      A    B
+      / \                       / \                    / \  / \
+     C   T4                    T2   B                 T1 T2 T3 T4
+    / \                            / \
+   T2   T3                       T3   T4
+
+TRACE EXAMPLE:
+  Insert: 10, 30, 20
+
+  After inserting 20:
+    10 (-2) ← UNBALANCED!
+      \
+      30 (+1)
+     /
+    20
+
+  A = 10, B = 30, C = 20 → RL case
+
+  Step 1: Right Rotation at 30:       Step 2: Left Rotation at 10:
+    10                                    20 (0)
+      \                                  /  \
+      20                               10    30   ✓ Balanced!
+        \
+        30
+
+
+================================================================================
+        3. QUICK REFERENCE — ROTATION IDENTIFICATION
+================================================================================
+
+  ┌───────────────────┬──────────┬──────────────┬──────────────────────┐
+  │  Rotation Type    │  BF(A)   │  BF(Child)   │  Action              │
+  ├───────────────────┼──────────┼──────────────┼──────────────────────┤
+  │  LL (Left-Left)   │   +2     │   +1         │  Right Rotation at A │
+  │  RR (Right-Right) │   -2     │   -1         │  Left Rotation at A  │
+  │  LR (Left-Right)  │   +2     │   -1         │  Left at B, Right at A│
+  │  RL (Right-Left)  │   -2     │   +1         │  Right at B, Left at A│
+  └───────────────────┴──────────┴──────────────┴──────────────────────┘
+
+  MEMORY TRICK:
+    BF = +2 → Problem is on LEFT side → check LEFT child
+    BF = -2 → Problem is on RIGHT side → check RIGHT child
+    Same sign (++, --) → Single rotation
+    Opposite sign (+-, -+) → Double rotation
+
+
+================================================================================
+            4. DELETION ROTATIONS (R0, R1, R-1, L0, L1, L-1)
+================================================================================
+
+After DELETING a node, if the tree becomes unbalanced at node X:
+
+────────────────────────────────────────────────────────────────────────────────
+CASE: Deleted node was on the LEFT side of X (X becomes RIGHT-HEAVY, BF=-2)
+────────────────────────────────────────────────────────────────────────────────
+
+  Let B = RIGHT child of X. Check BF(B):
+
+  ┌─────────┬────────┬───────────────────────────────────────────────────┐
+  │ Name    │ BF(B)  │ Rotation                                         │
+  ├─────────┼────────┼───────────────────────────────────────────────────┤
+  │ L0      │   0    │ Single Left Rotation at X                        │
+  │         │        │ (Same as RR rotation)                             │
+  │         │        │ Note: BF of new root = +1 (not 0)                │
+  ├─────────┼────────┼───────────────────────────────────────────────────┤
+  │ L-1     │  -1    │ Single Left Rotation at X                        │
+  │         │        │ (Same as RR rotation)                             │
+  │         │        │ BF of new root = 0                               │
+  ├─────────┼────────┼───────────────────────────────────────────────────┤
+  │ L1      │  +1    │ Double Rotation: Right at B, then Left at X      │
+  │         │        │ (Same as RL rotation)                             │
+  └─────────┴────────┴───────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────
+CASE: Deleted node was on the RIGHT side of X (X becomes LEFT-HEAVY, BF=+2)
+────────────────────────────────────────────────────────────────────────────────
+
+  Let B = LEFT child of X. Check BF(B):
+
+  ┌─────────┬────────┬───────────────────────────────────────────────────┐
+  │ Name    │ BF(B)  │ Rotation                                         │
+  ├─────────┼────────┼───────────────────────────────────────────────────┤
+  │ R0      │   0    │ Single Right Rotation at X                       │
+  │         │        │ (Same as LL rotation)                             │
+  │         │        │ Note: BF of new root = -1 (not 0)                │
+  ├─────────┼────────┼───────────────────────────────────────────────────┤
+  │ R1      │  +1    │ Single Right Rotation at X                       │
+  │         │        │ (Same as LL rotation)                             │
+  │         │        │ BF of new root = 0                               │
+  ├─────────┼────────┼───────────────────────────────────────────────────┤
+  │ R-1     │  -1    │ Double Rotation: Left at B, then Right at X      │
+  │         │        │ (Same as LR rotation)                             │
+  └─────────┴────────┴───────────────────────────────────────────────────┘
+
+
+DELETION ROTATION — WORKED EXAMPLE:
+─────────────────────────────────────
+  Given AVL Tree:
+          50 (BF=+1)
+         /  \
+       30    70
+      / \      \
+    20   40    80
+   /
+  10
+
+  DELETE node 80:
+    → 70's right subtree is now empty
+    → BF(70) was 0-1 = -1, now = 0  ✓
+    → But wait, recalculate up: BF(50) = Height(L) - Height(R)
+      Height(Left of 50) = 3, Height(Right of 50) = 1 → BF(50) = +2 ← UNBALANCED!
+
+  X = 50 (unbalanced), deleted node was on RIGHT side of 50.
+  B = LEFT child of X = 30, BF(30) = +1
+
+  → This is R1 rotation → Single Right Rotation at 50 (same as LL)
+
+  Result:
+          30 (0)
+         /  \
+       20    50
+      /     / \
+    10    40   70      ✓ Balanced!
+
+
+================================================================================
+    5. COMPLETE WORKED EXAMPLE — INSERTION SEQUENCE
+================================================================================
+
+  Insert sequence: 50, 25, 75, 10, 30, 60, 80, 5, 15, 27, 55
+
+  Step 1: Insert 50          50 (0)
+
+  Step 2: Insert 25          50 (+1)
+                            /
+                          25
+
+  Step 3: Insert 75          50 (0)
+                            / \
+                          25   75
+
+  Step 4: Insert 10          50 (+1)
+                            / \
+                          25   75
+                         /
+                       10
+
+  Step 5: Insert 30          50 (+1)
+                            / \
+                          25   75
+                         / \
+                       10   30
+
+  Step 6: Insert 60          50 (0)
+                            / \
+                          25   75
+                         / \  /
+                       10  30 60
+
+  Step 7: Insert 80          50 (0)
+                            /  \
+                          25    75
+                         / \   / \
+                       10  30 60  80
+
+  Step 8: Insert 5           50 (+1)
+                            /  \
+                          25    75
+                         / \   / \
+                       10  30 60  80
+                      /
+                     5
+
+  Step 9: Insert 15          50 (+1)
+                            /  \
+                          25    75
+                         / \   / \
+                       10  30 60  80
+                      / \
+                     5  15
+                                        ← Still balanced (all |BF| ≤ 1)
+
+  Step 10: Insert 27         50 (+2) ← UNBALANCED at 50!
+                            /  \
+                          25    75
+                         / \   / \
+                       10  30 60  80
+                      / \ /
+                     5 15 27
+
+  Wait — let's recheck. Actually BF(25) = 2-1 = +1, BF(50) = 3-2 = +1.
+  BF(30) = 1-0 = +1 after inserting 27 as left child of 30.
+  All |BF| ≤ 1 → Still balanced! ✓
+
+  Step 11: Insert 55
+  60 has left child 55. BF(60) = +1, BF(75) = +1-1 = 0...
+  All balanced! ✓
+
+  (In exams, the tree becomes unbalanced typically with fewer nodes.
+   The key is to always check BF from the inserted node UP to the root.)
+
+
+================================================================================
+                          END OF FILE
+================================================================================

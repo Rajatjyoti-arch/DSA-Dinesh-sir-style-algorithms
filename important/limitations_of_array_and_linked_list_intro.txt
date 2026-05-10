@@ -1,0 +1,132 @@
+================================================================================
+        LIMITATIONS OF ARRAY & WHY LINKED LIST IS NEEDED — EXAM NOTES
+================================================================================
+
+This file covers:
+  1. Limitations of Linear Array
+  2. How Linked List overcomes each limitation
+  3. Comparison Table (Array vs Linked List)
+
+================================================================================
+                1. LIMITATIONS OF LINEAR ARRAY
+================================================================================
+
+1. FIXED SIZE (Static Memory Allocation):
+   ─────────────────────────────────────────
+   - The size of an array must be declared at the time of creation.
+   - Once declared, it CANNOT be increased or decreased during runtime.
+   - If we declare A[100] but only use 10 elements → 90 locations wasted.
+   - If we need 150 elements → the array is too small, data cannot be stored.
+
+   Problem: We must predict the maximum size in advance, which is often
+   impossible in real-world applications.
+
+
+2. EXPENSIVE INSERTION AND DELETION:
+   ────────────────────────────────────
+   - To insert at position K, ALL elements from K to N must be shifted
+     one position to the right → O(N) time.
+   - To delete at position K, ALL elements from K+1 to N must be shifted
+     one position to the left → O(N) time.
+   - In the WORST CASE (insert/delete at beginning), ALL N elements shift.
+
+   Example: Insert 5 at position 1 in A = [10, 20, 30, 40]
+     Step 1: Shift 40 → position 5
+     Step 2: Shift 30 → position 4
+     Step 3: Shift 20 → position 3
+     Step 4: Shift 10 → position 2
+     Step 5: Place 5  → position 1
+     Result: [5, 10, 20, 30, 40]     ← 4 shifts needed!
+
+
+3. CONTIGUOUS MEMORY REQUIREMENT:
+   ──────────────────────────────────
+   - Array needs a single, continuous block of memory.
+   - Even if total free memory = 1000 bytes, if the largest contiguous
+     block available = 500 bytes, an array of 800 bytes CANNOT be allocated.
+   - This leads to EXTERNAL FRAGMENTATION problems.
+
+
+4. WASTAGE OF MEMORY:
+   ──────────────────────
+   - If an array is declared with capacity N = 1000 but only 50 elements
+     are actually used, the remaining 950 locations are wasted.
+   - Memory is allocated at COMPILE TIME and held even if unused.
+
+
+5. NO EFFICIENT INSERTION IN SORTED ORDER:
+   ──────────────────────────────────────────
+   - Maintaining a sorted array requires shifting elements on every
+     insertion → O(N) per insertion.
+   - For N insertions into a sorted array → O(N²) total.
+
+
+================================================================================
+            2. HOW LINKED LIST OVERCOMES THESE LIMITATIONS
+================================================================================
+
+WHAT IS A LINKED LIST?
+──────────────────────
+  A Linked List is a LINEAR data structure where elements are stored in
+  NODES. Each node contains:
+    (a) INFO  — The data/value
+    (b) LINK  — A pointer/address to the NEXT node
+
+  Nodes are NOT stored in contiguous memory. They are scattered in memory
+  and connected through pointers (links).
+
+  Structure:
+    [INFO | LINK] → [INFO | LINK] → [INFO | LINK] → NULL
+     Node 1          Node 2          Node 3
+
+
+HOW IT SOLVES EACH LIMITATION:
+─────────────────────────────────
+
+  ┌───────────────────────────┬──────────────────────────────────────────┐
+  │  Array Limitation         │  How Linked List Solves It               │
+  ├───────────────────────────┼──────────────────────────────────────────┤
+  │ 1. Fixed Size             │ DYNAMIC: Nodes created/deleted at        │
+  │                           │ runtime. Size grows/shrinks as needed.   │
+  │                           │ No need to predict size in advance.      │
+  ├───────────────────────────┼──────────────────────────────────────────┤
+  │ 2. Costly Insertion/      │ Insertion/Deletion = O(1) if location    │
+  │    Deletion (O(N) shifts) │ is known. Just update 2-3 pointers.      │
+  │                           │ NO shifting of elements needed.          │
+  ├───────────────────────────┼──────────────────────────────────────────┤
+  │ 3. Contiguous Memory      │ Nodes can be ANYWHERE in memory.         │
+  │    Required               │ No need for a single continuous block.   │
+  │                           │ Uses scattered free memory efficiently.  │
+  ├───────────────────────────┼──────────────────────────────────────────┤
+  │ 4. Memory Wastage         │ Allocates memory ONLY when a new node    │
+  │                           │ is needed. No pre-allocated empty space. │
+  ├───────────────────────────┼──────────────────────────────────────────┤
+  │ 5. Sorted Insertion       │ Traverse to correct position, insert     │
+  │                           │ by updating pointers. No shifting.       │
+  └───────────────────────────┴──────────────────────────────────────────┘
+
+
+TRADE-OFFS OF LINKED LIST (What Array does BETTER):
+────────────────────────────────────────────────────
+
+  ┌───────────────────────────┬──────────────────┬──────────────────────┐
+  │  Operation                │  Array           │  Linked List          │
+  ├───────────────────────────┼──────────────────┼──────────────────────┤
+  │ Random Access (A[K])      │  O(1) ✓ FAST     │  O(N) ✗ SLOW         │
+  │ Sequential Access         │  O(N)            │  O(N)                │
+  │ Insertion at beginning    │  O(N) shifts     │  O(1) ✓ FAST         │
+  │ Insertion at end          │  O(1) if space   │  O(N) traverse       │
+  │ Insertion at middle       │  O(N) shifts     │  O(1) if LOC known   │
+  │ Deletion                  │  O(N) shifts     │  O(1) if LOC known   │
+  │ Memory per element        │  Only data       │  Data + Pointer      │
+  │ Memory allocation         │  Static/Compile  │  Dynamic/Runtime     │
+  │ Cache performance         │  Excellent ✓     │  Poor ✗ (scattered)  │
+  │ Binary Search             │  O(log N) ✓      │  Not possible ✗      │
+  └───────────────────────────┴──────────────────┴──────────────────────┘
+
+  KEY TAKEAWAY: Array = fast access, Linked List = fast modification.
+
+
+================================================================================
+                          END OF FILE
+================================================================================

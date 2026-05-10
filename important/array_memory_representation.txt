@@ -1,0 +1,221 @@
+================================================================================
+              ARRAY MEMORY REPRESENTATION — EXAM NOTES
+================================================================================
+
+This file covers:
+  1. 1-D Array Memory Representation
+  2. Multi-Dimensional (2-D, 3-D) Array Memory Representation
+  3. Address Calculation Formulas (Row-Major & Column-Major)
+  4. Solved Examples / Traces
+
+================================================================================
+                    1. ONE-DIMENSIONAL ARRAY
+================================================================================
+
+CONCEPT:
+--------
+A 1-D array is stored in CONTIGUOUS memory locations.
+If the base address (address of the first element) is known,
+the address of ANY element can be calculated directly.
+
+FORMULA:
+--------
+  Address of A[I] = Base(A) + (I - LB) × W
+
+  Where:
+    Base(A) = Base address (address of the first element)
+    I       = Index of the element we want
+    LB      = Lower Bound of the array (usually 0 or 1)
+    W       = Size of each element in bytes (Word size)
+
+EXAMPLE:
+--------
+Given: Array A[5..25], Base address = 400, Word size W = 4 bytes
+Find: Address of A[18]
+
+  Address of A[18] = Base(A) + (I - LB) × W
+                   = 400 + (18 - 5) × 4
+                   = 400 + 13 × 4
+                   = 400 + 52
+                   = 452
+
+  Answer: A[18] is stored at memory address 452.
+
+
+================================================================================
+                    2. TWO-DIMENSIONAL ARRAY
+================================================================================
+
+CONCEPT:
+--------
+A 2-D array A[M][N] is a table with M rows and N columns.
+But MEMORY is linear (1-D). So a 2-D array must be "flattened"
+into a 1-D sequence. There are TWO ways to do this:
+
+  (a) ROW-MAJOR ORDER  — Store row by row (used in C, Java, Python)
+  (b) COLUMN-MAJOR ORDER — Store column by column (used in Fortran)
+
+
+GENERAL NOTATION:
+-----------------
+  Array: A[LR..UR, LC..UC]
+    LR = Lower bound of Row index
+    UR = Upper bound of Row index
+    LC = Lower bound of Column index
+    UC = Upper bound of Column index
+
+  Number of Rows    = UR - LR + 1
+  Number of Columns = UC - LC + 1
+
+  Total elements    = (UR - LR + 1) × (UC - LC + 1)
+
+
+────────────────────────────────────────────────────────────────────────────────
+                    ROW-MAJOR ORDER FORMULA
+────────────────────────────────────────────────────────────────────────────────
+
+  Address of A[I, J] = Base(A) + [(I - LR) × N + (J - LC)] × W
+
+  Where:
+    N = Number of columns = UC - LC + 1
+    W = Word size (bytes per element)
+
+  LOGIC: Skip (I - LR) complete rows, each of N elements,
+         then move (J - LC) elements into the current row.
+
+────────────────────────────────────────────────────────────────────────────────
+                    COLUMN-MAJOR ORDER FORMULA
+────────────────────────────────────────────────────────────────────────────────
+
+  Address of A[I, J] = Base(A) + [(J - LC) × M + (I - LR)] × W
+
+  Where:
+    M = Number of rows = UR - LR + 1
+    W = Word size (bytes per element)
+
+  LOGIC: Skip (J - LC) complete columns, each of M elements,
+         then move (I - LR) elements into the current column.
+
+
+SOLVED EXAMPLE 1 (Row-Major):
+------------------------------
+Given: A[2..6, 3..8], Base = 500, W = 2 bytes
+Find: Address of A[4, 6] in Row-Major order
+
+  LR = 2, UR = 6, LC = 3, UC = 8
+  N (columns) = UC - LC + 1 = 8 - 3 + 1 = 6
+
+  Address = Base + [(I - LR) × N + (J - LC)] × W
+          = 500 + [(4 - 2) × 6 + (6 - 3)] × 2
+          = 500 + [2 × 6 + 3] × 2
+          = 500 + [12 + 3] × 2
+          = 500 + 15 × 2
+          = 500 + 30
+          = 530
+
+  Answer: A[4, 6] is at address 530 in Row-Major order.
+
+
+SOLVED EXAMPLE 2 (Column-Major):
+---------------------------------
+Given: A[2..6, 3..8], Base = 500, W = 2 bytes
+Find: Address of A[4, 6] in Column-Major order
+
+  LR = 2, UR = 6, LC = 3, UC = 8
+  M (rows) = UR - LR + 1 = 6 - 2 + 1 = 5
+
+  Address = Base + [(J - LC) × M + (I - LR)] × W
+          = 500 + [(6 - 3) × 5 + (4 - 2)] × 2
+          = 500 + [3 × 5 + 2] × 2
+          = 500 + [15 + 2] × 2
+          = 500 + 17 × 2
+          = 500 + 34
+          = 534
+
+  Answer: A[4, 6] is at address 534 in Column-Major order.
+
+
+VISUAL TRACE (Row-Major for A[0..1, 0..2]):
+---------------------------------------------
+  Array looks like:
+      Col 0   Col 1   Col 2
+  Row 0: a00     a01     a02
+  Row 1: a10     a11     a12
+
+  In Memory (Row-Major):
+  [a00] [a01] [a02] [a10] [a11] [a12]
+   ↑ Row 0 stored  ↑ Row 1 stored
+
+  In Memory (Column-Major):
+  [a00] [a10] [a01] [a11] [a02] [a12]
+   ↑ Col 0    ↑ Col 1     ↑ Col 2
+
+
+================================================================================
+                    3. THREE-DIMENSIONAL ARRAY
+================================================================================
+
+CONCEPT:
+--------
+A 3-D array A[P][M][N] can be thought of as P "pages", each page
+being an M×N 2-D matrix. Stored by flattening page → row → column.
+
+NOTATION:
+---------
+  Array: A[L1..U1, L2..U2, L3..U3]
+    First dimension  (pages):   D1 = U1 - L1 + 1
+    Second dimension (rows):    D2 = U2 - L2 + 1
+    Third dimension  (columns): D3 = U3 - L3 + 1
+
+ROW-MAJOR FORMULA:
+------------------
+  Address of A[I, J, K] = Base(A) + [(I-L1)×D2×D3 + (J-L2)×D3 + (K-L3)] × W
+
+  LOGIC: Skip (I-L1) complete pages (each D2×D3 elements),
+         then (J-L2) complete rows (each D3 elements),
+         then (K-L3) elements into the row.
+
+COLUMN-MAJOR FORMULA:
+---------------------
+  Address of A[I, J, K] = Base(A) + [(K-L3)×D2×D1 + (J-L2)×D1 + (I-L1)] × W
+
+
+SOLVED EXAMPLE:
+----------------
+Given: A[1..3, 1..4, 1..5], Base = 100, W = 4 bytes
+Find: Address of A[2, 3, 4] in Row-Major
+
+  L1=1, L2=1, L3=1
+  D1 = 3, D2 = 4, D3 = 5
+
+  Address = 100 + [(2-1)×4×5 + (3-1)×5 + (4-1)] × 4
+          = 100 + [1×20 + 2×5 + 3] × 4
+          = 100 + [20 + 10 + 3] × 4
+          = 100 + 33 × 4
+          = 100 + 132
+          = 232
+
+  Answer: A[2, 3, 4] is at address 232.
+
+
+================================================================================
+            QUICK REFERENCE — FORMULA SUMMARY
+================================================================================
+
+  ┌──────────────┬──────────────────────────────────────────────────┐
+  │  Array Type  │  Formula (Row-Major)                             │
+  ├──────────────┼──────────────────────────────────────────────────┤
+  │  1-D: A[I]   │  Base + (I - LB) × W                            │
+  ├──────────────┼──────────────────────────────────────────────────┤
+  │  2-D: A[I,J] │  Base + [(I-LR)×N + (J-LC)] × W                 │
+  │              │    N = UC - LC + 1 (number of columns)           │
+  ├──────────────┼──────────────────────────────────────────────────┤
+  │  2-D (ColMaj)│  Base + [(J-LC)×M + (I-LR)] × W                 │
+  │              │    M = UR - LR + 1 (number of rows)              │
+  ├──────────────┼──────────────────────────────────────────────────┤
+  │  3-D: A[I,J,K]│ Base + [(I-L1)×D2×D3 + (J-L2)×D3 + (K-L3)]×W  │
+  └──────────────┴──────────────────────────────────────────────────┘
+
+================================================================================
+                          END OF FILE
+================================================================================

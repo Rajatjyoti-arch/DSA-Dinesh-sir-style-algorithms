@@ -1,0 +1,183 @@
+================================================================================
+                    BUFFER IN QUEUE — EXAM NOTES
+================================================================================
+
+This file covers:
+  1. What is a Buffer?
+  2. Queue as a Buffer (Producer-Consumer model)
+  3. Circular Buffer (Ring Buffer) implementation
+  4. Applications of Buffer in OS and Real Life
+
+================================================================================
+                    1. WHAT IS A BUFFER?
+================================================================================
+
+DEFINITION:
+-----------
+  A BUFFER is a temporary storage area (usually a queue) that holds data
+  while it is being transferred from one place to another.
+
+  It acts as a BRIDGE between two processes that operate at DIFFERENT SPEEDS.
+
+  Example:
+    - CPU (very fast) sending data to Printer (very slow)
+    - Keyboard input being stored before the program reads it
+    - Video streaming: data downloaded faster than it's played
+
+
+WHY IS A QUEUE USED AS A BUFFER?
+---------------------------------
+  A Queue follows FIFO (First In, First Out) order.
+  This ensures that data is processed in the SAME ORDER it was produced.
+
+    PRODUCER → [BUFFER/QUEUE] → CONSUMER
+    (Fast)     (Temporary)      (Slow)
+
+  The PRODUCER adds data to the REAR of the queue.
+  The CONSUMER removes data from the FRONT of the queue.
+
+
+================================================================================
+            2. TYPES OF BUFFERS USING QUEUE
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+TYPE 1: SIMPLE LINEAR BUFFER (Array-based Queue)
+────────────────────────────────────────────────────────────────────────────────
+
+  Uses a linear array with FRONT and REAR pointers.
+
+  QUEUE: [  |  |  |  |  |  |  |  ]
+          ↑                    ↑
+        FRONT                REAR
+
+  INSERT (Enqueue): Set REAR := REAR + 1, Q[REAR] := ITEM
+  DELETE (Dequeue): Set ITEM := Q[FRONT], FRONT := FRONT + 1
+
+  PROBLEM: After several insertions and deletions, FRONT moves forward.
+  Even though locations at the beginning are empty, REAR reaches the end
+  and declares OVERFLOW → WASTAGE of space!
+
+  Example:
+    Q = [_, _, _, D, E, F, G, H]    ← Locations 1-3 are empty but unusable
+         ↑                    ↑
+       (wasted)             REAR = 8 → OVERFLOW even though space exists!
+
+
+────────────────────────────────────────────────────────────────────────────────
+TYPE 2: CIRCULAR BUFFER (Ring Buffer) — THE SOLUTION
+────────────────────────────────────────────────────────────────────────────────
+
+  The array is treated as a CIRCLE: after the last position, it wraps
+  around to the first position.
+
+  This solves the space wastage problem of linear queues.
+
+  VISUAL:
+            ┌───┐
+        ┌───┤ 8 ├───┐
+        │ 7 ├───┤ 1 │
+        ├───┤   ├───┤
+        │ 6 │   │ 2 │
+        ├───┤   ├───┤
+        │ 5 ├───┤ 3 │
+        └───┤ 4 ├───┘
+            └───┘
+
+  KEY FORMULA: Next position = (Current Position MOD N) + 1
+               (where N = size of the array)
+
+  ALGORITHM: CIRCULAR_INSERT (Q, FRONT, REAR, N, ITEM)
+  [Insert ITEM into a circular queue Q of size N]
+
+  Step 1 : IF FRONT = 1 AND REAR = N, OR IF FRONT = REAR + 1, then:
+               Write: OVERFLOW & Exit
+           [Queue is full — no space even after wrapping]
+
+  Step 2 : IF FRONT = NULL, then:
+               [Queue is empty, first insertion]
+               Set FRONT := 1, REAR := 1
+           ELSE IF REAR = N, then:
+               Set REAR := 1      [Wrap around to beginning]
+           ELSE:
+               Set REAR := REAR + 1
+
+  Step 3 : Set Q[REAR] := ITEM
+  Step 4 : Exit
+
+
+  ALGORITHM: CIRCULAR_DELETE (Q, FRONT, REAR, N, ITEM)
+  [Delete and return ITEM from a circular queue Q of size N]
+
+  Step 1 : IF FRONT = NULL, then:
+               Write: UNDERFLOW & Exit
+
+  Step 2 : Set ITEM := Q[FRONT]
+
+  Step 3 : IF FRONT = REAR, then:
+               [Only one element was in the queue]
+               Set FRONT := NULL, REAR := NULL
+           ELSE IF FRONT = N, then:
+               Set FRONT := 1     [Wrap around to beginning]
+           ELSE:
+               Set FRONT := FRONT + 1
+
+  Step 4 : Exit
+
+
+TRACE EXAMPLE:
+──────────────
+  Circular Queue of size 5: Q = [_, _, _, _, _], FRONT = NULL, REAR = NULL
+
+  INSERT 10: FRONT=1, REAR=1  → Q = [10, _, _, _, _]
+  INSERT 20: REAR=2           → Q = [10, 20, _, _, _]
+  INSERT 30: REAR=3           → Q = [10, 20, 30, _, _]
+  DELETE:    ITEM=10, FRONT=2 → Q = [_, 20, 30, _, _]
+  DELETE:    ITEM=20, FRONT=3 → Q = [_, _, 30, _, _]
+  INSERT 40: REAR=4           → Q = [_, _, 30, 40, _]
+  INSERT 50: REAR=5           → Q = [_, _, 30, 40, 50]
+  INSERT 60: REAR=1 (wrap!)   → Q = [60, _, 30, 40, 50]  ← Reused slot 1!
+  INSERT 70: REAR=2 (wrap!)   → Q = [60, 70, 30, 40, 50] ← Reused slot 2!
+  INSERT 80: FRONT=3, REAR=2  → OVERFLOW (queue is full)
+
+
+================================================================================
+            3. APPLICATIONS OF BUFFER (QUEUE)
+================================================================================
+
+  1. PRINT SPOOLING:
+     Multiple users send print jobs → stored in a buffer queue → printed FIFO.
+
+  2. KEYBOARD BUFFER:
+     Keystrokes stored in buffer until the program reads them.
+
+  3. I/O BUFFERS (Operating System):
+     Data transferred between CPU and disk goes through I/O buffers.
+
+  4. NETWORK PACKETS:
+     Incoming data packets buffered before processing.
+
+  5. CPU SCHEDULING:
+     Processes waiting for CPU time stored in a ready queue (buffer).
+
+  6. VIDEO/AUDIO STREAMING:
+     Data buffered to prevent lag (buffering screen).
+
+
+================================================================================
+            QUICK REFERENCE — LINEAR vs CIRCULAR BUFFER
+================================================================================
+
+  ┌──────────────────────┬────────────────────┬─────────────────────────┐
+  │  Feature             │  Linear Buffer     │  Circular Buffer        │
+  ├──────────────────────┼────────────────────┼─────────────────────────┤
+  │  Space Reuse         │  No (wasted)       │  Yes (wraps around)     │
+  │  Overflow condition  │  REAR = N          │  FRONT = REAR + 1       │
+  │  Implementation      │  Simple            │  Slightly complex       │
+  │  Efficiency          │  Poor              │  Excellent              │
+  │  Used in practice?   │  Rarely            │  Almost always          │
+  └──────────────────────┴────────────────────┴─────────────────────────┘
+
+================================================================================
+                          END OF FILE
+================================================================================
