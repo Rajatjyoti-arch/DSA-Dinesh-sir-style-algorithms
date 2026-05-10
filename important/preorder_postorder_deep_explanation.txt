@@ -1,0 +1,482 @@
+================================================================================
+        PRE-ORDER & POST-ORDER TRAVERSAL — DEEP EXPLANATION
+================================================================================
+
+This file covers:
+  1. What is Tree Traversal? Why 3 types?
+  2. PRE-ORDER — Concept, Recursive, Iterative (Stack), Full Trace
+  3. POST-ORDER — Concept, Recursive, Iterative (Stack), Full Trace
+  4. Comparison Table: Pre vs Post vs In
+  5. Applications & Exam Questions
+
+================================================================================
+                    1. TREE TRAVERSAL — OVERVIEW
+================================================================================
+
+DEFINITION:
+-----------
+  Traversal means VISITING every node of the tree exactly once in a
+  systematic order. Since a tree is non-linear, there are multiple
+  ways to visit all nodes.
+
+WHY 3 TYPES?
+-------------
+  At every node, there are 3 things we can do:
+    (V) Visit/Process the node (print INFO)
+    (L) Traverse the Left subtree
+    (R) Traverse the Right subtree
+
+  The ORDER in which we do V, L, R gives us the 3 standard traversals:
+
+  ┌─────────────┬───────────┬────────────────────────────────┐
+  │ Traversal   │ Order     │ Meaning                        │
+  ├─────────────┼───────────┼────────────────────────────────┤
+  │ PRE-ORDER   │ V, L, R   │ Visit BEFORE going to children │
+  │ IN-ORDER    │ L, V, R   │ Visit IN BETWEEN left & right  │
+  │ POST-ORDER  │ L, R, V   │ Visit AFTER both children done │
+  └─────────────┴───────────┴────────────────────────────────┘
+
+  "PRE"  = process node FIRST (before subtrees)
+  "POST" = process node LAST  (after both subtrees)
+
+
+================================================================================
+              2. PRE-ORDER TRAVERSAL (Root, Left, Right)
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+2.1 CONCEPT — What does "Pre" mean?
+────────────────────────────────────────────────────────────────────────────────
+
+  "Pre" = BEFORE.
+  We VISIT (process/print) the current node BEFORE we go to its children.
+
+  Rule: At every node, do this:
+    Step 1: Print the node           ← Visit
+    Step 2: Go to left subtree       ← Recurse Left
+    Step 3: Go to right subtree      ← Recurse Right
+
+  KEY INSIGHT:
+    - The ROOT is always the FIRST element in Pre-order output.
+    - Every subtree's root appears before its children.
+    - Think of it as: "announce yourself, then explore left, then right."
+
+
+────────────────────────────────────────────────────────────────────────────────
+2.2 RECURSIVE ALGORITHM
+────────────────────────────────────────────────────────────────────────────────
+
+ALGORITHM: PREORDER(PTR)
+[Recursive Pre-order traversal of a binary tree. PTR points to current node.]
+
+  1. If PTR = NULL, then: Return.
+  2. Write: INFO[PTR].                    [VISIT the node]
+  3. Call PREORDER(LEFT[PTR]).            [Traverse LEFT subtree]
+  4. Call PREORDER(RIGHT[PTR]).           [Traverse RIGHT subtree]
+  5. Return.
+
+WHY THIS WORKS:
+  - Base case: PTR = NULL means we hit an empty subtree → stop.
+  - We print FIRST (step 2), so the node is processed BEFORE children.
+  - Recursion handles the rest — the call stack acts like an implicit stack.
+
+
+────────────────────────────────────────────────────────────────────────────────
+2.3 ITERATIVE ALGORITHM (Using Stack)
+────────────────────────────────────────────────────────────────────────────────
+
+ALGORITHM: PRE_TRAVERSE(STACK, INFO, LEFT, RIGHT, ROOT)
+[Iterative Pre-order traversal using explicit Stack]
+
+  1. Set TOP := 1, STACK[1] := NULL, PTR := ROOT.
+  2. Repeat while PTR ≠ NULL:
+     (a) Write: INFO[PTR].                     [VISIT the node]
+     (b) If RIGHT[PTR] ≠ NULL, then:
+         Set TOP := TOP + 1,
+         STACK[TOP] := RIGHT[PTR].             [Push right child for later]
+     (c) Set PTR := LEFT[PTR].                 [Move to left child]
+  3. Set PTR := STACK[TOP], TOP := TOP - 1.    [Pop from stack]
+  4. If PTR ≠ NULL, then: Goto Step 2.
+  5. Exit.
+
+HOW THIS WORKS — LINE BY LINE:
+  Step 1: Initialize stack with NULL sentinel, start at ROOT.
+  Step 2: As long as we have a node:
+          (a) PRINT it immediately (pre-order = visit first).
+          (b) PUSH right child to stack (we'll come back to it later).
+          (c) Move LEFT (go deeper into left subtree).
+  Step 3: When LEFT is NULL, POP from stack (this gives us a saved right child).
+  Step 4: If what we popped is not NULL, repeat the process from that node.
+  Step 5: If we pop NULL (the sentinel), we're done.
+
+  WHY PUSH RIGHT FIRST?
+    Because we want to GO LEFT first. When we finish the left subtree,
+    popping the stack gives us the right subtree to process next.
+    Stack = LIFO, so pushing right before going left ensures correct order.
+
+
+────────────────────────────────────────────────────────────────────────────────
+2.4 FULL TRACE — PRE-ORDER
+────────────────────────────────────────────────────────────────────────────────
+
+  Example Tree:
+                    A
+                   / \
+                  B    C
+                 / \    \
+                D   E    F
+               /       / \
+              G       H   I
+
+  RECURSIVE TRACE:
+  ─────────────────
+  Call PREORDER(A):
+    Print A
+    Call PREORDER(B):
+      Print B
+      Call PREORDER(D):
+        Print D
+        Call PREORDER(G):
+          Print G
+          Call PREORDER(NULL) → return
+          Call PREORDER(NULL) → return
+        Call PREORDER(NULL) → return
+      Call PREORDER(E):
+        Print E
+        Call PREORDER(NULL) → return
+        Call PREORDER(NULL) → return
+    Call PREORDER(C):
+      Print C
+      Call PREORDER(NULL) → return
+      Call PREORDER(F):
+        Print F
+        Call PREORDER(H):
+          Print H
+          Call PREORDER(NULL) → return
+          Call PREORDER(NULL) → return
+        Call PREORDER(I):
+          Print I
+          Call PREORDER(NULL) → return
+          Call PREORDER(NULL) → return
+
+  OUTPUT: A  B  D  G  E  C  F  H  I
+
+  ITERATIVE TRACE (Stack-based):
+  ──────────────────────────────
+  ┌──────┬──────────┬────────────────────┬──────────────────┐
+  │ Step │ PTR      │ Action             │ STACK (top→)     │
+  ├──────┼──────────┼────────────────────┼──────────────────┤
+  │  1   │ A        │ Print A, Push C    │ [NULL, C]        │
+  │      │          │ PTR := B           │                  │
+  │  2   │ B        │ Print B, Push E    │ [NULL, C, E]     │
+  │      │          │ PTR := D           │                  │
+  │  3   │ D        │ Print D, no right  │ [NULL, C, E]     │
+  │      │          │ PTR := G           │                  │
+  │  4   │ G        │ Print G, no right  │ [NULL, C, E]     │
+  │      │          │ PTR := NULL        │                  │
+  │  -   │ (pop)    │ PTR := E           │ [NULL, C]        │
+  │  5   │ E        │ Print E, no right  │ [NULL, C]        │
+  │      │          │ PTR := NULL        │                  │
+  │  -   │ (pop)    │ PTR := C           │ [NULL]           │
+  │  6   │ C        │ Print C, Push F    │ [NULL, F]        │
+  │      │          │ PTR := NULL        │                  │
+  │  -   │ (pop)    │ PTR := F           │ [NULL]           │
+  │  7   │ F        │ Print F, Push I    │ [NULL, I]        │
+  │      │          │ PTR := H           │                  │
+  │  8   │ H        │ Print H, no right  │ [NULL, I]        │
+  │      │          │ PTR := NULL        │                  │
+  │  -   │ (pop)    │ PTR := I           │ [NULL]           │
+  │  9   │ I        │ Print I, no right  │ [NULL]           │
+  │      │          │ PTR := NULL        │                  │
+  │  -   │ (pop)    │ PTR := NULL(sent.) │ []               │
+  │      │          │ PTR = NULL → EXIT  │                  │
+  └──────┴──────────┴────────────────────┴──────────────────┘
+
+  OUTPUT: A  B  D  G  E  C  F  H  I  ✓ (Same as recursive)
+
+
+================================================================================
+              3. POST-ORDER TRAVERSAL (Left, Right, Root)
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+3.1 CONCEPT — What does "Post" mean?
+────────────────────────────────────────────────────────────────────────────────
+
+  "Post" = AFTER.
+  We VISIT (process/print) the current node AFTER both children are done.
+
+  Rule: At every node, do this:
+    Step 1: Go to left subtree        ← Recurse Left
+    Step 2: Go to right subtree       ← Recurse Right
+    Step 3: Print the node            ← Visit
+
+  KEY INSIGHT:
+    - The ROOT is always the LAST element in Post-order output.
+    - Leaf nodes appear before their parents.
+    - Think of it as: "finish all children first, then announce yourself."
+    - Useful when you need to process children before the parent
+      (e.g., deleting a tree — delete children before parent).
+
+
+────────────────────────────────────────────────────────────────────────────────
+3.2 RECURSIVE ALGORITHM
+────────────────────────────────────────────────────────────────────────────────
+
+ALGORITHM: POSTORDER(PTR)
+[Recursive Post-order traversal of a binary tree.]
+
+  1. If PTR = NULL, then: Return.
+  2. Call POSTORDER(LEFT[PTR]).           [Traverse LEFT subtree FIRST]
+  3. Call POSTORDER(RIGHT[PTR]).          [Traverse RIGHT subtree NEXT]
+  4. Write: INFO[PTR].                   [VISIT the node LAST]
+  5. Return.
+
+WHY THIS WORKS:
+  - We DELAY printing until step 4 — after BOTH recursive calls return.
+  - This guarantees every descendant is processed before its ancestor.
+
+
+────────────────────────────────────────────────────────────────────────────────
+3.3 ITERATIVE ALGORITHM (Using Stack) — THE TRICKY ONE
+────────────────────────────────────────────────────────────────────────────────
+
+ALGORITHM: POST_TRAVERSE(STACK, INFO, LEFT, RIGHT, ROOT)
+[Iterative Post-order traversal using a single stack with negative markers]
+
+  1. Set TOP := 1, STACK[1] := NULL, PTR := ROOT.
+  2. Repeat while PTR ≠ NULL:
+     (a) Set TOP := TOP + 1, STACK[TOP] := PTR.          [Push node]
+     (b) If RIGHT[PTR] ≠ NULL, then:
+         Set TOP := TOP + 1, STACK[TOP] := -RIGHT[PTR].  [Push right as NEGATIVE]
+     (c) Set PTR := LEFT[PTR].                            [Go left]
+  3. Set PTR := STACK[TOP], TOP := TOP - 1.               [Pop]
+  4. Repeat while PTR > 0:
+     (a) Write: INFO[PTR].                                [Print if POSITIVE]
+     (b) Set PTR := STACK[TOP], TOP := TOP - 1.           [Pop next]
+  5. If PTR < 0, then:
+     (a) Set PTR := -PTR.                                 [Make positive again]
+     (b) Goto Step 2.                                     [Process this right subtree]
+  6. Exit.
+
+HOW THIS WORKS — THE NEGATIVE TRICK:
+  ─────────────────────────────────────
+
+  Post-order is the HARDEST to do iteratively. Why?
+  Because we need to visit a node AFTER both its subtrees, but when we
+  first encounter the node, we haven't visited either subtree yet.
+
+  THE TRICK: We push nodes with a SIGN:
+    POSITIVE (+PTR) = "I am a node waiting to be printed (after my subtrees)"
+    NEGATIVE (-PTR) = "I am a RIGHT CHILD that hasn't been explored yet"
+
+  DETAILED WALKTHROUGH:
+    Step 1: Initialize stack and start at root.
+
+    Step 2: Go as far LEFT as possible. Along the way:
+            - Push each node POSITIVELY (it's waiting to be printed later)
+            - Push its RIGHT child NEGATIVELY (it needs to be explored later)
+            - Move left.
+
+    Step 3: When we can't go left anymore, start popping.
+
+    Step 4: Pop items. If POSITIVE → PRINT (this node's subtrees are done).
+            Keep printing while we get positive values.
+
+    Step 5: If we pop a NEGATIVE value → it's an unexplored right subtree.
+            Make it positive and go back to Step 2 to explore it.
+
+    Step 6: When we pop NULL (sentinel) → traversal is complete.
+
+
+────────────────────────────────────────────────────────────────────────────────
+3.4 FULL TRACE — POST-ORDER
+────────────────────────────────────────────────────────────────────────────────
+
+  Same Example Tree:
+                    A
+                   / \
+                  B    C
+                 / \    \
+                D   E    F
+               /       / \
+              G       H   I
+
+  RECURSIVE TRACE:
+  ─────────────────
+  Call POSTORDER(A):
+    Call POSTORDER(B):
+      Call POSTORDER(D):
+        Call POSTORDER(G):
+          Call POSTORDER(NULL) → return
+          Call POSTORDER(NULL) → return
+          Print G
+        Call POSTORDER(NULL) → return
+        Print D
+      Call POSTORDER(E):
+        Call POSTORDER(NULL) → return
+        Call POSTORDER(NULL) → return
+        Print E
+      Print B
+    Call POSTORDER(C):
+      Call POSTORDER(NULL) → return
+      Call POSTORDER(F):
+        Call POSTORDER(H):
+          Call POSTORDER(NULL) → return
+          Call POSTORDER(NULL) → return
+          Print H
+        Call POSTORDER(I):
+          Call POSTORDER(NULL) → return
+          Call POSTORDER(NULL) → return
+          Print I
+        Print F
+      Print C
+    Print A
+
+  OUTPUT: G  D  E  B  H  I  F  C  A
+
+  ITERATIVE TRACE (Stack-based with negative markers):
+  ────────────────────────────────────────────────────
+  ┌──────┬──────────┬─────────────────────────────┬──────────────────────────┐
+  │ Step │ PTR      │ Action                      │ STACK (top→)             │
+  ├──────┼──────────┼─────────────────────────────┼──────────────────────────┤
+  │ Init │ A        │                             │ [NULL]                   │
+  │      │          │                             │                          │
+  │ 2    │ A        │ Push A, Push -C, go left    │ [NULL, A, -C]            │
+  │ 2    │ B        │ Push B, Push -E, go left    │ [NULL, A, -C, B, -E]    │
+  │ 2    │ D        │ Push D, no right, go left   │ [NULL, A, -C, B, -E, D] │
+  │ 2    │ G        │ Push G, no right, go left   │ [..., D, G]              │
+  │      │ NULL     │ Can't go left → go to step 3│                          │
+  │      │          │                             │                          │
+  │ 3    │ Pop G    │ G > 0 → Print G             │ [..., D]                 │
+  │ 4    │ Pop D    │ D > 0 → Print D             │ [NULL, A, -C, B, -E]    │
+  │ 4    │ Pop -E   │ -E < 0 → STOP printing      │ [NULL, A, -C, B]        │
+  │      │          │                             │                          │
+  │ 5    │ PTR:=E   │ Make positive, goto Step 2  │                          │
+  │ 2    │ E        │ Push E, no right, go left   │ [NULL, A, -C, B, E]     │
+  │      │ NULL     │ Can't go left → step 3      │                          │
+  │      │          │                             │                          │
+  │ 3    │ Pop E    │ E > 0 → Print E             │ [NULL, A, -C, B]        │
+  │ 4    │ Pop B    │ B > 0 → Print B             │ [NULL, A, -C]           │
+  │ 4    │ Pop -C   │ -C < 0 → STOP printing      │ [NULL, A]               │
+  │      │          │                             │                          │
+  │ 5    │ PTR:=C   │ Make positive, goto Step 2  │                          │
+  │ 2    │ C        │ Push C, Push -F, go left    │ [NULL, A, C, -F]        │
+  │      │ NULL     │ No left child → step 3      │                          │
+  │      │          │                             │                          │
+  │ 3    │ Pop -F   │ -F < 0 → STOP printing      │ [NULL, A, C]            │
+  │      │          │                             │                          │
+  │ 5    │ PTR:=F   │ Make positive, goto Step 2  │                          │
+  │ 2    │ F        │ Push F, Push -I, go left    │ [NULL, A, C, F, -I]     │
+  │ 2    │ H        │ Push H, no right, go left   │ [..., F, -I, H]         │
+  │      │ NULL     │ → step 3                    │                          │
+  │      │          │                             │                          │
+  │ 3    │ Pop H    │ H > 0 → Print H             │ [NULL, A, C, F, -I]     │
+  │ 4    │ Pop -I   │ -I < 0 → STOP               │ [NULL, A, C, F]         │
+  │      │          │                             │                          │
+  │ 5    │ PTR:=I   │ Make positive, goto Step 2  │                          │
+  │ 2    │ I        │ Push I, no right, go left   │ [NULL, A, C, F, I]      │
+  │      │ NULL     │ → step 3                    │                          │
+  │      │          │                             │                          │
+  │ 3    │ Pop I    │ I > 0 → Print I             │ [NULL, A, C, F]         │
+  │ 4    │ Pop F    │ F > 0 → Print F             │ [NULL, A, C]            │
+  │ 4    │ Pop C    │ C > 0 → Print C             │ [NULL, A]               │
+  │ 4    │ Pop A    │ A > 0 → Print A             │ [NULL]                  │
+  │ 4    │ Pop NULL │ NULL = 0 → STOP (not > 0)   │ []                      │
+  │      │          │                             │                          │
+  │ 5    │ PTR = 0  │ Not < 0 → go to Step 6      │                          │
+  │ 6    │          │ EXIT                        │                          │
+  └──────┴──────────┴─────────────────────────────┴──────────────────────────┘
+
+  OUTPUT: G  D  E  B  H  I  F  C  A  ✓ (Same as recursive)
+
+
+================================================================================
+          4. COMPARISON TABLE — PRE vs IN vs POST
+================================================================================
+
+  ┌──────────────┬───────────┬────────────────┬──────────────────────────────┐
+  │ Property     │ PRE-ORDER │ IN-ORDER       │ POST-ORDER                  │
+  ├──────────────┼───────────┼────────────────┼──────────────────────────────┤
+  │ Order        │ V, L, R   │ L, V, R        │ L, R, V                     │
+  │ Root pos.    │ FIRST     │ Middle         │ LAST                        │
+  │ When visit?  │ BEFORE    │ IN-BETWEEN     │ AFTER both subtrees         │
+  │ Iterative    │ Easy      │ Medium         │ Hardest (needs neg. trick)  │
+  │ Stack size   │ O(h)      │ O(h)           │ O(h)                        │
+  │ Time         │ O(n)      │ O(n)           │ O(n)                        │
+  └──────────────┴───────────┴────────────────┴──────────────────────────────┘
+
+  WHERE h = height of tree, n = number of nodes.
+
+
+================================================================================
+              5. APPLICATIONS & EXAM TIPS
+================================================================================
+
+PRE-ORDER APPLICATIONS:
+────────────────────────
+  1. Creating a COPY of a tree (process parent first, then children)
+  2. Prefix expression from expression tree (Polish Notation)
+     Example:  (a + b) * c  →  Expression tree:
+                   *
+                  / \
+                 +   c
+                / \
+               a   b
+     Pre-order: * + a b c  (prefix notation)
+
+  3. Serialization of a tree (saving tree to file — root first)
+
+POST-ORDER APPLICATIONS:
+─────────────────────────
+  1. DELETING a tree (must delete children before parent to avoid
+     losing references — can't delete parent first!)
+  2. Postfix expression from expression tree (Reverse Polish Notation)
+     Same tree above → Post-order: a b + c *  (postfix notation)
+  3. Calculating DIRECTORY SIZE (compute size of subdirs first)
+  4. Evaluating expression trees (compute operands before operator)
+
+EXAM TIPS:
+──────────
+  • Given a tree, to find traversal: Just follow the rules (VLR / LRV).
+  • Given Pre + In → you can reconstruct the UNIQUE tree.
+  • Given Post + In → you can reconstruct the UNIQUE tree.
+  • Given Pre + Post → you CANNOT reconstruct a unique tree (ambiguous).
+  • In Pre-order: first element = ROOT.
+  • In Post-order: last element = ROOT.
+  • Recursive algorithms are easier to write in exams.
+  • For iterative Post-order: remember the NEGATIVE SIGN TRICK.
+
+
+================================================================================
+            6. RECONSTRUCT TREE FROM TRAVERSALS (EXAM QUESTION)
+================================================================================
+
+GIVEN: Pre-order: A B D G E C F H I
+       In-order:  G D B E A C H F I
+
+STEPS:
+  1. Pre-order first element = A → A is ROOT.
+  2. In In-order, find A: [G D B E] A [C H F I]
+     Left subtree has: G D B E
+     Right subtree has: C H F I
+  3. Next in Pre-order for left subtree = B → B is root of left subtree.
+     In In-order: [G D] B [E]
+     So B has left subtree {G, D} and right subtree {E}.
+  4. Continue recursively...
+
+  RESULT:
+                    A
+                   / \
+                  B    C
+                 / \    \
+                D   E    F
+               /       / \
+              G       H   I
+
+  This matches our original tree! ✓
+
+
+================================================================================
+                          END OF FILE
+================================================================================
