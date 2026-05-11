@@ -1,0 +1,292 @@
+================================================================================
+DATA STRUCTURES AND ALGORITHMS - MID SEMESTER EXAM SOLUTIONS
+================================================================================
+
+--------------------------------------------------------------------------------
+PART A: Very Short Answer Type Logical Questions (02 marks each)
+--------------------------------------------------------------------------------
+
+Q1. Explain the concept of algorithm complexity. Describe the different types of complexity and the techniques used to measure them.
+Ans: 
+Algorithm complexity is a measure of the resources required by an algorithm to solve a given computational problem. It evaluates efficiency.
+Types of Complexity:
+1. Time Complexity: Amount of CPU time required to run to completion.
+2. Space Complexity: Amount of primary memory (RAM) required to execute.
+Techniques used to measure them (Asymptotic Notations):
+- Big-Oh (O): Measures the worst-case scenario (upper bound).
+- Big-Omega (Ω): Measures the best-case scenario (lower bound).
+- Big-Theta (Θ): Measures the average-case scenario (tight bound).
+
+--------------------------------------------------------------------------------
+
+Q2. Given three one-dimensional arrays LA1[-10:10], LA2[1935:1985] & LA3[1:35]:
+a) Compute the size (number of elements) of each array.
+b) If the base address of array LA2 is 200 and each element occupies 4 words, find the memory addresses of LA2[1965] and LA2[1980].
+
+Ans:
+a) Size = Upper Bound (UB) - Lower Bound (LB) + 1
+- Size of LA1 = 10 - (-10) + 1 = 21 elements
+- Size of LA2 = 1985 - 1935 + 1 = 51 elements
+- Size of LA3 = 35 - 1 + 1 = 35 elements
+
+b) Formula: Loc(LA[k]) = Base(LA) + w * (k - LB)
+Here, Base = 200, w = 4 words, LB = 1935
+- Address of LA2[1965]:
+  Loc(LA2[1965]) = 200 + 4 * (1965 - 1935)
+                 = 200 + 4 * 30
+                 = 200 + 120 = 320
+
+- Address of LA2[1980]:
+  Loc(LA2[1980]) = 200 + 4 * (1980 - 1935)
+                 = 200 + 4 * 45
+                 = 200 + 180 = 380
+
+--------------------------------------------------------------------------------
+
+Q3. Discuss the classification different types of data structures.
+Ans:
+Data Structures are broadly classified into:
+1. Primitive vs Non-Primitive: 
+   - Primitive: Built-in types (int, float, char, boolean).
+   - Non-Primitive: Derived structures (Arrays, Lists, Files).
+2. Linear vs Non-Linear:
+   - Linear: Elements are in a sequence (Arrays, Linked Lists, Stacks, Queues).
+   - Non-Linear: Elements arranged hierarchically (Trees, Graphs).
+3. Static vs Dynamic:
+   - Static: Memory size is fixed at compile time (Arrays).
+   - Dynamic: Memory size can change during runtime (Linked Lists).
+
+--------------------------------------------------------------------------------
+
+Q4. Write an algorithm to find the address of K-th node from starting in one-way linked list.
+Ans:
+
+FIND_KTH_NODE(INFO, LINK, START, K, LOC)
+
+Step 1: [Initialize]
+        SET PTR = START
+        SET COUNT = 1
+Step 2: [Loop to find the Kth node]
+        Repeat while PTR != NULL and COUNT < K:
+            SET PTR = LINK[PTR]
+            SET COUNT = COUNT + 1
+        [End of loop]
+Step 3: [Check if found]
+        IF COUNT = K and PTR != NULL THEN:
+            SET LOC = PTR
+        ELSE:
+            SET LOC = NULL   // Indicates K is out of bounds
+Step 4: Exit
+
+--------------------------------------------------------------------------------
+
+Q5. Discuss the representation of two-dimensional array in memory with the help of an illustration.
+Ans:
+A 2D array is logically a matrix but physically mapped to 1D memory sequentially.
+1. Row-Major Order: Elements are stored row by row continuously.
+   Formula: Loc(A[i][j]) = Base(A) + w * [N * (i - Lr) + (j - Lc)]
+   (where N is number of columns, Lr is lower bound of rows, Lc is lower bound of cols)
+
+2. Column-Major Order: Elements are stored column by column continuously.
+   Formula: Loc(A[i][j]) = Base(A) + w * [(i - Lr) + M * (j - Lc)]
+   (where M is number of rows)
+
+Illustration: Matrix [A B C; D E F] (2x3 matrix)
+Row Major Memory:    [ A | B | C | D | E | F ]
+Column Major Memory: [ A | D | B | E | C | F ]
+
+--------------------------------------------------------------------------------
+PART B: Short Answer Type Analytical Questions (05 marks each)
+--------------------------------------------------------------------------------
+
+Q6. Explain linear search and binary search with complexity analysis.
+Ans:
+Linear Search: Sequentially checks each element in the list until a match is found or the list ends. Works on unsorted data.
+- Best Case: O(1) (element found at index 0)
+- Worst Case: O(N) (element at the end or not present)
+- Average Case: O(N)
+
+Binary Search: Divide and conquer algorithm that works on SORTED arrays. Compares the target with the middle element, and halves the search space accordingly.
+- Best Case: O(1) (middle element is the target)
+- Worst Case: O(log N) (element not present or at extremes)
+- Average Case: O(log N)
+
+--------------------------------------------------------------------------------
+
+Q7. Write an algorithm to insert an element at the beginning in the singly linked list.
+Ans:
+
+INSERT_FRONT(INFO, LINK, START, AVAIL, ITEM)
+
+Step 1: [Check for Overflow]
+        IF AVAIL = NULL THEN:
+            Write: OVERFLOW
+            Exit
+Step 2: [Remove first node from AVAIL list]
+        SET NEW = AVAIL
+        SET AVAIL = LINK[AVAIL]
+Step 3: [Copy Information]
+        SET INFO[NEW] = ITEM
+Step 4: [Link to existing list]
+        SET LINK[NEW] = START
+Step 5: [Update START pointer]
+        SET START = NEW
+Step 6: Exit
+
+--------------------------------------------------------------------------------
+
+Q8. Apply bubble sort algorithm on the following data: C E N T R A L. Discuss the complexity of bubble sort algorithm.
+Ans:
+Initial Array: C E N T R A L
+
+Pass 1: (Largest element 'T' bubbles to the end)
+C, E -> C E N T R A L
+E, N -> C E N T R A L
+N, T -> C E N T R A L
+T, R -> C E N R T A L (Swap)
+T, A -> C E N R A T L (Swap)
+T, L -> C E N R A L T (Swap)
+
+Pass 2: ('R' bubbles up)
+N, R -> C E N R A L T
+R, A -> C E N A R L T (Swap)
+R, L -> C E N A L R T (Swap)
+
+Pass 3: ('N' bubbles up)
+E, N -> C E N A L R T
+N, A -> C E A N L R T (Swap)
+N, L -> C E A L N R T (Swap)
+
+Pass 4: ('L' bubbles up)
+E, A -> C A E L N R T (Swap)
+E, L -> C A E L N R T
+
+Pass 5: ('E' bubbles up)
+C, A -> A C E L N R T (Swap)
+
+Pass 6: Array is fully sorted (A C E L N R T).
+
+Complexity Analysis of Bubble Sort:
+- Time Complexity: O(N^2) for worst and average cases because of nested loops. If optimized with a swap flag, Best Case is O(N) when array is already sorted.
+- Space Complexity: O(1) as sorting is done in-place.
+
+--------------------------------------------------------------------------------
+
+Q9. Compare singly and doubly linked lists in terms of memory allocation and time complexity?
+Ans:
+Memory Allocation:
+- Singly Linked List: Uses less memory. Each node has one data field and one pointer field (Next).
+- Doubly Linked List: Uses more memory. Each node requires one data field and TWO pointer fields (Next and Prev).
+
+Time Complexity:
+- Traversal: Both O(N). But doubly allows traversing backwards efficiently.
+- Deletion of a specific given node pointer: Singly takes O(N) because finding the preceding node requires traversal from start. Doubly takes O(1) because the preceding node is instantly known via 'Prev' pointer.
+- Insertion at specific node: O(1) for both if position pointers are fully provided.
+
+--------------------------------------------------------------------------------
+
+Q10. Discuss the concept of memory allocation and garbage collection. Show how it is implemented while writing algorithms and programs in C.
+Ans:
+Memory Allocation:
+- Static: Compile-time allocation (e.g., fixed arrays).
+- Dynamic: Run-time allocation on the heap. In C, we use `malloc()`, `calloc()`, and `realloc()`.
+
+Garbage Collection:
+The process of freeing up memory spaces that are no longer needed.
+- In Algorithms: We represent this using an `AVAIL` list (free pool). When deleting a node, we insert it back into the AVAIL list for future use (`SET LINK[PTR] = AVAIL`, `SET AVAIL = PTR`).
+- In C Programming: C does not have automatic garbage collection like Java. The programmer must manually reclaim memory using the `free()` function to prevent memory leaks.
+  Example: 
+  struct node* temp = malloc(sizeof(struct node)); // Allocation
+  ...
+  free(temp); // Manual Garbage Collection
+
+--------------------------------------------------------------------------------
+PART C: Long Answer Type Descriptive Questions (10 marks each)
+--------------------------------------------------------------------------------
+
+Q11. XYZ Pvt Ltd. stores the mobile number of 150 employees in an array.
+Identify limitations, write insertion algorithm at specific position, analyze complexity.
+
+Ans:
+Limitations of using Arrays in this scenario:
+1. Fixed Size constraint: If a 151st employee joins, the array size cannot be dynamically expanded. A whole new larger array must be created and data copied over.
+2. Inefficient Insertions/Deletions: Adding a corrected number or inserting a new employee in the middle requires shifting all subsequent elements forward, which is computationally expensive.
+
+Algorithm to insert an employee at Kth position:
+
+INSERT_ARRAY(LA, N, K, ITEM)
+(LA is array of size N, inserting ITEM at index K)
+
+Step 1: [Initialize counter] 
+        SET J = N
+Step 2: [Shift elements downwards to make space]
+        Repeat while J >= K:
+            SET LA[J + 1] = LA[J]
+            SET J = J - 1
+        [End of loop]
+Step 3: [Insert Element]
+        SET LA[K] = ITEM
+Step 4: [Update total element count]
+        SET N = N + 1
+Step 5: Exit
+
+Time Complexity Analysis:
+- Updating a record (if index is known): O(1) direct access.
+- Inserting a new record at specific position: Worst case O(N) (shifting all elements), Average case O(N), Best case O(1) (inserting at the very end).
+
+--------------------------------------------------------------------------------
+
+Q12. Which data structure you will use to represent of following in memory efficiently?
+(i) Polynomial equations
+(ii) Sparse Matrix
+Give proper justification with detailed representation by taking suitable example.
+
+Ans:
+(i) Polynomial equations:
+Efficient Data Structure: Linked List
+Justification: Polynomials often have large gaps between exponents (e.g., 5x^100 + 3). An array would waste 99 memory locations. A linked list only stores non-zero terms dynamically.
+Representation: Each node holds (Coefficient, Exponent, Next_Pointer).
+Example: P(x) = 5x^4 + 3x^2 - 1
+Linked List:  [ 5 | 4 | * ]  --->  [ 3 | 2 | * ]  --->  [ -1 | 0 | NULL ]
+
+(ii) Sparse Matrix:
+Efficient Data Structure: 1D Array of Triplets (3-Tuple) or Linked List.
+Justification: A sparse matrix has a vast majority of zero elements. Storing it as a standard 2D array wastes memory. We only store non-zero elements.
+Representation (Array of Triplets): A 1D array where each element is an object recording (Row, Column, Value).
+Example:
+0  0  5
+0  8  0
+Tuple Representation:
+Row  Col  Value
+ 0    2     5
+ 1    1     8
+
+--------------------------------------------------------------------------------
+
+Q13. Write an algorithm to delete a given ELEMENT from 2-way header circular linked list.
+Ans:
+
+DELETE_2WAY_CIRCULAR(INFO, FORW, BACK, HEADER, ITEM)
+
+Step 1: [Initialize pointer to first node]
+        SET PTR = FORW[HEADER]
+Step 2: [Search for the node containing ITEM]
+        Repeat while PTR != HEADER and INFO[PTR] != ITEM:
+            SET PTR = FORW[PTR]
+        [End of loop]
+Step 3: [Check if Element was found]
+        IF PTR = HEADER THEN:
+            Write: "Element not found in the list"
+            Exit
+Step 4: [Adjust pointers to bypass the deleted node]
+        SET PREV_NODE = BACK[PTR]
+        SET NEXT_NODE = FORW[PTR]
+        
+        SET FORW[PREV_NODE] = NEXT_NODE
+        SET BACK[NEXT_NODE] = PREV_NODE
+Step 5: [Free up the memory to AVAIL list]
+        SET FORW[PTR] = AVAIL
+        SET AVAIL = PTR
+Step 6: Exit
+
+================================================================================

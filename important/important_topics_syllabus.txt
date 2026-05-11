@@ -1,0 +1,94 @@
+================================================================================
+DATA STRUCTURES AND ALGORITHMS - COMPLETE SYLLABUS & IMPORTANT TOPICS
+================================================================================
+Based on the Mid-Semester Exam Analysis and standard DSA curriculum (matching your workspace directories).
+
+--------------------------------------------------------------------------------
+PART 1: TOPICS COVERED IN MID-SEM (High Priority for Revision)
+--------------------------------------------------------------------------------
+
+1. Introduction & Algorithm Analysis
+   - Concept of Time and Space Complexity
+   - Asymptotic Notations (Big-Oh, Omega, Theta)
+   - Best, Worst, and Average Case Analysis
+   - Classification of Data Structures (Linear/Non-Linear, Static/Dynamic, Primitive/Non-Primitive)
+
+2. Arrays
+   - 1D Arrays: Memory allocation, Size calculation (UB - LB + 1), Address calculation
+   - 2D Arrays: Row-Major and Column-Major order representations and formulas
+   - Operations: Insertion (with shifting), Deletion, Traversal
+   - Limitations of Arrays
+
+3. Linked Lists
+   - Singly Linked List: Insertion, Deletion, Searching, Traversing (e.g., finding K-th node)
+   - Doubly Linked List: Advantages over singly, memory comparison, insertion, deletion
+   - Circular Linked List (Singly & Doubly), Header Nodes
+   - Applications: Polynomial Representation and Addition, Sparse Matrix representation
+
+4. Basic Searching & Sorting
+   - Searching: Linear Search vs Binary Search (Complexity analysis)
+   - Sorting: Bubble Sort (Step-by-step trace passes and complexity)
+
+5. Memory Management in C
+   - Static vs Dynamic memory allocation (malloc, calloc, realloc, free)
+   - Concept of Garbage Collection and AVAIL (Free Pool) list in algorithmic representation
+
+--------------------------------------------------------------------------------
+PART 2: TOPICS NOT COVERED IN MID-SEM (Crucial for Final/End-Sem Exams)
+--------------------------------------------------------------------------------
+
+6. Stacks
+   - Core Operations: Push, Pop, Peek/Top
+   - Implementation: Using Arrays and Linked Lists
+   - Applications: 
+     - Infix to Postfix / Prefix conversions
+     - Evaluation of Postfix expressions
+     - Recursion simulation
+     - Checking Balanced Parentheses
+
+7. Queues
+   - Core Operations: Enqueue (Insert) and Dequeue (Delete)
+   - Implementation: Using Arrays and Linked Lists
+   - Variations of Queues:
+     - Circular Queue (solves array wastage problem)
+     - Priority Queue
+     - Deque (Double-Ended Queue)
+
+8. Advanced Sorting Algorithms
+   - Iterative Sorts: Insertion Sort, Selection Sort
+   - Divide & Conquer Sorts: Merge Sort, Quick Sort (Partitioning logic)
+   - Specialized Sorts: Heap Sort, Radix Sort, Bucket Sort
+   - *Exam Tip: Be prepared to write Dinesh sir's style pseudocode and trace execution passes for these.*
+
+9. Trees (Non-Linear Data Structure)
+   - Basic Terminology: Root, Node, Leaf, Depth, Height, Sibling, Ancestor
+   - Binary Trees & Binary Search Trees (BST): Insertion, Deletion, Searching algorithms
+   - Tree Traversals: Pre-order, In-order, Post-order (Recursive and Non-Recursive algorithms)
+   - Advanced Trees: 
+     - AVL Trees (Balancing & Rotations - LL, RR, LR, RL)
+     - B-Trees / B+ Trees
+     - Heaps (Min Heap / Max Heap)
+
+10. Graphs (Non-Linear Data Structure)
+    - Terminology: Vertex, Edge, Directed/Undirected, Weighted, Degree
+    - Representations in Memory: Adjacency Matrix, Adjacency List
+    - Graph Traversals: 
+      - Breadth-First Search (BFS) - uses Queue
+      - Depth-First Search (DFS) - uses Stack
+    - Advanced Graph Algorithms:
+      - Shortest Path: Dijkstra's Algorithm, Floyd-Warshall Algorithm
+      - Minimum Spanning Trees (MST): Prim's Algorithm, Kruskal's Algorithm
+
+11. Hashing
+    - Hash Functions (Division method, Mid-square, Folding)
+    - Address Calculation 
+    - Collision Resolution Techniques: 
+      - Open Addressing (Linear Probing, Quadratic Probing, Double Hashing)
+      - Separate Chaining
+
+================================================================================
+EXAM PREPARATION STRATEGY:
+1. Master the Pseudocode Style: Ensure you can write algorithms using Dinesh sir's conventions (SET, Repeat, Step 1, Exit, and proper pointer terminology like INFO, LINK, START, AVAIL).
+2. Trace Algorithms: Practice step-by-step tracing (like in Sorting passes or Tree Rotations) as they carry heavy marks (usually 5 to 10 markers).
+3. Complexity Analysis: Always memorize Best, Average, and Worst-case time and space complexities for all operations across all data structures.
+================================================================================
